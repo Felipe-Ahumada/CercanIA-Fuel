@@ -1,0 +1,36 @@
+package cl.bencinaenlinea.usuario.domain.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "modelo_vehiculo",
+       uniqueConstraints = @UniqueConstraint(
+           name = "uq_modelo_marca_nombre",
+           columnNames = {"marca_vehiculo_id", "nombre"}))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ModeloVehiculo {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "marca_vehiculo_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_modelo_marca_vehiculo"))
+    private MarcaVehiculo marca;
+
+    @Column(nullable = false, length = 80)
+    private String nombre;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_vehiculo", nullable = false, length = 20)
+    @Builder.Default
+    private TipoVehiculo tipoVehiculo = TipoVehiculo.AUTO;
+
+    public enum TipoVehiculo { AUTO, SUV, CAMIONETA, MOTO, FURGON, OTRO }
+}
