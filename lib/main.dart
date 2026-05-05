@@ -7,12 +7,14 @@ import 'presentation/screens/map_screen.dart';
 
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/profile/profile_cubit.dart';
+import 'presentation/blocs/vehicle/vehicle_bloc.dart';
+import 'presentation/blocs/bank_profile/bank_profile_cubit.dart';
 import 'core/router/app_router.dart';
 import 'presentation/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inicializamos Firebase
   await Firebase.initializeApp();
 
@@ -38,7 +40,13 @@ class CercaniaFuelApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => di.sl<ProfileCubit>(),
-        )
+        ),
+        BlocProvider(
+          create: (_) => di.sl<VehicleBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<BankProfileCubit>(),
+        ),
       ],
       child: MaterialApp.router(
         title: 'CercanIA Fuel',
@@ -49,4 +57,3 @@ class CercaniaFuelApp extends StatelessWidget {
     );
   }
 }
-

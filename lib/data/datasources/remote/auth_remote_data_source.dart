@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../../../../core/errors/exceptions.dart';
-import '../../models/user_model.dart';
+import 'package:flutter_application_1/core/errors/exceptions.dart';
+import 'package:flutter_application_1/data/models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> signIn(String email, String password);
@@ -27,10 +27,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (userCredential.user != null) {
         return UserModel.fromFirebaseUser(userCredential.user!);
       } else {
-        throw ServerException();
+        throw ServerException(message: 'Usuario nulo tras login');
       }
     } catch (e) {
-      throw ServerException();
+      throw ServerException(message: e.toString());
     }
   }
 
@@ -43,10 +43,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         await userCredential.user!.updateDisplayName(nombre);
         return UserModel.fromFirebaseUser(userCredential.user!);
       } else {
-        throw ServerException();
+        throw ServerException(message: 'Usuario nulo tras registro');
       }
     } catch (e) {
-      throw ServerException();
+      throw ServerException(message: e.toString());
     }
   }
 
@@ -55,7 +55,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        throw ServerException(); // El usuario canceló
+        throw ServerException(message: 'Inicio de sesión cancelado');
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
@@ -68,10 +68,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (userCredential.user != null) {
         return UserModel.fromFirebaseUser(userCredential.user!);
       } else {
-        throw ServerException();
+        throw ServerException(message: 'Usuario nulo tras login con Google');
       }
     } catch (e) {
-      throw ServerException();
+      throw ServerException(message: e.toString());
     }
   }
 
@@ -81,7 +81,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await googleSignIn.signOut();
       await firebaseAuth.signOut();
     } catch (e) {
-      throw ServerException();
+      throw ServerException(message: e.toString());
     }
   }
 
@@ -90,7 +90,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       await firebaseAuth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      throw ServerException();
+      throw ServerException(message: e.toString());
     }
   }
 
@@ -100,7 +100,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (user != null) {
       return UserModel.fromFirebaseUser(user);
     } else {
-      throw ServerException();
+      throw ServerException(message: 'No hay usuario autenticado');
     }
   }
 
@@ -117,10 +117,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final updatedUser = firebaseAuth.currentUser!;
         return UserModel.fromFirebaseUser(updatedUser);
       } else {
-        throw ServerException();
+        throw ServerException(message: 'No hay usuario autenticado para actualizar');
       }
     } catch (e) {
-      throw ServerException();
+      throw ServerException(message: e.toString());
     }
   }
 }

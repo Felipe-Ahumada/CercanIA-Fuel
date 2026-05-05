@@ -6,11 +6,21 @@ import 'data/datasources/remote/auth_remote_data_source.dart';
 import 'data/repositories/fuel_station_repository_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/profile_repository_impl.dart';
+import 'data/repositories/bank_profile_repository_impl.dart';
+import 'data/repositories/vehicle_repository_impl.dart';
+import 'data/datasources/remote/vehicle_remote_data_source.dart';
+import 'data/datasources/remote/vehicle_remote_data_source_impl.dart';
+import 'data/datasources/remote/bank_profile_remote_data_source.dart';
+import 'data/datasources/remote/bank_profile_remote_data_source_impl.dart';
 import 'domain/repositories/fuel_station_repository.dart';
+import 'domain/repositories/vehicle_repository.dart';
+import 'domain/repositories/bank_profile_repository.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/profile_repository.dart';
 import 'domain/usecases/get_fuel_stations.dart';
 import 'domain/usecases/profile_usecases.dart';
+import 'domain/usecases/vehicle_usecases.dart';
+import 'domain/usecases/bank_profile_usecases.dart';
 import 'package:dio/dio.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'core/network/network_info.dart';
@@ -21,6 +31,8 @@ import 'domain/usecases/auth_usecases.dart';
 import 'presentation/blocs/fuel_station_bloc.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/profile/profile_cubit.dart';
+import 'presentation/blocs/vehicle/vehicle_bloc.dart';
+import 'presentation/blocs/bank_profile/bank_profile_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -44,8 +56,23 @@ Future<void> init() async {
       updateUserProfileUseCase: sl(),
     ),
   );
+  sl.registerFactory(
+    () => VehicleBloc(
+      getVehiclesUseCase: sl(),
+      addVehicleUseCase: sl(),
+      deleteVehicleUseCase: sl(),
+      setActiveVehicleUseCase: sl(),
+    ),
+  );
 
-  // Use Cases
+  sl.registerFactory(() => BankProfileCubit(
+    getBankProfileUseCase: sl(),
+    updateBankProfileUseCase: sl(),
+    getBanksCatalogUseCase: sl(),
+    getCardTypesCatalogUseCase: sl(),
+  ));
+
+// Use Cases
   sl.registerLazySingleton(() => GetFuelStations(sl()));
   sl.registerLazySingleton(() => SignInUseCase(sl()));
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
@@ -55,6 +82,14 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => GetUserProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateUserProfileUseCase(sl()));
+  sl.registerLazySingleton(() => GetVehiclesUseCase(sl()));
+  sl.registerLazySingleton(() => AddVehicleUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteVehicleUseCase(sl()));
+  sl.registerLazySingleton(() => SetActiveVehicleUseCase(sl()));
+  sl.registerLazySingleton(() => GetBankProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateBankProfileUseCase(sl()));
+  sl.registerLazySingleton(() => GetBanksCatalogUseCase(sl()));
+  sl.registerLazySingleton(() => GetCardTypesCatalogUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<FuelStationRepository>(
@@ -66,6 +101,12 @@ Future<void> init() async {
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(sl()),
   );
+  sl.registerLazySingleton<VehicleRepository>(
+    () => VehicleRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<BankProfileRepository>(
+    () => BankProfileRepositoryImpl(sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<FuelStationRemoteDataSource>(
@@ -73,6 +114,12 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl(), sl()),
+  );
+  sl.registerLazySingleton<VehicleRemoteDataSource>(
+    () => VehicleRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<BankProfileRemoteDataSource>(
+    () => BankProfileRemoteDataSourceImpl(sl()),
   );
 
   // Core & External

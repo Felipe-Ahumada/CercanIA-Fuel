@@ -7,6 +7,8 @@ import '../../presentation/pages/register_page.dart';
 import '../../presentation/pages/forgot_password_page.dart';
 import '../../presentation/screens/map_screen.dart';
 import '../../presentation/pages/profile_page.dart';
+import '../../presentation/pages/vehicles_page.dart';
+import '../../presentation/pages/bank_profile_page.dart';
 
 class AppRouter {
   final FirebaseAuth firebaseAuth;
@@ -51,6 +53,14 @@ class AppRouter {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/vehicles',
+        builder: (context, state) => const VehiclesPage(),
+      ),
+      GoRoute(
+        path: '/bank_profile',
+        builder: (context, state) => const BankProfilePage(),
       ),
     ],
   );

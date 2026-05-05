@@ -34,6 +34,12 @@ class _ProfilePageState extends State<ProfilePage> {
         title: const Text('Mi Perfil'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.directions_car),
+            onPressed: () {
+              context.push('/vehicles');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
               context.read<AuthBloc>().add(AuthSignOutRequested());
@@ -45,7 +51,8 @@ class _ProfilePageState extends State<ProfilePage> {
       body: BlocConsumer<ProfileCubit, ProfileState>(
         listener: (context, state) {
           if (state is ProfileLoaded) {
-            _nameController.text = state.user.nombre;
+            // Corrección aplicada aquí para manejar el String nullable
+            _nameController.text = state.user.nombre ?? '';
           } else if (state is ProfileError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
@@ -94,6 +101,21 @@ class _ProfilePageState extends State<ProfilePage> {
                       }
                     },
                     child: const Text('Guardar Cambios'),
+                  ),
+                  const Divider(height: 48),
+                  ListTile(
+                    leading: const Icon(Icons.directions_car),
+                    title: const Text('Mis Vehículos'),
+                    onTap: () {
+                      context.push('/vehicles');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.account_balance_wallet),
+                    title: const Text('Perfil Bancario / Descuentos'),
+                    onTap: () {
+                      context.push('/bank_profile');
+                    },
                   ),
                 ],
               ),
