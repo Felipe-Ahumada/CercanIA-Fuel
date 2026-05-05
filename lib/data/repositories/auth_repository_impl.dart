@@ -31,6 +31,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, UserEntity>> signInWithGoogle() async {
+    try {
+      final user = await remoteDataSource.signInWithGoogle();
+      return Right(user);
+    } on ServerException {
+      return const Left(ServerFailure('Error o cancelación al iniciar sesión con Google.'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> signOut() async {
     try {
       await remoteDataSource.signOut();

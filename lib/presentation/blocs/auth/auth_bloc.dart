@@ -33,6 +33,8 @@ class AuthSignUpRequested extends AuthEvent {
   List<Object?> get props => [email, password, nombre];
 }
 
+class AuthGoogleSignInRequested extends AuthEvent {}
+
 class AuthSignOutRequested extends AuthEvent {}
 
 abstract class AuthState extends Equatable {
@@ -69,18 +71,21 @@ class AuthError extends AuthState {
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignInUseCase signInUseCase;
   final SignUpUseCase signUpUseCase;
+  final SignInWithGoogleUseCase signInWithGoogleUseCase;
   final SignOutUseCase signOutUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
 
   AuthBloc({
     required this.signInUseCase,
     required this.signUpUseCase,
+    required this.signInWithGoogleUseCase,
     required this.signOutUseCase,
     required this.getCurrentUserUseCase,
   }) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<AuthSignInRequested>(_onAuthSignInRequested);
     on<AuthSignUpRequested>(_onAuthSignUpRequested);
+    on<AuthGoogleSignInRequested>(_onAuthGoogleSignInRequested);
     on<AuthSignOutRequested>(_onAuthSignOutRequested);
   }
 
@@ -110,6 +115,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await signUpUseCase(event.email, event.password, event.nombre);
     result.fold(
       (failure) => emit(const AuthError('Error al registrar usuario')),
+      (user) => emit(AuthAuthenticated(user)),
+    );
+  }
+
+  Future<void> _onAuthGoogleSignInRequested(
+      AuthGoogleSignInRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    final result = await signInWithGoogleUseCase();
+    result.fold(
+      (failure) => emit(AuthError(failure.message)), // Usamos el mensaje del failure
       (user) => emit(AuthAuthenticated(user)),
     );
   }

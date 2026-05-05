@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../blocs/auth/auth_bloc.dart';
-import 'register_page.dart';
-import 'forgot_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.message)));
           } else if (state is AuthAuthenticated) {
-            // TODO: Navigate to Maps/Dashboard
+            context.go('/map');
           }
         },
         builder: (context, state) {
@@ -73,21 +72,26 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: _onSignIn,
                   child: const Text('Ingresar'),
                 ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.g_mobiledata, size: 28),
+                  label: const Text('Iniciar sesión con Google'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  onPressed: () {
+                    context.read<AuthBloc>().add(AuthGoogleSignInRequested());
+                  },
+                ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
-                    );
+                    context.push('/forgot_password');
                   },
                   child: const Text('¿Olvidaste tu contraseña?'),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const RegisterPage()),
-                    );
+                    context.push('/register');
                   },
                   child: const Text('Registrarse'),
                 ),

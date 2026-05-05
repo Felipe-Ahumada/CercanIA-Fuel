@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:go_router/go_router.dart';
 import '../blocs/fuel_station_bloc.dart';
 import '../blocs/fuel_station_event.dart';
 import '../blocs/fuel_station_state.dart';
@@ -25,7 +26,17 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CercanIA Fuel - Mapa')),
+      appBar: AppBar(
+        title: const Text('CercanIA Fuel - Mapa'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            onPressed: () {
+              context.push('/profile');
+            },
+          ),
+        ],
+      ),
       body: BlocBuilder<FuelStationBloc, FuelStationState>(
         builder: (context, state) {
           if (state is FuelStationLoading) {

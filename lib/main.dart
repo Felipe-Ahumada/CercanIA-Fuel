@@ -6,7 +6,9 @@ import 'presentation/blocs/fuel_station_bloc.dart';
 import 'presentation/screens/map_screen.dart';
 
 import 'presentation/blocs/auth/auth_bloc.dart';
-import 'presentation/pages/login_page.dart';
+import 'presentation/blocs/profile/profile_cubit.dart';
+import 'core/router/app_router.dart';
+import 'presentation/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +26,8 @@ class CercaniaFuelApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appRouter = di.sl<AppRouter>().router;
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -32,27 +36,17 @@ class CercaniaFuelApp extends StatelessWidget {
         BlocProvider(
           create: (_) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
         ),
+        BlocProvider(
+          create: (_) => di.sl<ProfileCubit>(),
+        )
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'CercanIA Fuel',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-        ),
-        home: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            if (state is AuthAuthenticated) {
-              return const MapScreen();
-            } else if (state is AuthUnauthenticated) {
-              return const LoginPage();
-            }
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          },
-        ),
+        theme: AppTheme.lightTheme,
+        routerConfig: appRouter,
       ),
     );
   }
 }
+

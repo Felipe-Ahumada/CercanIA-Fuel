@@ -23,6 +23,16 @@ class SignUpUseCase {
   }
 }
 
+class SignInWithGoogleUseCase {
+  final AuthRepository repository;
+
+  SignInWithGoogleUseCase(this.repository);
+
+  Future<Either<Failure, UserEntity>> call() {
+    return repository.signInWithGoogle();
+  }
+}
+
 class SignOutUseCase {
   final AuthRepository repository;
 
