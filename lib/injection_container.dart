@@ -1,9 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'data/datasources/remote/fuel_station_remote_data_source.dart';
 import 'data/datasources/remote/auth_remote_data_source.dart';
-import 'data/repositories/fuel_station_repository_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/profile_repository_impl.dart';
 import 'data/repositories/bank_profile_repository_impl.dart';
@@ -12,12 +10,14 @@ import 'data/datasources/remote/vehicle_remote_data_source.dart';
 import 'data/datasources/remote/vehicle_remote_data_source_impl.dart';
 import 'data/datasources/remote/bank_profile_remote_data_source.dart';
 import 'data/datasources/remote/bank_profile_remote_data_source_impl.dart';
-import 'domain/repositories/fuel_station_repository.dart';
 import 'domain/repositories/vehicle_repository.dart';
 import 'domain/repositories/bank_profile_repository.dart';
+import 'domain/repositories/station_repository.dart';
+import 'data/repositories/station_repository_impl.dart';
+import 'data/datasources/remote/station_remote_data_source.dart';
+import 'domain/usecases/station_usecases.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/profile_repository.dart';
-import 'domain/usecases/get_fuel_stations.dart';
 import 'domain/usecases/profile_usecases.dart';
 import 'domain/usecases/vehicle_usecases.dart';
 import 'domain/usecases/bank_profile_usecases.dart';
@@ -28,19 +28,16 @@ import 'core/network/auth_interceptor.dart';
 import 'core/network/dio_client.dart';
 import 'core/router/app_router.dart';
 import 'domain/usecases/auth_usecases.dart';
-import 'presentation/blocs/fuel_station_bloc.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/profile/profile_cubit.dart';
 import 'presentation/blocs/vehicle/vehicle_bloc.dart';
 import 'presentation/blocs/bank_profile/bank_profile_cubit.dart';
+import 'presentation/blocs/map/map_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
   // Blocs
-  sl.registerFactory(
-    () => FuelStationBloc(getFuelStations: sl()),
-  );
   sl.registerFactory(
     () => AuthBloc(
       signInUseCase: sl(),
@@ -72,8 +69,12 @@ Future<void> init() async {
     getCardTypesCatalogUseCase: sl(),
   ));
 
-// Use Cases
-  sl.registerLazySingleton(() => GetFuelStations(sl()));
+  sl.registerFactory(() => MapBloc(
+    getNearbyStationsUseCase: sl(),
+    toggleFavoriteUseCase: sl(),
+  ));
+
+  // Use Cases
   sl.registerLazySingleton(() => SignInUseCase(sl()));
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
   sl.registerLazySingleton(() => SignInWithGoogleUseCase(sl()));
@@ -90,11 +91,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateBankProfileUseCase(sl()));
   sl.registerLazySingleton(() => GetBanksCatalogUseCase(sl()));
   sl.registerLazySingleton(() => GetCardTypesCatalogUseCase(sl()));
+  sl.registerLazySingleton(() => GetNearbyStationsUseCase(sl()));
+  sl.registerLazySingleton(() => GetStationDetailUseCase(sl()));
+  sl.registerLazySingleton(() => ToggleFavoriteUseCase(sl()));
 
   // Repository
-  sl.registerLazySingleton<FuelStationRepository>(
-    () => FuelStationRepositoryImpl(remoteDataSource: sl()),
-  );
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(sl()),
   );
@@ -107,11 +108,11 @@ Future<void> init() async {
   sl.registerLazySingleton<BankProfileRepository>(
     () => BankProfileRepositoryImpl(sl()),
   );
+  sl.registerLazySingleton<StationRepository>(
+    () => StationRepositoryImpl(remoteDataSource: sl()),
+  );
 
   // Data sources
-  sl.registerLazySingleton<FuelStationRemoteDataSource>(
-    () => FuelStationRemoteDataSourceImpl(),
-  );
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl(), sl()),
   );
@@ -120,6 +121,9 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<BankProfileRemoteDataSource>(
     () => BankProfileRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<StationRemoteDataSource>(
+    () => StationRemoteDataSourceImpl(sl()),
   );
 
   // Core & External

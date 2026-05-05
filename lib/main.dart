@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'injection_container.dart' as di;
-import 'presentation/blocs/fuel_station_bloc.dart';
-import 'presentation/screens/map_screen.dart';
 
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/profile/profile_cubit.dart';
 import 'presentation/blocs/vehicle/vehicle_bloc.dart';
 import 'presentation/blocs/bank_profile/bank_profile_cubit.dart';
+import 'presentation/blocs/map/map_bloc.dart';
 import 'core/router/app_router.dart';
 import 'presentation/theme/app_theme.dart';
 
@@ -33,9 +32,6 @@ class CercaniaFuelApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => di.sl<FuelStationBloc>(),
-        ),
-        BlocProvider(
           create: (_) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
         ),
         BlocProvider(
@@ -46,6 +42,9 @@ class CercaniaFuelApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => di.sl<BankProfileCubit>(),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<MapBloc>(),
         ),
       ],
       child: MaterialApp.router(

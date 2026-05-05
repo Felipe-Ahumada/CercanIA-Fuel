@@ -9,6 +9,7 @@ import '../../presentation/screens/map_screen.dart';
 import '../../presentation/pages/profile_page.dart';
 import '../../presentation/pages/vehicles_page.dart';
 import '../../presentation/pages/bank_profile_page.dart';
+import '../../presentation/pages/station_detail_page.dart';
 
 class AppRouter {
   final FirebaseAuth firebaseAuth;
@@ -61,6 +62,10 @@ class AppRouter {
       GoRoute(
         path: '/bank_profile',
         builder: (context, state) => const BankProfilePage(),
+      ),
+      GoRoute(
+        path: '/station_detail',
+        builder: (context, state) => StationDetailPage(stationId: state.extra as String),
       ),
     ],
   );

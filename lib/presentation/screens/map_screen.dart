@@ -1,12 +1,14 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:geolocator/geolocator.dart'; // Asegúrate de tener este paquete importado
-import '../blocs/fuel_station_bloc.dart';
-import '../blocs/fuel_station_event.dart';
-import '../blocs/fuel_station_state.dart';
+import '../blocs/map/map_bloc.dart';
+import '../blocs/map/map_event.dart';
+import '../blocs/map/map_state.dart';
+import '../widgets/fuel_filter_chips.dart';
+import '../widgets/station_bottom_sheet.dart';
+import '../../domain/entities/vehicle_entity.dart';
+import '../../domain/entities/station_entity.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -16,73 +18,52 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  GoogleMapController? mapController;
-  StreamSubscription<Position>? _positionStreamSubscription;
-  bool _isFirstLocationUpdate = true; // Para centrar el mapa solo la primera vez automáticamente
+  GoogleMapController? _mapController;
+  Fuel? _selectedFuel;
+  bool _isFirstLocationUpdate = true;
 
   @override
   void initState() {
     super.initState();
-    _startLocationTracking();
+    context.read<MapBloc>().add(RequestLocationAndLoadStations());
   }
 
-  Future<void> _startLocationTracking() async {
-    // 1. Verificar si los servicios de ubicación están habilitados
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Manejar el caso donde el GPS está apagado (mostrar diálogo, etc.)
-      return;
-    }
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
 
-    // 2. Verificar permisos
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        // Manejar el caso donde el usuario niega los permisos permanentemente
-        return;
-      }
-    }
-
-    // 3. Configurar el Umbral (Threshold)
-    const LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 50, // UMBRAL: Solo emite eventos cada 50 metros recorridos
-    );
-
-    // 4. Iniciar el Stream
-    _positionStreamSubscription = Geolocator.getPositionStream(
-      locationSettings: locationSettings,
-    ).listen((Position position) {
-      
-      // Mover la cámara a la ubicación del usuario solo la primera vez que se detecta
-      if (_isFirstLocationUpdate && mapController != null) {
-        mapController!.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: LatLng(position.latitude, position.longitude),
-              zoom: 14,
-            ),
-          ),
+  void _showStationBottomSheet(StationEntity station) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return StationBottomSheet(
+          station: station,
+          selectedFuel: _selectedFuel,
+          onToggleFavorite: () {
+            context.read<MapBloc>().add(ToggleStationFavorite(
+              stationId: station.id, 
+              isFavorite: !station.esFavorita
+            ));
+            Navigator.pop(context);
+          },
         );
-        _isFirstLocationUpdate = false;
       }
-
-      // Opcional: Si tu evento recibe lat y lng, puedes pasarlos aquí para cargar
-      // estaciones cercanas reales en lugar de un área fija.
-      // context.read<FuelStationBloc>().add(LoadFuelStationsEvent(lat: position.latitude, lng: position.longitude));
-      
-      // Por ahora, dejamos la carga genérica que ya tenías:
-      context.read<FuelStationBloc>().add(LoadFuelStationsEvent());
-    });
+    );
   }
 
-  @override
-  void dispose() {
-    // Es VITAL cancelar la suscripción del stream para evitar memory leaks
-    _positionStreamSubscription?.cancel();
-    mapController?.dispose();
-    super.dispose();
+  Set<Marker> _buildMarkers(List<StationEntity> stations) {
+    return stations.map((station) {
+      return Marker(
+        markerId: MarkerId(station.id),
+        position: LatLng(station.lat, station.lng),
+        onTap: () => _showStationBottomSheet(station),
+        infoWindow: InfoWindow(title: station.nombre, snippet: station.marca),
+      );
+    }).toSet();
   }
 
   @override
@@ -99,38 +80,85 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ],
       ),
-      body: BlocBuilder<FuelStationBloc, FuelStationState>(
-        builder: (context, state) {
-          if (state is FuelStationLoading && _isFirstLocationUpdate) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is FuelStationError) {
-            return Center(child: Text('Error: ${state.message}'));
-          } else if (state is FuelStationLoaded) {
-            final markers = state.stations.map((station) {
-              return Marker(
-                markerId: MarkerId(station.id),
-                position: LatLng(station.latitude, station.longitude),
-                infoWindow: InfoWindow(
-                  title: station.name,
-                  snippet: station.address,
-                ),
-              );
-            }).toSet();
-
-            return GoogleMap(
-              onMapCreated: (controller) => mapController = controller,
-              initialCameraPosition: const CameraPosition(
-                // Posición inicial por defecto mientras el GPS calcula la real
-                target: LatLng(-33.4489, -70.6693), 
-                zoom: 10,
-              ),
-              markers: markers,
-              myLocationEnabled: true, // Punto azul local
-              myLocationButtonEnabled: true, // Botón para centrar
-              compassEnabled: true,
+      body: BlocConsumer<MapBloc, MapState>(
+        listener: (context, state) {
+          if (state is MapLoaded && state.userLocation != null && _isFirstLocationUpdate) {
+            _isFirstLocationUpdate = false;
+            _mapController?.animateCamera(
+              CameraUpdate.newLatLngZoom(state.userLocation!, 14.0)
             );
           }
-          // Fallback visual si el estado no es ninguno de los anteriores
+          if (state is MapError) {
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text(state.message)),
+             );
+          }
+        },
+        builder: (context, state) {
+          if (state is MapLoading && _isFirstLocationUpdate) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is MapLoaded) {
+            if (state.locationPermissionDenied) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Se necesita permiso de ubicación para usar el mapa.'),
+                    ElevatedButton(
+                      onPressed: () => context.read<MapBloc>().add(RequestLocationAndLoadStations()),
+                      child: const Text('Reintentar'),
+                    )
+                  ],
+                ),
+              );
+            }
+
+            return Stack(
+              children: [
+                GoogleMap(
+                  onMapCreated: _onMapCreated,
+                  initialCameraPosition: CameraPosition(
+                    target: state.userLocation ?? const LatLng(-33.4489, -70.6693),
+                    zoom: 10,
+                  ),
+                  markers: _buildMarkers(state.stations),
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: false,
+                  compassEnabled: true,
+                ),
+                Positioned(
+                  top: 16,
+                  left: 0,
+                  right: 0,
+                  child: FuelFilterChips(
+                    selectedFuel: _selectedFuel,
+                    onSelected: (fuel) {
+                      setState(() {
+                         _selectedFuel = fuel;
+                      });
+                    },
+                  ),
+                ),
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                       if (state.userLocation != null) {
+                         _mapController?.animateCamera(
+                           CameraUpdate.newLatLngZoom(state.userLocation!, 14.0)
+                         );
+                       }
+                    },
+                    child: const Icon(Icons.my_location),
+                  ),
+                ),
+              ],
+            );
+          }
+
           return const Center(child: CircularProgressIndicator());
         },
       ),
