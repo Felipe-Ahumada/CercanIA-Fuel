@@ -20,11 +20,11 @@ import java.util.UUID;
 @Table(
     name = "transaction",
     indexes = {
-        @Index(name = "idx_tx_usuario",     columnList = "usuario_id"),
-        @Index(name = "idx_tx_vehiculo",    columnList = "vehiculo_id"),
-        @Index(name = "idx_tx_bencinera",   columnList = "bencinera_id"),
-        @Index(name = "idx_tx_combustible", columnList = "tipo_combustible_id"),
-        @Index(name = "idx_tx_fecha",       columnList = "fecha_transaccion")
+        @Index(name = "idx_tx_user",     columnList = "user_id"),
+        @Index(name = "idx_tx_vehicle",    columnList = "vehicle_id"),
+        @Index(name = "idx_tx_station",   columnList = "station_id"),
+        @Index(name = "idx_tx_fuel", columnList = "fuel_type_id"),
+        @Index(name = "idx_tx_date",       columnList = "transaction_date")
     }
 )
 @Getter
@@ -41,54 +41,54 @@ public class Transaction extends BaseAuditEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tx_usuario"))
+    @JoinColumn(name = "user_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_tx_user"))
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "vehiculo_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tx_vehiculo"))
+    @JoinColumn(name = "vehicle_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_tx_vehicle"))
     private Vehicle vehicle;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "bencinera_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tx_bencinera"))
+    @JoinColumn(name = "station_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_tx_station"))
     private Station station;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tipo_combustible_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tx_combustible"))
+    @JoinColumn(name = "fuel_type_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_tx_fuel"))
     private FuelType fuelType;
 
     /** Null = no se uso tarjeta (efectivo u otro). */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tarjeta_producto_id",
-                foreignKey = @ForeignKey(name = "fk_tx_tarjeta_producto"))
+    @JoinColumn(name = "card_product_id",
+                foreignKey = @ForeignKey(name = "fk_tx_card_product"))
     private CardProduct cardProduct;
 
     /** Null = no se aplico discount. */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "descuento_id",
-                foreignKey = @ForeignKey(name = "fk_tx_descuento"))
+    @JoinColumn(name = "discount_id",
+                foreignKey = @ForeignKey(name = "fk_tx_discount"))
     private Discount discount;
 
-    @Column(name = "precio_unitario", nullable = false, precision = 10, scale = 3)
+    @Column(name = "unit_price", nullable = false, precision = 10, scale = 3)
     private BigDecimal unitPrice;
 
     @Column(nullable = false, precision = 10, scale = 3)
     private BigDecimal liters;
 
-    @Column(name = "monto_bruto", nullable = false, precision = 12, scale = 2)
+    @Column(name = "gross_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal grossAmount;
 
-    @Column(name = "monto_descuento", nullable = false, precision = 12, scale = 2)
+    @Column(name = "discount_amount", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
-    @Column(name = "monto_final", nullable = false, precision = 12, scale = 2)
+    @Column(name = "final_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal finalAmount;
 
-    @Column(name = "fecha_transaccion", nullable = false)
+    @Column(name = "transaction_date", nullable = false)
     private LocalDateTime transactionDate;
 
     @Column(length = 255)

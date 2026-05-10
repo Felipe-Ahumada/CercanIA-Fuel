@@ -13,11 +13,11 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "vehicle",
-    uniqueConstraints = @UniqueConstraint(name = "uq_vehiculo_patente", columnNames = "licensePlate"),
+    uniqueConstraints = @UniqueConstraint(name = "uq_vehicle_license_plate", columnNames = "licensePlate"),
     indexes = {
-        @Index(name = "idx_vehiculo_usuario",     columnList = "usuario_id"),
-        @Index(name = "idx_vehiculo_modelo",      columnList = "modelo_vehiculo_id"),
-        @Index(name = "idx_vehiculo_combustible", columnList = "tipo_combustible_id")
+        @Index(name = "idx_vehicle_user",     columnList = "user_id"),
+        @Index(name = "idx_vehicle_model",      columnList = "vehicle_model_id"),
+        @Index(name = "idx_vehicle_fuel", columnList = "fuel_type_id")
     }
 )
 @Getter
@@ -35,18 +35,18 @@ public class Vehicle extends BaseAuditEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_vehiculo_usuario"))
+    @JoinColumn(name = "user_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_vehicle_user"))
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "modelo_vehiculo_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_vehiculo_modelo"))
+    @JoinColumn(name = "vehicle_model_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_vehicle_model"))
     private VehicleModel model;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tipo_combustible_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_vehiculo_combustible"))
+    @JoinColumn(name = "fuel_type_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_vehicle_fuel"))
     private FuelType fuelType;
 
     @Column(nullable = false, length = 10)

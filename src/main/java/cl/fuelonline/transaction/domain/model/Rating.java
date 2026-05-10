@@ -10,12 +10,12 @@ import lombok.*;
 @Table(
     name = "rating",
     uniqueConstraints = @UniqueConstraint(
-        name = "uq_calificacion_usuario_bencinera",
-        columnNames = {"usuario_id", "bencinera_id"}),
+        name = "uq_rating_user_station",
+        columnNames = {"user_id", "station_id"}),
     indexes = {
-        @Index(name = "idx_calif_usuario",   columnList = "usuario_id"),
-        @Index(name = "idx_calif_bencinera", columnList = "bencinera_id"),
-        @Index(name = "idx_calif_puntaje",   columnList = "score")
+        @Index(name = "idx_rating_user",   columnList = "user_id"),
+        @Index(name = "idx_rating_station", columnList = "station_id"),
+        @Index(name = "idx_rating_score",   columnList = "score")
     }
 )
 @Getter
@@ -30,13 +30,13 @@ public class Rating extends BaseAuditEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_calif_usuario"))
+    @JoinColumn(name = "user_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_rating_user"))
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "bencinera_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_calif_bencinera"))
+    @JoinColumn(name = "station_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_rating_station"))
     private Station station;
 
     /** 1 a 5 estrellas. */

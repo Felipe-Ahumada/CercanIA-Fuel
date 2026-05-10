@@ -6,7 +6,7 @@ import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "brand",
-       uniqueConstraints = @UniqueConstraint(name = "uq_marca_codigo_api", columnNames = "codigo_api"))
+       uniqueConstraints = @UniqueConstraint(name = "uq_brand_api_code", columnNames = "api_code"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +19,7 @@ public class Brand {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "codigo_api", nullable = false, length = 30)
+    @Column(name = "api_code", nullable = false, length = 30)
     private String apiCode;
 
     @Column(nullable = false, length = 80)

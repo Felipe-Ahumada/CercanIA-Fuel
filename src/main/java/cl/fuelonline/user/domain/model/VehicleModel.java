@@ -4,10 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "modelo_vehiculo",
+@Table(name = "vehicle_model",
        uniqueConstraints = @UniqueConstraint(
-           name = "uq_modelo_marca_nombre",
-           columnNames = {"marca_vehiculo_id", "name"}))
+           name = "uq_vehicle_model_brand_name",
+           columnNames = {"vehicle_brand_id", "name"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,8 +20,8 @@ public class VehicleModel {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "marca_vehiculo_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_modelo_marca_vehiculo"))
+    @JoinColumn(name = "vehicle_brand_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_model_vehicle_brand"))
     private VehicleBrand brand;
 
     @Column(nullable = false, length = 80)

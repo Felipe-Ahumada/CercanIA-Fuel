@@ -16,13 +16,13 @@ import java.util.UUID;
 @Table(
     name = "user",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_usuario_email",        columnNames = "email"),
-        @UniqueConstraint(name = "uq_usuario_rut",          columnNames = "rut"),
-        @UniqueConstraint(name = "uq_usuario_firebase_uid", columnNames = "firebase_uid")
+        @UniqueConstraint(name = "uq_user_email",        columnNames = "email"),
+        @UniqueConstraint(name = "uq_user_rut",          columnNames = "rut"),
+        @UniqueConstraint(name = "uq_user_firebase_uid", columnNames = "firebase_uid")
     },
     indexes = {
-        @Index(name = "idx_usuario_rol",          columnList = "rol_id"),
-        @Index(name = "idx_usuario_firebase_uid", columnList = "firebase_uid")
+        @Index(name = "idx_user_role",          columnList = "role_id"),
+        @Index(name = "idx_user_firebase_uid", columnList = "firebase_uid")
     }
 )
 @Getter
@@ -40,8 +40,8 @@ public class User extends BaseAuditEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "rol_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_usuario_rol"))
+    @JoinColumn(name = "role_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_user_role"))
     private Role role;
 
     @Column(nullable = false, length = 180)
@@ -54,19 +54,19 @@ public class User extends BaseAuditEntity {
     @Column(nullable = false, length = 12)
     private String rut;
 
-    @Column(name = "p_nombre", nullable = false, length = 80)
+    @Column(name = "first_name", nullable = false, length = 80)
     private String firstName;
 
-    @Column(name = "s_nombre", length = 80)
+    @Column(name = "middle_name", length = 80)
     private String middleName;
 
-    @Column(name = "p_apellido", nullable = false, length = 80)
+    @Column(name = "last_name", nullable = false, length = 80)
     private String lastName;
 
-    @Column(name = "s_apellido", nullable = false, length = 80)
+    @Column(name = "second_last_name", nullable = false, length = 80)
     private String secondLastName;
 
-    @Column(name = "fecha_nacimiento", nullable = false)
+    @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
     @Column(nullable = false)

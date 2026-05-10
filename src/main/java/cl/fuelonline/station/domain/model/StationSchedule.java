@@ -7,10 +7,10 @@ import java.time.LocalTime;
 
 @Entity
 @Table(
-    name = "bencinera_horario",
+    name = "station_schedule",
     uniqueConstraints = @UniqueConstraint(
-        name = "uq_horario_dia",
-        columnNames = {"bencinera_id", "dia_semana"})
+        name = "uq_schedule_day",
+        columnNames = {"station_id", "day_of_week"})
 )
 @Getter
 @Setter
@@ -24,25 +24,25 @@ public class StationSchedule {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "bencinera_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_horario_bencinera"))
+    @JoinColumn(name = "station_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_schedule_station"))
     private Station station;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "dia_semana", nullable = false, length = 12)
+    @Column(name = "day_of_week", nullable = false, length = 12)
     private DiaSemana dayOfWeek;
 
-    @Column(name = "hora_apertura")
+    @Column(name = "opening_time")
     private LocalTime openingTime;
 
-    @Column(name = "hora_cierre")
+    @Column(name = "closing_time")
     private LocalTime closingTime;
 
-    @Column(name = "es_24_horas", nullable = false)
+    @Column(name = "twenty_four_hours", nullable = false)
     @Builder.Default
     private Boolean twentyFourHours = Boolean.FALSE;
 
-    @Column(name = "esta_cerrado", nullable = false)
+    @Column(name = "closed", nullable = false)
     @Builder.Default
     private Boolean closed = Boolean.FALSE;
 

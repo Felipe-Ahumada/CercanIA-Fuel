@@ -5,7 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "region",
-       uniqueConstraints = @UniqueConstraint(name = "uq_region_codigo", columnNames = "code"))
+       uniqueConstraints = @UniqueConstraint(name = "uq_region_code", columnNames = "code"))
 @Getter
 @Setter
 @NoArgsConstructor

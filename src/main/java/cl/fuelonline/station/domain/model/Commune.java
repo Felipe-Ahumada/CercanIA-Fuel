@@ -5,8 +5,8 @@ import lombok.*;
 
 @Entity
 @Table(name = "commune",
-       uniqueConstraints = @UniqueConstraint(name = "uq_comuna_codigo", columnNames = "code"),
-       indexes = @Index(name = "idx_comuna_region", columnList = "region_id"))
+       uniqueConstraints = @UniqueConstraint(name = "uq_commune_code", columnNames = "code"),
+       indexes = @Index(name = "idx_commune_region", columnList = "region_id"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +20,7 @@ public class Commune {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "region_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_comuna_region"))
+                foreignKey = @ForeignKey(name = "fk_commune_region"))
     private Region region;
 
     /** Codigo territorial chileno (5 digitos). Ej: "13101" para Santiago. */

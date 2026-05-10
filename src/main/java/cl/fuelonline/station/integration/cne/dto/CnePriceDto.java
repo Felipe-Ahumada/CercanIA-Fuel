@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CnePriceDto(
-        @JsonProperty("unidad_cobro")        String chargeUnit,
+        @JsonProperty("charge_unit")        String chargeUnit,
         String                                price,
         @JsonProperty("fecha_actualizacion") String updateDate,
         @JsonProperty("hora_actualizacion")  String updateTime,
-        @JsonProperty("tipo_atencion")       String attentionType
+        @JsonProperty("attention_type")       String attentionType
 ) {}

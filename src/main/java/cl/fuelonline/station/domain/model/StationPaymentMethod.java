@@ -8,8 +8,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "bencinera_metodo_pago",
-       indexes = @Index(name = "idx_bmp_metodo", columnList = "metodo_pago_id"))
+@Table(name = "station_payment_method",
+       indexes = @Index(name = "idx_smp_method", columnList = "payment_method_id"))
 @IdClass(StationPaymentMethod.PK.class)
 @Getter
 @Setter
@@ -20,14 +20,14 @@ public class StationPaymentMethod {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "bencinera_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_bmp_bencinera"))
+    @JoinColumn(name = "station_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_smp_station"))
     private Station station;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "metodo_pago_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_bmp_metodo_pago"))
+    @JoinColumn(name = "payment_method_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_smp_payment_method"))
     private PaymentMethod paymentMethod;
 
     @Getter

@@ -6,11 +6,11 @@ import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(
-    name = "tarjeta_producto",
+    name = "card_product",
     uniqueConstraints = @UniqueConstraint(
-        name = "uq_producto_banco_nombre",
-        columnNames = {"banco_id", "name"}),
-    indexes = @Index(name = "idx_tp_banco", columnList = "banco_id")
+        name = "uq_card_product_bank_name",
+        columnNames = {"bank_id", "name"}),
+    indexes = @Index(name = "idx_card_product_bank", columnList = "bank_id")
 )
 @Getter
 @Setter
@@ -25,15 +25,15 @@ public class CardProduct {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "banco_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_tp_banco"))
+    @JoinColumn(name = "bank_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_card_product_bank"))
     private Bank bank;
 
     @Column(nullable = false, length = 100)
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_tarjeta", nullable = false, length = 20)
+    @Column(name = "card_type", nullable = false, length = 20)
     private CardType cardType;
 
     @Column(nullable = false)

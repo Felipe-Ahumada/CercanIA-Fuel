@@ -14,7 +14,7 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "favorite",
-    indexes = @Index(name = "idx_fav_bencinera", columnList = "bencinera_id")
+    indexes = @Index(name = "idx_favorite_station", columnList = "station_id")
 )
 @IdClass(Favorite.PK.class)
 @Getter
@@ -26,14 +26,14 @@ public class Favorite {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_fav_usuario"))
+    @JoinColumn(name = "user_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_favorite_user"))
     private User user;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "bencinera_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_fav_bencinera"))
+    @JoinColumn(name = "station_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_favorite_station"))
     private Station station;
 
     @Column(length = 80)

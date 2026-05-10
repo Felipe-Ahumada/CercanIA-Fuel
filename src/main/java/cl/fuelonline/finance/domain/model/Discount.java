@@ -15,10 +15,10 @@ import java.time.LocalDateTime;
 @Table(
     name = "discount",
     indexes = {
-        @Index(name = "idx_desc_marca",             columnList = "marca_id"),
-        @Index(name = "idx_desc_tarjeta_producto",  columnList = "tarjeta_producto_id"),
-        @Index(name = "idx_desc_combustible",       columnList = "tipo_combustible_id"),
-        @Index(name = "idx_desc_dia",               columnList = "dia_semana")
+        @Index(name = "idx_discount_brand",             columnList = "brand_id"),
+        @Index(name = "idx_discount_card_product",  columnList = "card_product_id"),
+        @Index(name = "idx_discount_fuel",       columnList = "fuel_type_id"),
+        @Index(name = "idx_discount_day",               columnList = "day_of_week")
     }
 )
 @Getter
@@ -34,44 +34,44 @@ public class Discount {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "marca_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_desc_marca"))
+    @JoinColumn(name = "brand_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_discount_brand"))
     private Brand brand;
 
     /** Null = aplica a cualquier medio de pago. */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tarjeta_producto_id",
-                foreignKey = @ForeignKey(name = "fk_desc_tarjeta_producto"))
+    @JoinColumn(name = "card_product_id",
+                foreignKey = @ForeignKey(name = "fk_discount_card_product"))
     private CardProduct cardProduct;
 
     /** Null = aplica a cualquier combustible. */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_combustible_id",
-                foreignKey = @ForeignKey(name = "fk_desc_combustible"))
+    @JoinColumn(name = "fuel_type_id",
+                foreignKey = @ForeignKey(name = "fk_discount_fuel"))
     private FuelType fuelType;
 
     /** Null = aplica todos los dias. 1 = lunes, 7 = domingo. */
-    @Column(name = "dia_semana")
+    @Column(name = "day_of_week")
     private Integer dayOfWeek;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_descuento", nullable = false, length = 20)
+    @Column(name = "discount_type", nullable = false, length = 20)
     @Builder.Default
     private DiscountType discountType = DiscountType.PERCENTAGE;
 
-    @Column(name = "valor_descuento", nullable = false, precision = 8, scale = 2)
+    @Column(name = "discount_value", nullable = false, precision = 8, scale = 2)
     private BigDecimal discountValue;
 
-    @Column(name = "tope_maximo", precision = 10, scale = 2)
+    @Column(name = "max_cap", precision = 10, scale = 2)
     private BigDecimal maxCap;
 
     @Column(length = 255)
     private String description;
 
-    @Column(name = "fecha_inicio", nullable = false)
+    @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "fecha_fin")
+    @Column(name = "end_date")
     private LocalDate endDate;
 
     @Column(nullable = false)

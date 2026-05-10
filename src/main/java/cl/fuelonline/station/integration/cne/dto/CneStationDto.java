@@ -12,7 +12,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CneStationDto(
         String                            code,
-        @JsonProperty("en_mantenimiento") Integer inMaintenance,
+        @JsonProperty("in_maintenance") Integer inMaintenance,
         @JsonProperty("razon_social")     String legalName,
         @JsonProperty("horario_atencion") String businessHours,
         CneDistributorDto                distributor,

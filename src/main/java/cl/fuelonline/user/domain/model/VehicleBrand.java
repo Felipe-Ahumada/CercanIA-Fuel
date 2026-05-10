@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "marca_vehiculo",
-       uniqueConstraints = @UniqueConstraint(name = "uq_marca_vehiculo_nombre", columnNames = "name"))
+@Table(name = "vehicle_brand",
+       uniqueConstraints = @UniqueConstraint(name = "uq_vehicle_brand_name", columnNames = "name"))
 @Getter
 @Setter
 @NoArgsConstructor

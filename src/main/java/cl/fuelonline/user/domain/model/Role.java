@@ -6,7 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "role", uniqueConstraints = @UniqueConstraint(name = "uq_rol_nombre", columnNames = "name"))
+@Table(name = "role", uniqueConstraints = @UniqueConstraint(name = "uq_role_name", columnNames = "name"))
 @Getter
 @Setter
 @NoArgsConstructor

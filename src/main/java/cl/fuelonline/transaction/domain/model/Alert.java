@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @Table(
     name = "alert",
     indexes = {
-        @Index(name = "idx_alerta_usuario",     columnList = "usuario_id"),
-        @Index(name = "idx_alerta_bencinera",   columnList = "bencinera_id"),
-        @Index(name = "idx_alerta_tipo",        columnList = "tipo_alerta"),
-        @Index(name = "idx_alerta_leida",       columnList = "read"),
-        @Index(name = "idx_alerta_created_at",  columnList = "created_at")
+        @Index(name = "idx_alert_user",     columnList = "user_id"),
+        @Index(name = "idx_alert_station",   columnList = "station_id"),
+        @Index(name = "idx_alert_type",        columnList = "alert_type"),
+        @Index(name = "idx_alert_read",       columnList = "read"),
+        @Index(name = "idx_alert_created_at",  columnList = "created_at")
     }
 )
 @Getter
@@ -31,18 +31,18 @@ public class Alert {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_alerta_usuario"))
+    @JoinColumn(name = "user_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_alert_user"))
     private User user;
 
     /** Null = alert no asociada a una station (ej: SYSTEM). */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bencinera_id",
-                foreignKey = @ForeignKey(name = "fk_alerta_bencinera"))
+    @JoinColumn(name = "station_id",
+                foreignKey = @ForeignKey(name = "fk_alert_station"))
     private Station station;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_alerta", nullable = false, length = 30)
+    @Column(name = "alert_type", nullable = false, length = 30)
     private AlertType alertType;
 
     @Column(nullable = false, length = 150)
@@ -55,7 +55,7 @@ public class Alert {
     @Builder.Default
     private Boolean read = Boolean.FALSE;
 
-    @Column(name = "leida_at")
+    @Column(name = "read_at")
     private LocalDateTime readAt;
 
     @CreationTimestamp

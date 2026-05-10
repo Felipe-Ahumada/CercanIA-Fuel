@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "tipo_combustible")
+@Table(name = "fuel_type")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,7 +25,7 @@ public class FuelType {
     private String shortName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "unidad_cobro", nullable = false, length = 10)
+    @Column(name = "charge_unit", nullable = false, length = 10)
     @Builder.Default
     private ChargeUnit chargeUnit = ChargeUnit.LT;
 

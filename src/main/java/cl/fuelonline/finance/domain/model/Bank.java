@@ -6,7 +6,7 @@ import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "bank",
-       uniqueConstraints = @UniqueConstraint(name = "uq_banco_codigo", columnNames = "code"))
+       uniqueConstraints = @UniqueConstraint(name = "uq_bank_code", columnNames = "code"))
 @Getter
 @Setter
 @NoArgsConstructor
