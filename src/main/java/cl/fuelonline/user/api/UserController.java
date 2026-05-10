@@ -25,19 +25,19 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/usuarios")
 @RequiredArgsConstructor
-@Tag(name = "Usuarios", description = "Gestion de usuarios de la plataforma Bencina en Linea")
+@Tag(name = "Users", description = "User management for the Fuel Online platform")
 public class UserController {
 
     private final UserService userService;
 
     @GetMapping
-    @Operation(summary = "Listar usuarios paginado")
+    @Operation(summary = "List users (paged)")
     public Page<UserResponse> list(@ParameterObject Pageable pageable) {
         return userService.list(pageable);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un user por su UUID")
+    @Operation(summary = "Get a user by its UUID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User encontrado"),
             @ApiResponse(responseCode = "404", description = "User no existe", content = @Content)
@@ -47,12 +47,12 @@ public class UserController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo user")
+    @Operation(summary = "Create a new user")
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest req,
                                                  UriComponentsBuilder uriBuilder) {
-        UserResponse creado = userService.create(req);
-        URI location = uriBuilder.path("/api/v1/usuarios/{id}").buildAndExpand(creado.id()).toUri();
-        return ResponseEntity.created(location).body(creado);
+        UserResponse created = userService.create(req);
+        URI location = uriBuilder.path("/api/v1/usuarios/{id}").buildAndExpand(created.id()).toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     @PutMapping("/{id}")
@@ -64,7 +64,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Borrado logico: brand el user como inactivo")
+    @Operation(summary = "Soft delete: marks the user as inactive")
     public void delete(@PathVariable UUID id) {
         userService.delete(id);
     }

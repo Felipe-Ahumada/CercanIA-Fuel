@@ -22,13 +22,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/alertas")
 @RequiredArgsConstructor
-@Tag(name = "Alertas", description = "Notificaciones del user (prices, descuentos, sistema, etc.)")
+@Tag(name = "Alerts", description = "User notifications (prices, discounts, system, etc.)")
 public class AlertController {
 
     private final AlertService alertService;
 
     @GetMapping
-    @Operation(summary = "Listar alertas de un user, opcionalmente filtradas por estado leido")
+    @Operation(summary = "List a user alerts, optionally filtered by read status")
     public Page<AlertResponse> list(
             @RequestParam UUID userId,
             @RequestParam(required = false) Boolean read,
@@ -37,13 +37,13 @@ public class AlertController {
     }
 
     @GetMapping("/no-leidas/count")
-    @Operation(summary = "Cantidad de alertas no leidas para badges")
+    @Operation(summary = "Number of unread alerts (for badges)")
     public Map<String, Long> countUnread(@RequestParam UUID userId) {
         return Map.of("noLeidas", alertService.countUnread(userId));
     }
 
     @PostMapping
-    @Operation(summary = "Crear una alert (uso interno o admin)")
+    @Operation(summary = "Create an alert (internal or admin use)")
     public ResponseEntity<AlertResponse> create(
             @Valid @RequestBody AlertCreateRequest req,
             UriComponentsBuilder uriBuilder) {
@@ -55,13 +55,13 @@ public class AlertController {
     }
 
     @PatchMapping("/{id}/read")
-    @Operation(summary = "Marcar una alert como read")
+    @Operation(summary = "Mark an alert as read")
     public AlertResponse markAsRead(@PathVariable Long id) {
         return alertService.markAsRead(id);
     }
 
     @PatchMapping("/leidas")
-    @Operation(summary = "Marcar todas las alertas del user como leidas")
+    @Operation(summary = "Mark all user alerts as read")
     public Map<String, Integer> markAllAsRead(@RequestParam UUID userId) {
         return Map.of("actualizadas", alertService.markAllAsRead(userId));
     }

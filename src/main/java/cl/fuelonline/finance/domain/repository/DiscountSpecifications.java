@@ -14,16 +14,16 @@ public final class DiscountSpecifications {
     private DiscountSpecifications() {}
 
     /**
-     * Descuentos activos para una brand, opcionalmente filtrados por combustible,
+     * Active discounts for a brand, optionally filtered by fuel,
      * dia de la semana, date vigente y tarjetas del user.
      *
-     * Reglas:
+     * Rules:
      *  - brand: siempre exigida
-     *  - combustibleId null en BD significa "aplica a cualquier combustible"
+     *  - fuelTypeId null in DB means "applies to any fuel"
      *  - dayOfWeek null en BD significa "aplica todos los dias"
      *  - cardProduct null en BD significa "aplica a cualquier medio de pago"
      *  - Si userCardIds esta empty o null, solo se traen descuentos sin
-     *    requerimiento de tarjeta (universales)
+     *    a card requirement (universal) are returned
      */
     public static Specification<Discount> applicable(Integer brandId,
                                                       Integer combustibleId,

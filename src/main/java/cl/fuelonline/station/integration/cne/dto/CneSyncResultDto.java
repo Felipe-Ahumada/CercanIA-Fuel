@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
- * Metricas de un sync CNE. Lo devuelve el endpoint manual y se loguea desde el scheduler.
+ * Metrics of a CNE sync. Returned by the manual endpoint and logged by the scheduler.
  */
 public record CneSyncResultDto(
         LocalDateTime start,

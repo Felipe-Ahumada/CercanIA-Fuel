@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Schema(description = "Precio vigente de un combustible en una station")
+@Schema(description = "Current price of a fuel at a station")
 public record CurrentPriceResponse(
         Integer fuelTypeId,
         String fuelTypeName,

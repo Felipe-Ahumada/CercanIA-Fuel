@@ -85,34 +85,34 @@ public class TransactionService {
     @Transactional
     public TransactionResponse register(TransactionCreateRequest req) {
         User user = userRepository.findById(req.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.userId()));
 
         Vehicle vehicle = vehicleRepository.findById(req.vehicleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle no encontrado: " + req.vehicleId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + req.vehicleId()));
 
         if (!vehicle.getUser().getId().equals(user.getId())) {
-            throw new InvalidTransactionException("El vehicle no pertenece al user indicado");
+            throw new InvalidTransactionException("The vehicle does not belong to the specified user");
         }
 
         Station station = stationRepository.findById(req.stationId())
-                .orElseThrow(() -> new ResourceNotFoundException("Station no encontrada: " + req.stationId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Station not found: " + req.stationId()));
 
         FuelType fuelType = fuelTypeRepository.findById(req.fuelTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Tipo de combustible no encontrado: " + req.fuelTypeId()));
+                        "Fuel type not found: " + req.fuelTypeId()));
 
         CardProduct tarjeta = null;
         if (req.cardProductId() != null) {
             tarjeta = cardProductRepository.findById(req.cardProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tarjeta producto no encontrada: " + req.cardProductId()));
+                            "Card product not found: " + req.cardProductId()));
         }
 
         Discount discount = null;
         if (req.discountId() != null) {
             discount = discountRepository.findById(req.discountId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Discount no encontrado: " + req.discountId()));
+                            "Discount not found: " + req.discountId()));
         }
 
         BigDecimal grossAmount = req.unitPrice()
@@ -158,6 +158,6 @@ public class TransactionService {
 
     private Transaction get(UUID id) {
         return transactionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction no encontrada: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found: " + id));
     }
 }

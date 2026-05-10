@@ -60,7 +60,7 @@ public class Transaction extends BaseAuditEntity {
                 foreignKey = @ForeignKey(name = "fk_tx_fuel"))
     private FuelType fuelType;
 
-    /** Null = no se uso tarjeta (efectivo u otro). */
+    /** Null = no card used (cash or other). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_product_id",
                 foreignKey = @ForeignKey(name = "fk_tx_card_product"))

@@ -26,12 +26,12 @@ import java.io.IOException;
 /**
  * Filtro que extrae el token del header Authorization y autentica al user.
  *
- * Flujo:
- *  1. Si hay header "Authorization: Bearer <id-token>" y Firebase esta configurado,
+ * Flow:
+ *  1. If there is an "Authorization: Bearer <id-token>" header and Firebase is configured,
  *     verifica el token con Firebase Admin SDK y resuelve al User local.
  *  2. Si no, y dev-mode esta active, busca el header X-Dev-User con el email
  *     del user a impersonar.
- *  3. Si nada de lo anterior, deja la request sin autenticar (puede ser endpoint publico).
+ *  3. If none of the above, the request is left unauthenticated (it may be a public endpoint).
  */
 @Slf4j
 @Component
@@ -42,7 +42,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
 
     private final SecurityProperties props;
     private final AuthenticationService authenticationService;
-    /** Inyeccion opcional via setter para que el filtro funcione sin Firebase configurado. */
+    /** Optional setter injection so the filter works without Firebase configured. */
     private FirebaseTokenService firebaseTokenService;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -74,7 +74,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             }
         } catch (AuthenticationFailedException ex) {
             SecurityContextHolder.clearContext();
-            log.debug("Autenticacion fallida: {}", ex.getMessage());
+            log.debug("Authentication failed: {}", ex.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write(
@@ -92,7 +92,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
 
         if (firebaseTokenService == null) {
             throw new AuthenticationFailedException(
-                    "Firebase no esta configurado en este ambiente.");
+                    "Firebase is not configured in this environment.");
         }
 
         String idToken = header.substring(BEARER.length()).trim();
@@ -100,7 +100,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             FirebaseToken token = firebaseTokenService.verify(idToken);
             return authenticationService.resolveFromFirebase(token.getUid(), token.getEmail());
         } catch (FirebaseAuthException ex) {
-            throw new AuthenticationFailedException("Token invalido o expirado", ex);
+            throw new AuthenticationFailedException("Invalid or expired token", ex);
         }
     }
 

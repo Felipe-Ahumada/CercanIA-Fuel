@@ -23,26 +23,26 @@ import java.util.UUID;
 @RequestMapping("/api/v1/bencineras/{stationId}/precios")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Precios", description = "Precios actuales e historial por station y combustible")
+@Tag(name = "Prices", description = "Current prices and price history per station and fuel")
 public class PriceController {
 
     private final PriceService priceService;
 
     @GetMapping
-    @Operation(summary = "Precios vigentes de todos los combustibles que vende la station")
+    @Operation(summary = "Current prices for every fuel sold by the station")
     public List<CurrentPriceResponse> prices(@PathVariable UUID stationId) {
         return priceService.preciosActualesDe(stationId);
     }
 
     @GetMapping("/{fuelTypeId}")
-    @Operation(summary = "Precio vigente de un combustible especifico")
+    @Operation(summary = "Current price of a specific fuel")
     public CurrentPriceResponse precioActual(@PathVariable UUID stationId,
                                              @PathVariable @Positive Integer fuelTypeId) {
         return priceService.precioActual(stationId, fuelTypeId);
     }
 
     @GetMapping("/{fuelTypeId}/historial")
-    @Operation(summary = "Historial paginado de prices de un combustible")
+    @Operation(summary = "Paged price history for a fuel")
     public Page<PriceHistoryResponse> historial(@PathVariable UUID stationId,
                                                    @PathVariable @Positive Integer fuelTypeId,
                                                    @ParameterObject Pageable pageable) {
@@ -51,7 +51,7 @@ public class PriceController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Registrar un nuevo price (uso administrativo o sync con CNE)")
+    @Operation(summary = "Register a new price (admin or CNE sync use)")
     public PriceHistoryResponse register(@PathVariable UUID stationId,
                                              @Valid @RequestBody RegistrarPrecioRequest req) {
         return priceService.register(stationId, req);

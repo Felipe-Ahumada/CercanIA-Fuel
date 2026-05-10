@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/admin/cne")
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.cne", name = "enabled", havingValue = "true")
-@Tag(name = "Admin / CNE", description = "Operaciones administrativas sobre la integracion CNE")
+@Tag(name = "Admin / CNE", description = "Administrative operations on the CNE integration")
 public class CneSyncController {
 
     private final CneSyncService syncService;
 
     @PostMapping("/sync")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Dispara un sync manual contra la API CNE",
+    @Operation(summary = "Triggers a manual sync against the CNE API",
                description = "Solo role ADMIN. Devuelve metricas del sync.",
                security = @SecurityRequirement(name = "bearerAuth"))
     public CneSyncResultDto sync() {

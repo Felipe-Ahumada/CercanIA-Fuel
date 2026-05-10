@@ -13,12 +13,12 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 /**
- * Bean RestClient especifico para llamar la API CNE.
- * Solo se crea cuando app.cne.enabled = true.
+ * RestClient bean specific to calling the CNE API.
+ * Only created when app.cne.enabled = true.
  *
- * Usa Apache HttpClient 5 (HttpComponentsClientHttpRequestFactory) en lugar del
- * SimpleClientHttpRequestFactory por defecto, porque la API CNE responde con
- * Content-Encoding: gzip y Apache HttpClient descomprime automaticamente.
+ * Uses Apache HttpClient 5 (HttpComponentsClientHttpRequestFactory) instead of
+ * the default SimpleClientHttpRequestFactory because the CNE API responds with
+ * Content-Encoding: gzip and Apache HttpClient decompresses automatically.
  */
 @Configuration
 @EnableConfigurationProperties(CneProperties.class)

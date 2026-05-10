@@ -75,9 +75,9 @@ public class StationService {
         }
 
         Brand brand = brandRepository.findById(req.brandId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.brandId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found: " + req.brandId()));
         Commune commune = communeRepository.findById(req.communeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Commune no encontrada: " + req.communeId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Commune not found: " + req.communeId()));
 
         Station nueva = mapper.toEntity(req);
         nueva.setBrand(brand);
@@ -95,12 +95,12 @@ public class StationService {
 
         if (req.brandId() != null) {
             Brand brand = brandRepository.findById(req.brandId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.brandId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Brand not found: " + req.brandId()));
             b.setBrand(brand);
         }
         if (req.communeId() != null) {
             Commune commune = communeRepository.findById(req.communeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Commune no encontrada: " + req.communeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Commune not found: " + req.communeId()));
             b.setCommune(commune);
         }
 
@@ -115,6 +115,6 @@ public class StationService {
 
     Station get(UUID id) {
         return stationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Station no encontrada: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Station not found: " + id));
     }
 }

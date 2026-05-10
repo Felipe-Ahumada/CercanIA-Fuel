@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Schema(description = "Vista detallada de una station")
+@Schema(description = "Detailed view of a station")
 public record StationResponse(
         UUID id,
         String apiCode,

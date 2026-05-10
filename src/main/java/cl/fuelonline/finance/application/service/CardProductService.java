@@ -42,7 +42,7 @@ public class CardProductService {
     @Transactional
     public CardProductResponse create(CardProductCreateRequest req) {
         Bank bank = bankRepository.findById(req.bankId())
-                .orElseThrow(() -> new ResourceNotFoundException("Bank no encontrado: " + req.bankId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Bank not found: " + req.bankId()));
 
         if (tarjetaRepository.existsByBanco_IdAndNombreIgnoreCase(req.bankId(), req.name())) {
             throw new CardProductAlreadyExistsException(
@@ -77,6 +77,6 @@ public class CardProductService {
 
     private CardProduct get(Integer id) {
         return tarjetaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Producto de tarjeta no encontrado: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Card product not found: " + id));
     }
 }

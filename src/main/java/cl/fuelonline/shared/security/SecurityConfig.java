@@ -22,12 +22,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 /**
- * Configuracion central de Spring Security.
+ * Central Spring Security configuration.
  *
- * - Sesiones stateless (la API es REST con tokens, no usa sesiones HTTP).
- * - CSRF deshabilitado: no hay formularios server-side.
- * - CORS abierto (ajustar por ambiente cuando definamos dominios del frontend).
- * - FirebaseAuthFilter se intercala antes del UsernamePasswordAuthenticationFilter.
+ * - Stateless sessions (the API is REST with tokens, no HTTP sessions).
+ * - CSRF disabled: no server-side forms.
+ * - CORS open (tune per environment once frontend domains are defined).
+ * - FirebaseAuthFilter is inserted before UsernamePasswordAuthenticationFilter.
  */
 @Configuration
 @RequiredArgsConstructor
@@ -50,7 +50,7 @@ public class SecurityConfig {
                     .authenticationEntryPoint(authEntryPoint)
                     .accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
-                // Documentacion y health publicos
+                // Public documentation and health
                 .requestMatchers(
                         "/swagger-ui/**", "/swagger-ui.html",
                         "/v3/api-docs/**",
@@ -58,13 +58,13 @@ public class SecurityConfig {
                         "/h2-console/**",
                         "/error").permitAll()
 
-                // Autenticacion: el filtro decide si la peticion trae token; /me requiere auth
+                // Authentication: the filter decides whether the request carries a token; /me requires auth
                 .requestMatchers("/api/v1/auth/me").authenticated()
 
                 // Registro publico de user
                 .requestMatchers(HttpMethod.POST, "/api/v1/usuarios").permitAll()
 
-                // Catalogos de bencineras (lectura publica)
+                // Station catalogs (public read access)
                 .requestMatchers(HttpMethod.GET,
                         "/api/v1/bencineras/**",
                         "/api/v1/regiones/**",
@@ -73,13 +73,13 @@ public class SecurityConfig {
                         "/api/v1/tipos-combustible/**",
                         "/api/v1/precios/**").permitAll()
 
-                // Lectura de descuentos publica; calculo y mutaciones requieren auth
+                // Discount reads are public; calculation and mutations require auth
                 .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/**").permitAll()
 
-                // Endpoints administrativos solo ADMIN
+                // Admin-only endpoints
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                // Mutaciones de catalogos solo admin
+                // Catalog mutations: admin only
                 .requestMatchers(HttpMethod.POST,   "/api/v1/bancos/**",
                                                    "/api/v1/tarjetas-producto/**",
                                                    "/api/v1/descuentos/**").hasRole("ADMIN")
@@ -90,9 +90,9 @@ public class SecurityConfig {
                                                    "/api/v1/tarjetas-producto/**",
                                                    "/api/v1/descuentos/**").hasRole("ADMIN")
 
-                // Resto requiere autenticacion
+                // Everything else requires authentication
                 .anyRequest().authenticated())
-            .headers(h -> h.frameOptions(f -> f.sameOrigin())) // permite consola H2 en dev
+            .headers(h -> h.frameOptions(f -> f.sameOrigin())) // allows H2 console in dev
             .build();
     }
 

@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 @Schema(description = "Mejor discount aplicable y desglose final")
 public record CalculatedDiscountResponse(
-        @Schema(description = "ID del discount aplicado, o null si ninguno aplica")
+        @Schema(description = "ID of the applied discount, or null if none applies")
         Integer discountId,
         String description,
         BigDecimal grossAmount,

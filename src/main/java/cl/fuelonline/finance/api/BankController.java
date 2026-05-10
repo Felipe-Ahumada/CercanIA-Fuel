@@ -21,13 +21,13 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/v1/bancos")
 @RequiredArgsConstructor
-@Tag(name = "Bancos", description = "Catalogo de bancos emisores de tarjetas")
+@Tag(name = "Banks", description = "Catalog of card-issuing banks")
 public class BankController {
 
     private final BankService bankService;
 
     @GetMapping
-    @Operation(summary = "Listar bancos paginado")
+    @Operation(summary = "List banks (paged)")
     public Page<BankResponse> list(@ParameterObject Pageable pageable) {
         return bankService.list(pageable);
     }
@@ -39,12 +39,12 @@ public class BankController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo bank")
+    @Operation(summary = "Create a new bank")
     public ResponseEntity<BankResponse> create(@Valid @RequestBody BankCreateRequest req,
                                                UriComponentsBuilder uriBuilder) {
-        BankResponse creado = bankService.create(req);
-        URI location = uriBuilder.path("/api/v1/bancos/{id}").buildAndExpand(creado.id()).toUri();
-        return ResponseEntity.created(location).body(creado);
+        BankResponse created = bankService.create(req);
+        URI location = uriBuilder.path("/api/v1/bancos/{id}").buildAndExpand(created.id()).toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     @PutMapping("/{id}")

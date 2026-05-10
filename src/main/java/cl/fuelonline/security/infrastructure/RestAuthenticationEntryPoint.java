@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * Devuelve 401 con cuerpo JSON cuando una request anonima intenta acceder a un endpoint protegido.
+ * Returns 401 with a JSON body when an anonymous request hits a protected endpoint.
  */
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {

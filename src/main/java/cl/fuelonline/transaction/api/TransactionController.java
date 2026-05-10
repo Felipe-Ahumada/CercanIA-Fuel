@@ -24,19 +24,19 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/transacciones")
 @RequiredArgsConstructor
-@Tag(name = "Transacciones", description = "Registro de fills de combustible y summary de gasto")
+@Tag(name = "Transactions", description = "Fuel fill records and expense summary")
 public class TransactionController {
 
     private final TransactionService transactionService;
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener una transaction por ID")
+    @Operation(summary = "Get a transaction by ID")
     public TransactionResponse find(@PathVariable UUID id) {
         return transactionService.findById(id);
     }
 
     @GetMapping
-    @Operation(summary = "Listar transacciones de un user, opcionalmente entre fechas")
+    @Operation(summary = "List a user transactions, optionally between dates")
     public Page<TransactionResponse> list(
             @RequestParam UUID userId,
             @RequestParam(required = false)
@@ -51,7 +51,7 @@ public class TransactionController {
     }
 
     @GetMapping("/summary")
-    @Operation(summary = "Resumen agregado de gasto y savings por rango de fechas")
+    @Operation(summary = "Aggregated expense and savings summary by date range")
     public ExpenseSummaryResponse summary(
             @RequestParam UUID userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
@@ -60,7 +60,7 @@ public class TransactionController {
     }
 
     @PostMapping
-    @Operation(summary = "Registrar una nueva transaction (carga de combustible)")
+    @Operation(summary = "Register a new transaction (fuel fill)")
     public ResponseEntity<TransactionResponse> register(
             @Valid @RequestBody TransactionCreateRequest req,
             UriComponentsBuilder uriBuilder) {

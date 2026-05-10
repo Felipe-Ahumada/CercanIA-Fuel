@@ -49,7 +49,7 @@ public class DiscountService {
     @Transactional
     public DiscountResponse create(DiscountCreateRequest req) {
         Brand brand = brandRepository.findById(req.brandId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.brandId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found: " + req.brandId()));
 
         Discount entity = mapper.toEntity(req);
         entity.setBrand(brand);
@@ -57,12 +57,12 @@ public class DiscountService {
         if (req.cardProductId() != null) {
             entity.setCardProduct(cardProductRepository.findById(req.cardProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tarjeta producto no encontrada: " + req.cardProductId())));
+                            "Card product not found: " + req.cardProductId())));
         }
         if (req.fuelTypeId() != null) {
             entity.setFuelType(fuelTypeRepository.findById(req.fuelTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tipo de combustible no encontrado: " + req.fuelTypeId())));
+                            "Fuel type not found: " + req.fuelTypeId())));
         }
 
         return mapper.toResponse(discountRepository.save(entity));
@@ -76,12 +76,12 @@ public class DiscountService {
         if (req.cardProductId() != null) {
             entity.setCardProduct(cardProductRepository.findById(req.cardProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tarjeta producto no encontrada: " + req.cardProductId())));
+                            "Card product not found: " + req.cardProductId())));
         }
         if (req.fuelTypeId() != null) {
             entity.setFuelType(fuelTypeRepository.findById(req.fuelTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tipo de combustible no encontrado: " + req.fuelTypeId())));
+                            "Fuel type not found: " + req.fuelTypeId())));
         }
 
         return mapper.toResponse(entity);
@@ -99,7 +99,7 @@ public class DiscountService {
      */
     public CalculatedDiscountResponse calculateBestDiscount(CalculateDiscountRequest req) {
         LocalDate date = req.date() != null ? req.date() : LocalDate.now();
-        int dayOfWeek = date.getDayOfWeek().getValue(); // 1=lunes, 7=domingo
+        int dayOfWeek = date.getDayOfWeek().getValue(); // 1=Monday, 7=Sunday
 
         var spec = DiscountSpecifications.applicable(
                 req.brandId(), req.fuelTypeId(), dayOfWeek, date, req.userCardIds());
@@ -152,6 +152,6 @@ public class DiscountService {
 
     private Discount get(Integer id) {
         return discountRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Discount no encontrado: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Discount not found: " + id));
     }
 }

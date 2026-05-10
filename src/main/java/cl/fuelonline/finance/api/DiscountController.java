@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping("/api/v1/descuentos")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Descuentos", description = "Promociones y calculo del mejor discount aplicable")
+@Tag(name = "Discounts", description = "Promotions and calculation of the best applicable discount")
 public class DiscountController {
 
     private final DiscountService discountService;
@@ -38,12 +38,12 @@ public class DiscountController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear un discount")
+    @Operation(summary = "Create a discount")
     public ResponseEntity<DiscountResponse> create(@Valid @RequestBody DiscountCreateRequest req,
                                                    UriComponentsBuilder uriBuilder) {
-        DiscountResponse creado = discountService.create(req);
-        URI location = uriBuilder.path("/api/v1/descuentos/{id}").buildAndExpand(creado.id()).toUri();
-        return ResponseEntity.created(location).body(creado);
+        DiscountResponse created = discountService.create(req);
+        URI location = uriBuilder.path("/api/v1/descuentos/{id}").buildAndExpand(created.id()).toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     @PutMapping("/{id}")

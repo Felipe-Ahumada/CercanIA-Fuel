@@ -39,7 +39,7 @@ public class Rating extends BaseAuditEntity {
                 foreignKey = @ForeignKey(name = "fk_rating_station"))
     private Station station;
 
-    /** 1 a 5 estrellas. */
+    /** 1 to 5 stars. */
     @Column(nullable = false)
     private Integer score;
 

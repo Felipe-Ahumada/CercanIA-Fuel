@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 
-@Schema(description = "Datos para create una station")
+@Schema(description = "Data to create a station")
 public record StationCreateRequest(
 
         @Schema(example = "CL_COP_001", description = "Codigo externo (API CNE u otro)")

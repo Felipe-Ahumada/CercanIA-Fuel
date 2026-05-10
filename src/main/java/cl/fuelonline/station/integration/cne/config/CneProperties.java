@@ -5,15 +5,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.time.Duration;
 
 /**
- * Configuracion de la integracion con la API de la CNE (api.bencinaenlinea.cl).
+ * Configuration of the CNE API integration (api.cne.cl).
  *
- *  - enabled            : si false, ni el cliente ni el scheduler se instancian
- *  - api-url            : base URL de la API CNE (sin slash final)
- *  - stations-path    : path relativo del endpoint de stations
- *  - token              : Bearer token (NO commitear, usar env var CNE_API_TOKEN)
- *  - timeout            : timeout total HTTP por request
+ *  - enabled            : if false, neither the client nor the scheduler are instantiated
+ *  - api-url            : CNE API base URL (no trailing slash)
+ *  - stations-path    : relative path of the stations endpoint
+ *  - token              : Bearer token (DO NOT commit, use the env var CNE_API_TOKEN)
+ *  - timeout            : total HTTP timeout per request
  *  - scheduled-enabled  : si false, no corre @Scheduled (manual via POST sigue funcionando)
- *  - scheduled-cron     : expresion cron Spring (6 fields)
+ *  - scheduled-cron     : Spring cron expression (6 fields)
  */
 @ConfigurationProperties(prefix = "app.cne")
 public record CneProperties(

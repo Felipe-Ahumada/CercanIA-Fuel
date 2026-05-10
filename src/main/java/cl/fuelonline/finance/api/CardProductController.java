@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/tarjetas-producto")
 @RequiredArgsConstructor
-@Tag(name = "Productos de tarjeta", description = "Productos de tarjeta por bank (ej: Visa Platinum Scotiabank)")
+@Tag(name = "Card products", description = "Card products per bank (e.g. Visa Platinum Scotiabank)")
 public class CardProductController {
 
     private final CardProductService cardProductService;
@@ -33,22 +33,22 @@ public class CardProductController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener producto de tarjeta por ID")
+    @Operation(summary = "Get a card product by ID")
     public CardProductResponse find(@PathVariable Integer id) {
         return cardProductService.findById(id);
     }
 
     @PostMapping
-    @Operation(summary = "Crear un producto de tarjeta")
+    @Operation(summary = "Create a card product")
     public ResponseEntity<CardProductResponse> create(@Valid @RequestBody CardProductCreateRequest req,
                                                          UriComponentsBuilder uriBuilder) {
-        CardProductResponse creado = cardProductService.create(req);
-        URI location = uriBuilder.path("/api/v1/tarjetas-producto/{id}").buildAndExpand(creado.id()).toUri();
-        return ResponseEntity.created(location).body(creado);
+        CardProductResponse created = cardProductService.create(req);
+        URI location = uriBuilder.path("/api/v1/tarjetas-producto/{id}").buildAndExpand(created.id()).toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar producto de tarjeta")
+    @Operation(summary = "Update a card product")
     public CardProductResponse update(@PathVariable Integer id,
                                               @Valid @RequestBody CardProductUpdateRequest req) {
         return cardProductService.update(id, req);
@@ -56,7 +56,7 @@ public class CardProductController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Borrado logico del producto de tarjeta")
+    @Operation(summary = "Soft delete the card product")
     public void delete(@PathVariable Integer id) {
         cardProductService.delete(id);
     }

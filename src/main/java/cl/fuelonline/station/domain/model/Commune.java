@@ -23,7 +23,7 @@ public class Commune {
                 foreignKey = @ForeignKey(name = "fk_commune_region"))
     private Region region;
 
-    /** Codigo territorial chileno (5 digitos). Ej: "13101" para Santiago. */
+    /** Chilean territorial code (5 digits). E.g. "13101" for Santiago. */
     @Column(length = 8)
     private String code;
 

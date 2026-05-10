@@ -14,6 +14,6 @@ public record StationSummaryResponse(
         BigDecimal latitude,
         BigDecimal longitude,
         Boolean inMaintenance,
-        @Schema(description = "Distancia al punto de busqueda en km. Null si la consulta no especifico origen.")
+        @Schema(description = "Distance to the search point in km. Null if the query did not specify an origin.")
         Double distanciaKm
 ) {}

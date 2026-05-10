@@ -47,13 +47,13 @@ public class AlertService {
     @Transactional
     public AlertResponse create(AlertCreateRequest req) {
         User user = userRepository.findById(req.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.userId()));
 
         Station station = null;
         if (req.stationId() != null) {
             station = stationRepository.findById(req.stationId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Station no encontrada: " + req.stationId()));
+                            "Station not found: " + req.stationId()));
         }
 
         Alert alert = Alert.builder()
@@ -71,7 +71,7 @@ public class AlertService {
     @Transactional
     public AlertResponse markAsRead(Long id) {
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Alert no encontrada: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Alert not found: " + id));
         if (Boolean.FALSE.equals(alert.getRead())) {
             alert.markAsRead();
         }
@@ -86,7 +86,7 @@ public class AlertService {
     @Transactional
     public void delete(Long id) {
         if (!alertRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Alert no encontrada: " + id);
+            throw new ResourceNotFoundException("Alert not found: " + id);
         }
         alertRepository.deleteById(id);
     }

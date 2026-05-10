@@ -35,7 +35,7 @@ public class Alert {
                 foreignKey = @ForeignKey(name = "fk_alert_user"))
     private User user;
 
-    /** Null = alert no asociada a una station (ej: SYSTEM). */
+    /** Null = alert not associated with a station (e.g. SYSTEM). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id",
                 foreignKey = @ForeignKey(name = "fk_alert_station"))

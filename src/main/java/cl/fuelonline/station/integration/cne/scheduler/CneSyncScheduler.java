@@ -9,8 +9,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Dispara el sync CNE periodicamente segun cron configurado.
- * Solo se carga si app.cne.enabled = true Y app.cne.scheduled-enabled = true.
+ * Triggers the CNE sync periodically according to the configured cron.
+ * Only loaded when app.cne.enabled = true AND app.cne.scheduled-enabled = true.
  */
 @Slf4j
 @Component
@@ -23,11 +23,11 @@ public class CneSyncScheduler {
 
     @Scheduled(cron = "${app.cne.scheduled-cron:0 0 */1 * * *}")
     public void execute() {
-        log.info("CNE: disparando sync programado (cron={})", props.scheduledCron());
+        log.info("CNE: dispatching scheduled sync (cron={})", props.scheduledCron());
         try {
             syncService.synchronize();
         } catch (Exception ex) {
-            log.error("CNE: sync programado fallo", ex);
+            log.error("CNE: scheduled sync failed", ex);
         }
     }
 }

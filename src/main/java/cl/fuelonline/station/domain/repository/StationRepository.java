@@ -18,8 +18,8 @@ public interface StationRepository
     List<Station> findAllByCommune_Id(Integer communeId);
 
     /**
-     * Bencineras dentro de un bounding-box geografico.
-     * Para queries por radio real conviene migrar a PostGIS y usar ST_DWithin.
+     * Stations within a geographic bounding box.
+     * For real-radius queries it is advisable to migrate to PostGIS and use ST_DWithin.
      */
     @Query("""
            SELECT b FROM Station b

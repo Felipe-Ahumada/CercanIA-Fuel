@@ -3,14 +3,14 @@ package cl.fuelonline.security.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuracion de seguridad cargada desde application.yml bajo "app.security".
+ * Security configuration loaded from application.yml under "app.security".
  *
- * Modos de operacion:
+ * Operating modes:
  *  - firebase.credentials-path con value: usa Firebase Admin SDK para validar ID Tokens
  *  - dev-mode = true: acepta header "X-Dev-User: email@dominio" para impersonar
  *    al user local (sin verify firma). Util para desarrollo sin Firebase.
  *
- * Si ambos estan apagados, todas las requests no anonimas resultan en 401.
+ * If both are off, all non-anonymous requests result in 401.
  */
 @ConfigurationProperties(prefix = "app.security")
 public record SecurityProperties(

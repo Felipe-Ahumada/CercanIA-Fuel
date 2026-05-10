@@ -62,14 +62,14 @@ public class RatingService {
                 .findByUser_IdAndStation_Id(req.userId(), req.stationId())
                 .isPresent()) {
             throw new RatingAlreadyExistsException(
-                    "El user ya califico esta station. Use PUT para update.");
+                    "User has already rated this station. Use PUT para update.");
         }
 
         User user = userRepository.findById(req.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.userId()));
         Station station = stationRepository.findById(req.stationId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Station no encontrada: " + req.stationId()));
+                        "Station not found: " + req.stationId()));
 
         Rating entity = Rating.builder()
                 .user(user)
@@ -92,13 +92,13 @@ public class RatingService {
     @Transactional
     public void delete(Long id) {
         if (!ratingRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Rating no encontrada: " + id);
+            throw new ResourceNotFoundException("Rating not found: " + id);
         }
         ratingRepository.deleteById(id);
     }
 
     private Rating get(Long id) {
         return ratingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Rating no encontrada: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Rating not found: " + id));
     }
 }

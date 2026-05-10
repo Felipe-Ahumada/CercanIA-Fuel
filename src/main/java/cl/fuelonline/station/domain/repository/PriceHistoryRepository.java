@@ -19,9 +19,9 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long
             UUID stationId, Integer fuelTypeId, Pageable pageable);
 
     /**
-     * Ultimo price registrado por cada type de combustible para una station.
-     * Subquery correlacionada — apta para el volumen actual.
-     * En PostgreSQL puro convendria usar DISTINCT ON o window functions.
+     * Latest price recorded for each fuel type at a station.
+     * Correlated subquery — fine for the current volume.
+     * In pure PostgreSQL it would be preferable to use DISTINCT ON or window functions.
      */
     @Query("""
            SELECT p FROM PriceHistory p

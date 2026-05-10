@@ -42,7 +42,7 @@ public class PriceService {
                         stationId, fuelTypeId)
                 .map(mapper::toActual)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Sin prices para station %s y combustible %d"
+                        "No prices for station %s and fuel type %d"
                                 .formatted(stationId, fuelTypeId)));
     }
 
@@ -58,10 +58,10 @@ public class PriceService {
     public PriceHistoryResponse register(UUID stationId, RegistrarPrecioRequest req) {
         Station station = stationRepository.findById(stationId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Station no encontrada: " + stationId));
+                        "Station not found: " + stationId));
         FuelType combustible = fuelTypeRepository.findById(req.fuelTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Tipo de combustible no encontrado: " + req.fuelTypeId()));
+                        "Fuel type not found: " + req.fuelTypeId()));
 
         PriceHistory nuevo = PriceHistory.builder()
                 .station(station)

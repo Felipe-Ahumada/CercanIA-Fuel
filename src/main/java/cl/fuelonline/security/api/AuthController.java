@@ -17,11 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@Tag(name = "Autenticacion", description = "Identidad del user actual")
+@Tag(name = "Authentication", description = "Current user identity")
 public class AuthController {
 
     @GetMapping("/me")
-    @Operation(summary = "Devuelve el perfil del user autenticado",
+    @Operation(summary = "Returns the authenticated user profile",
                security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<MeResponse> me(@AuthenticationPrincipal AuthenticatedUser user,
                                          Authentication auth) {

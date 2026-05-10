@@ -3,7 +3,7 @@ package cl.fuelonline.shared.util;
 import java.math.BigDecimal;
 
 /**
- * Utilidades geograficas. Distancias calculadas con la formula de Haversine
+ * Geographic utilities. Distances calculated with the Haversine formula
  * sobre una Tierra esferica de radio average 6371 km. Precision suficiente
  * para distancias urbanas (error tipico < 0.5%).
  */

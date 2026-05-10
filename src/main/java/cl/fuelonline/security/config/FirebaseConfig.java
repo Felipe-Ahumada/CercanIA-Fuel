@@ -13,8 +13,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 /**
- * Inicializa el Firebase Admin SDK cuando hay credenciales configuradas.
- * Si no hay credenciales, los beans no se crean y el filtro entra en modo dev.
+ * Initializes the Firebase Admin SDK when credentials are configured.
+ * If credentials are missing, beans are not created and the filter falls back to dev mode.
  */
 @Slf4j
 @Configuration
@@ -28,7 +28,7 @@ public class FirebaseConfig {
         }
 
         String path = props.firebase().credentialsPath();
-        log.info("Inicializando Firebase Admin SDK con credenciales: {}", path);
+        log.info("Initializing Firebase Admin SDK with credentials: {}", path);
 
         try (InputStream is = new FileInputStream(path)) {
             FirebaseOptions options = FirebaseOptions.builder()

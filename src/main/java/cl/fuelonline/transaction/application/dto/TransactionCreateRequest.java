@@ -17,10 +17,10 @@ public record TransactionCreateRequest(
 
         @NotNull @Positive Integer fuelTypeId,
 
-        @Schema(description = "Producto de tarjeta usado. Null si fue efectivo u otro medio.")
+        @Schema(description = "Card product used. Null if it was cash or another method.")
         @Positive Integer cardProductId,
 
-        @Schema(description = "Discount aplicado (obtenido desde /descuentos/calculate). Null si no hubo.")
+        @Schema(description = "Applied discount (obtained from /descuentos/calculate). Null if there was none.")
         @Positive Integer discountId,
 
         @NotNull @DecimalMin(value = "0.0", inclusive = false)
@@ -29,11 +29,11 @@ public record TransactionCreateRequest(
         @NotNull @DecimalMin(value = "0.0", inclusive = false)
         BigDecimal liters,
 
-        @Schema(description = "Monto descontado. Null se interpreta como 0.")
+        @Schema(description = "Discount amount. Null is treated as 0.")
         @DecimalMin(value = "0.0")
         BigDecimal discountAmount,
 
-        @Schema(description = "Si es null se usa LocalDateTime.now()")
+        @Schema(description = "If null, LocalDateTime.now() is used")
         LocalDateTime transactionDate,
 
         @Size(max = 255) String notes

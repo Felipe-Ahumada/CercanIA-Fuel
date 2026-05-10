@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * Devuelve 403 con cuerpo JSON cuando un user autenticado no tiene autorizacion suficiente.
+ * Returns 403 with a JSON body when an authenticated user lacks enough authorization.
  */
 @Component
 public class RestAccessDeniedHandler implements AccessDeniedHandler {

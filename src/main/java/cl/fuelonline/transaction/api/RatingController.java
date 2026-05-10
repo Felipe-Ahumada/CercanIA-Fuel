@@ -23,19 +23,19 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/calificaciones")
 @RequiredArgsConstructor
-@Tag(name = "Calificaciones", description = "Resenas de bencineras por parte de los usuarios")
+@Tag(name = "Ratings", description = "Station reviews by users")
 public class RatingController {
 
     private final RatingService ratingService;
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener una rating por ID")
+    @Operation(summary = "Get a rating by ID")
     public RatingResponse find(@PathVariable Long id) {
         return ratingService.findById(id);
     }
 
     @GetMapping
-    @Operation(summary = "Listar ratings por station o user (uno de los dos es obligatorio)")
+    @Operation(summary = "List ratings by station or user (one of the two is required)")
     public Page<RatingResponse> list(
             @RequestParam(required = false) UUID stationId,
             @RequestParam(required = false) UUID userId,
@@ -50,13 +50,13 @@ public class RatingController {
     }
 
     @GetMapping("/station/{stationId}/summary")
-    @Operation(summary = "Promedio y total de ratings de una station")
+    @Operation(summary = "Average and total ratings for a station")
     public RatingSummaryResponse summary(@PathVariable UUID stationId) {
         return ratingService.summary(stationId);
     }
 
     @PostMapping
-    @Operation(summary = "Crear una rating (1 sola por user y station)")
+    @Operation(summary = "Create a rating (only one per user and station)")
     public ResponseEntity<RatingResponse> create(
             @Valid @RequestBody RatingCreateRequest req,
             UriComponentsBuilder uriBuilder) {
@@ -68,7 +68,7 @@ public class RatingController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar una rating")
+    @Operation(summary = "Update a rating")
     public RatingResponse update(@PathVariable Long id,
                                            @Valid @RequestBody RatingUpdateRequest req) {
         return ratingService.update(id, req);

@@ -30,24 +30,24 @@ import java.util.UUID;
 @RequestMapping("/api/v1/bencineras")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Bencineras", description = "Catalogo de bencineras y busqueda geografica")
+@Tag(name = "Stations", description = "Station catalog and geographic search")
 public class StationController {
 
     private final StationService stationService;
 
     @GetMapping
-    @Operation(summary = "Listar bencineras paginado")
+    @Operation(summary = "List stations (paged)")
     public Page<StationSummaryResponse> list(@ParameterObject Pageable pageable) {
         return stationService.list(pageable);
     }
 
     @GetMapping("/cercanas")
-    @Operation(summary = "Buscar bencineras dentro de un radio (km), ordenadas por distancia")
+    @Operation(summary = "Find stations within a radius (km), ordered by distance")
     public List<StationSummaryResponse> cercanas(
-            @Parameter(description = "Latitud del punto de busqueda", example = "-33.4569")
+            @Parameter(description = "Latitude of the search point", example = "-33.4569")
             @RequestParam @DecimalMin("-90.0") @DecimalMax("90.0") double lat,
 
-            @Parameter(description = "Longitud del punto de busqueda", example = "-70.6483")
+            @Parameter(description = "Longitude of the search point", example = "-70.6483")
             @RequestParam @DecimalMin("-180.0") @DecimalMax("180.0") double lon,
 
             @Parameter(description = "Radio en kilometros", example = "5.0")
@@ -56,7 +56,7 @@ public class StationController {
     }
 
     @GetMapping("/commune/{communeId}")
-    @Operation(summary = "Listar bencineras de una commune")
+    @Operation(summary = "List stations in a commune")
     public List<StationSummaryResponse> porComuna(@PathVariable @Positive Integer communeId) {
         return stationService.listarPorComuna(communeId);
     }
@@ -72,7 +72,7 @@ public class StationController {
     }
 
     @PostMapping
-    @Operation(summary = "Registrar una nueva station (uso administrativo o sync)")
+    @Operation(summary = "Register a new station (admin or sync use)")
     public ResponseEntity<StationResponse> create(@Valid @RequestBody StationCreateRequest req,
                                                    UriComponentsBuilder uriBuilder) {
         StationResponse created = stationService.create(req);
@@ -89,7 +89,7 @@ public class StationController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Borrado logico: brand la station como inactiva")
+    @Operation(summary = "Soft delete: marks the station as inactive")
     public void delete(@PathVariable UUID id) {
         stationService.delete(id);
     }

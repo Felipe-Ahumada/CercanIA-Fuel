@@ -16,10 +16,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Cliente HTTP para la API CNE. Solo se instancia si app.cne.enabled = true.
+ * HTTP client for the CNE API. Only instantiated when app.cne.enabled = true.
  *
- * Estrategia robusta: lee la respuesta como String y detecta si viene como
- * array directo "[ ... ]" o como wrapper "{ data: [...] }". Algunas APIs
+ * Robust strategy: reads the response as a String and detects whether it arrives as
+ * a direct array "[ ... ]" or as a wrapper "{ data: [...] }". Some APIs
  * (incluso la misma) cambian la forma segun version o errors.
  */
 @Slf4j
@@ -46,7 +46,7 @@ public class CneApiClient {
      */
     public List<CneStationDto> getStations() {
         if (!props.tokenConfigured()) {
-            log.warn("CNE: token no configurado (app.cne.token empty). Sync abortado.");
+            log.warn("CNE: token not configured (app.cne.token empty). Sync aborted.");
             return Collections.emptyList();
         }
         log.info("CNE: solicitando stations a {}{}", props.apiUrl(), props.stationsPath());
@@ -58,17 +58,17 @@ public class CneApiClient {
                     .retrieve()
                     .body(String.class);
         } catch (RestClientException ex) {
-            log.error("CNE: fallo al consultar stations: {}", ex.getMessage());
+            log.error("CNE: failed to query stations: {}", ex.getMessage());
             throw ex;
         }
 
         if (body == null || body.isBlank()) {
-            log.warn("CNE: respuesta vacia");
+            log.warn("CNE: empty response");
             return Collections.emptyList();
         }
 
         body = body.trim();
-        log.debug("CNE: respuesta tamano={} bytes, primeros 200 chars: {}",
+        log.debug("CNE: response size={} bytes, first 200 chars: {}",
                 body.length(),
                 body.length() > 200 ? body.substring(0, 200) : body);
 
@@ -90,17 +90,17 @@ public class CneApiClient {
                         return list;
                     }
                 }
-                // Si no encontramos array, mostramos el cuerpo para diagnosticar
-                log.error("CNE: la respuesta es un objeto pero no contiene un array reconocible. "
-                        + "Cuerpo: {}", body.length() > 500 ? body.substring(0, 500) + "..." : body);
+                // If no array is found, log the body for diagnostics
+                log.error("CNE: response is an object but does not contain a recognizable array. "
+                        + "Body: {}", body.length() > 500 ? body.substring(0, 500) + "..." : body);
                 return Collections.emptyList();
             }
-            log.error("CNE: respuesta con formato no reconocido. Primeros 200 chars: {}",
+            log.error("CNE: unrecognized response format. First 200 chars: {}",
                     body.length() > 200 ? body.substring(0, 200) : body);
             return Collections.emptyList();
         } catch (Exception ex) {
-            log.error("CNE: error parseando respuesta: {}", ex.getMessage());
-            throw new RuntimeException("Error parseando respuesta CNE", ex);
+            log.error("CNE: error parsing response: {}", ex.getMessage());
+            throw new RuntimeException("Error parsing CNE response", ex);
         }
     }
 }

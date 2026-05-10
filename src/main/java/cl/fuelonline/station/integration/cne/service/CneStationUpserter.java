@@ -36,7 +36,7 @@ public class CneStationUpserter {
     private final PriceHistoryRepository priceHistoryRepository;
     private final CneCatalogResolver catalogos;
 
-    /** Resultado de procesar una station. */
+    /** Result of processing one station. */
     public record StationResult(boolean created, int pricesInserted, int pricesSkipped) {}
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -68,7 +68,7 @@ public class CneStationUpserter {
 
         b.setSyncAt(LocalDateTime.now());
 
-        // Precios
+        // Prices
         int insertados = 0, omitidos = 0;
         if (dto.prices() != null) {
             for (Map.Entry<String, CnePriceDto> entry : dto.prices().entrySet()) {
@@ -122,8 +122,8 @@ public class CneStationUpserter {
 
     /**
      * Inserta el price en historial solo si su apiTimestamp es estrictamente
-     * mas reciente que el lastEntry registrado para esa (station, combustible).
-     * Devuelve true si se inserto, false si se omitio.
+     * more recent than the last one recorded for that (station, fuel) pair.
+     * Returns true if inserted, false if skipped.
      */
     private boolean processPrice(Station b, String cneKey, CnePriceDto price) {
         if (price == null || price.price() == null) return false;
@@ -132,7 +132,7 @@ public class CneStationUpserter {
         try {
             value = new BigDecimal(price.price().trim());
         } catch (NumberFormatException ex) {
-            log.warn("CNE: price invalido en {} ({}): {}", b.getApiCode(), cneKey, price.price());
+            log.warn("CNE: invalid price for {} ({}): {}", b.getApiCode(), cneKey, price.price());
             return false;
         }
 
@@ -150,7 +150,7 @@ public class CneStationUpserter {
                         b.getId(), type.getId());
 
         if (lastEntry.isPresent() && !apiTs.isAfter(lastEntry.get().getApiTimestamp())) {
-            return false; // ya tenemos uno mas nuevo o igual
+            return false; // we already have a newer or equal one
         }
 
         PriceHistory.TipoAtencion attention = "Asistido".equalsIgnoreCase(price.attentionType())

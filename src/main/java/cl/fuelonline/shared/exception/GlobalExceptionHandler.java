@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
         var detail = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         f -> f.getField(),
-                        f -> f.getDefaultMessage() == null ? "invalido" : f.getDefaultMessage(),
+                        f -> f.getDefaultMessage() == null ? "invalid" : f.getDefaultMessage(),
                         (a, b) -> a));
         return ResponseEntity.badRequest()
                 .body(new ApiError(Instant.now(), 400, "Validation Failed", detail));

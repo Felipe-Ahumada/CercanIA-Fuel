@@ -10,7 +10,7 @@ public record AlertCreateRequest(
 
         @NotNull UUID userId,
 
-        @Schema(description = "Station asociada (opcional)")
+        @Schema(description = "Associated station (optional)")
         UUID stationId,
 
         @NotNull AlertType alertType,

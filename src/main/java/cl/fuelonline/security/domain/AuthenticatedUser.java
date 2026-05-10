@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Principal autenticado.
+ * Authenticated principal.
  * Conserva el ID local del User y un snapshot de email + role al momento del login,
  * para no abrir una transaction JPA por cada acceso al principal.
  */

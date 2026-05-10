@@ -11,13 +11,13 @@ public record DiscountCreateRequest(
 
         @NotNull @Positive Integer brandId,
 
-        @Schema(description = "Null = aplica a cualquier medio de pago")
+        @Schema(description = "Null = applies to any payment method")
         @Positive Integer cardProductId,
 
-        @Schema(description = "Null = aplica a cualquier combustible")
+        @Schema(description = "Null = applies to any fuel")
         @Positive Integer fuelTypeId,
 
-        @Schema(description = "1=lunes, 7=domingo. Null = aplica todos los dias")
+        @Schema(description = "1=Monday, 7=Sunday. Null = applies every day")
         @Min(1) @Max(7) Integer dayOfWeek,
 
         @NotNull DiscountType discountType,

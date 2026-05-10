@@ -42,14 +42,14 @@ public class FavoriteService {
     @Transactional
     public FavoriteResponse add(FavoriteCreateRequest req) {
         if (favoriteRepository.existsByUser_IdAndStation_Id(req.userId(), req.stationId())) {
-            throw new FavoriteAlreadyExistsException("La station ya esta en favorites del user");
+            throw new FavoriteAlreadyExistsException("The station is already in the user's favorites");
         }
 
         User user = userRepository.findById(req.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.userId()));
         Station station = stationRepository.findById(req.stationId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Station no encontrada: " + req.stationId()));
+                        "Station not found: " + req.stationId()));
 
         Favorite favorite = Favorite.builder()
                 .user(user)
@@ -63,7 +63,7 @@ public class FavoriteService {
     @Transactional
     public void remove(UUID userId, UUID stationId) {
         if (!favoriteRepository.existsByUser_IdAndStation_Id(userId, stationId)) {
-            throw new ResourceNotFoundException("Favorite no encontrado");
+            throw new ResourceNotFoundException("Favorite not found");
         }
         favoriteRepository.deleteByUser_IdAndStation_Id(userId, stationId);
     }

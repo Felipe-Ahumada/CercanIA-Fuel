@@ -16,10 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Orquesta el sync con la CNE. Sin @Transactional aqui: cada station se procesa
  * en su propia transaction (REQUIRES_NEW) en CneStationUpserter, asi un fallo
- * puntual no descarta el resto del lote.
+ * failure does not discard the rest of the batch.
  *
- * Tambien implementa un guard "running" para evitar dos syncs en paralelo
- * (manual + scheduler) que podrian generar contienda.
+ * Also implements a "running" guard to prevent two parallel syncs
+ * (manual + scheduler) that could cause contention.
  */
 @Slf4j
 @Service
@@ -37,8 +37,8 @@ public class CneSyncService {
         long t0 = System.currentTimeMillis();
 
         if (!enEjecucion.compareAndSet(false, true)) {
-            log.warn("CNE: sync ya en ejecucion, se omite esta invocacion");
-            return CneSyncResultDto.empty(start, Duration.ZERO, "sync ya en ejecucion");
+            log.warn("CNE: sync already running, skipping this invocation");
+            return CneSyncResultDto.empty(start, Duration.ZERO, "sync already running");
         }
 
         try {
@@ -70,7 +70,7 @@ public class CneSyncService {
                     start, ms, stations.size(),
                     creadas, actualizadas, pricesIns, pricesOmi, errors);
 
-            log.info("CNE: sync completado en {} ms - leidas={}, creadas={}, "
+            log.info("CNE: sync completed in {} ms - read={}, created={}, "
                     + "actualizadas={}, prices+={}, prices-={}, errors={}",
                     ms, stations.size(), creadas, actualizadas,
                     pricesIns, pricesOmi, errors);

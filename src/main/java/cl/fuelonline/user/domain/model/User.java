@@ -47,7 +47,7 @@ public class User extends BaseAuditEntity {
     @Column(nullable = false, length = 180)
     private String email;
 
-    /** UID de Firebase Authentication. Null si el user aun no se autentico. */
+    /** Firebase Authentication UID. Null if the user has not authenticated yet. */
     @Column(name = "firebase_uid", length = 128)
     private String firebaseUid;
 

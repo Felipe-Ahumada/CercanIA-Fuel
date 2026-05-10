@@ -11,12 +11,12 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * Resuelve entidades de catalogo (Brand, Region, Commune, FuelType)
- * a partir de los strings que devuelve la CNE.
+ * Resolves catalog entities (Brand, Region, Commune, FuelType)
+ * from the strings returned by CNE.
  *
- * Estrategia: si la entidad no existe en la BD local, la auto-crea con los
- * datos minimos. Esto evita que el sync falle por datos faltantes y permite
- * al admin curar despues los catalogos en la BD.
+ * Strategy: when the entity does not exist in the local DB, it is auto-created with
+ * minimal data. This prevents the sync from failing due to missing data and allows
+ * the admin to curate the catalog in the DB later.
  */
 @Slf4j
 @Component
@@ -59,11 +59,11 @@ public class CneCatalogResolver {
     /** Resuelve la region por code. Auto-crea si falta. */
     public Region resolveRegion(CneLocationDto u) {
         if (u == null || u.regionCode() == null || u.regionCode().isBlank()) {
-            throw new IllegalArgumentException("Ubicacion sin codigo_region");
+            throw new IllegalArgumentException("Location without codigo_region");
         }
         return regionRepository.findByCode(u.regionCode())
                 .orElseGet(() -> {
-                    log.info("CNE: auto-creando region {} - {}", u.regionCode(), u.regionName());
+                    log.info("CNE: auto-creating region {} - {}", u.regionCode(), u.regionName());
                     return regionRepository.save(Region.builder()
                             .code(u.regionCode())
                             .name(u.regionName() != null ? u.regionName() : u.regionCode())
@@ -71,10 +71,10 @@ public class CneCatalogResolver {
                 });
     }
 
-    /** Resuelve la commune por code. Auto-crea bajo la region indicada si falta. */
+    /** Resolves the commune by code. Auto-creates under the given region when missing. */
     public Commune resolveCommune(CneLocationDto u, Region region) {
         if (u == null || u.communeCode() == null || u.communeCode().isBlank()) {
-            throw new IllegalArgumentException("Ubicacion sin codigo_comuna");
+            throw new IllegalArgumentException("Location without codigo_comuna");
         }
         return communeRepository.findByCode(u.communeCode())
                 .orElseGet(() -> {
@@ -88,12 +88,12 @@ public class CneCatalogResolver {
     }
 
     /**
-     * Resuelve el type de combustible por la llave de la CNE.
-     * Auto-crea uno con la unit indicada si no existe.
+     * Resolves the fuel type by the CNE key.
+     * Auto-creates one with the given unit when it does not exist.
      */
     public FuelType resolveFuel(String cneKey, ChargeUnit chargeUnit) {
         if (cneKey == null || cneKey.isBlank()) {
-            throw new IllegalArgumentException("CNE key vacia para combustible");
+            throw new IllegalArgumentException("Empty CNE key for fuel");
         }
         String key = cneKey.trim().toUpperCase();
         String[] nombres = COMBUSTIBLE_NOMBRES.getOrDefault(key, new String[]{key, key});
@@ -102,7 +102,7 @@ public class CneCatalogResolver {
 
         return fuelTypeRepository.findByShortNameIgnoreCase(shortName)
                 .orElseGet(() -> {
-                    log.info("CNE: auto-creando tipo_combustible {} ({})", shortName, chargeUnit);
+                    log.info("CNE: auto-creating fuel_type {} ({})", shortName, chargeUnit);
                     return fuelTypeRepository.save(FuelType.builder()
                             .shortName(shortName)
                             .name(nombreLargo)

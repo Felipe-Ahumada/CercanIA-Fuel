@@ -38,19 +38,19 @@ public class Discount {
                 foreignKey = @ForeignKey(name = "fk_discount_brand"))
     private Brand brand;
 
-    /** Null = aplica a cualquier medio de pago. */
+    /** Null = applies to any payment method. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_product_id",
                 foreignKey = @ForeignKey(name = "fk_discount_card_product"))
     private CardProduct cardProduct;
 
-    /** Null = aplica a cualquier combustible. */
+    /** Null = applies to any fuel. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fuel_type_id",
                 foreignKey = @ForeignKey(name = "fk_discount_fuel"))
     private FuelType fuelType;
 
-    /** Null = aplica todos los dias. 1 = lunes, 7 = domingo. */
+    /** Null = applies every day. 1 = Monday, 7 = Sunday. */
     @Column(name = "day_of_week")
     private Integer dayOfWeek;
 

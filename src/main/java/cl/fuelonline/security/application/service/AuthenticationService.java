@@ -28,7 +28,7 @@ public class AuthenticationService {
             return AuthenticatedUser.fromUser(porUid.get());
         }
 
-        // 2. Por email: si existe, enlazamos el firebaseUid (auto-link)
+        // 2. By email: if it exists, link the firebaseUid (auto-link)
         if (email != null && !email.isBlank()) {
             Optional<User> porEmail = userRepository.findByEmailIgnoreCase(email);
             if (porEmail.isPresent()) {
@@ -39,14 +39,14 @@ public class AuthenticationService {
         }
 
         throw new AuthenticationFailedException(
-                "No existe un user local asociado al token. Registrese en /api/v1/usuarios primero.");
+                "No local user is linked to this token. Register at /api/v1/usuarios first.");
     }
 
     @Transactional(readOnly = true)
     public AuthenticatedUser resolveFromEmail(String email) {
         User u = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new AuthenticationFailedException(
-                        "User dev no encontrado: " + email));
+                        "Dev user not found: " + email));
         return AuthenticatedUser.fromUser(u);
     }
 }

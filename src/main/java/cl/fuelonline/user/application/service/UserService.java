@@ -38,14 +38,14 @@ public class UserService {
     @Transactional
     public UserResponse create(UserCreateRequest req) {
         if (userRepository.existsByEmailIgnoreCase(req.email())) {
-            throw new UserAlreadyExistsException("Email ya registrado: " + req.email());
+            throw new UserAlreadyExistsException("Email already registered: " + req.email());
         }
         if (userRepository.existsByRut(req.rut())) {
-            throw new UserAlreadyExistsException("RUT ya registrado: " + req.rut());
+            throw new UserAlreadyExistsException("RUT already registered: " + req.rut());
         }
 
         Role role = roleRepository.findById(req.roleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Role no encontrado: " + req.roleId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + req.roleId()));
 
         User nuevo = mapper.toEntity(req);
         nuevo.setRole(role);
@@ -59,14 +59,14 @@ public class UserService {
 
         if (req.email() != null && !req.email().equalsIgnoreCase(user.getEmail())
                 && userRepository.existsByEmailIgnoreCase(req.email())) {
-            throw new UserAlreadyExistsException("Email ya registrado: " + req.email());
+            throw new UserAlreadyExistsException("Email already registered: " + req.email());
         }
 
         mapper.updateEntity(req, user);
 
         if (req.roleId() != null) {
             Role role = roleRepository.findById(req.roleId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Role no encontrado: " + req.roleId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + req.roleId()));
             user.setRole(role);
         }
 
@@ -81,6 +81,6 @@ public class UserService {
 
     private User get(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
     }
 }

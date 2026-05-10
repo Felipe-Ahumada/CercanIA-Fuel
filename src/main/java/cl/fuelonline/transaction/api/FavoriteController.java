@@ -20,20 +20,20 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/favoritos")
 @RequiredArgsConstructor
-@Tag(name = "Favoritos", description = "Bencineras favoritas del user")
+@Tag(name = "Favorites", description = "User's favorite stations")
 public class FavoriteController {
 
     private final FavoriteService favoriteService;
 
     @GetMapping
-    @Operation(summary = "Listar bencineras favoritas de un user")
+    @Operation(summary = "List a user's favorite stations")
     public Page<FavoriteResponse> list(@RequestParam UUID userId,
                                          @ParameterObject Pageable pageable) {
         return favoriteService.listByUser(userId, pageable);
     }
 
     @GetMapping("/check")
-    @Operation(summary = "Verificar si una station esta en favorites")
+    @Operation(summary = "Check if a station is in favorites")
     public Map<String, Boolean> isFavorite(@RequestParam UUID userId,
                                            @RequestParam UUID stationId) {
         return Map.of("favorite", favoriteService.isFavorite(userId, stationId));

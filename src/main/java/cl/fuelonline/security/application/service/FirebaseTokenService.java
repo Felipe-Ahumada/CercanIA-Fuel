@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 /**
- * Verifica un ID Token emitido por Firebase Authentication.
- * Solo se instancia cuando existe el bean FirebaseAuth (cuando hay credenciales configuradas).
+ * Verifies an ID Token issued by Firebase Authentication.
+ * Only instantiated when the FirebaseAuth bean exists (i.e. when credentials are configured).
  */
 @Service
 @ConditionalOnBean(FirebaseAuth.class)
