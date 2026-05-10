@@ -45,12 +45,12 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
 
     if (marca.isNotEmpty && modelo.isNotEmpty) {
       context.read<VehicleBloc>().add(
-        AddVehicleEvent(
-          marca: marca,
-          modelo: modelo,
-          tipoCombustible: _selectedFuel,
-        ),
-      );
+            AddVehicleEvent(
+              marca: marca,
+              modelo: modelo,
+              tipoCombustible: _selectedFuel,
+            ),
+          );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,8 +70,8 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
           Text(
             'Agregar Vehículo',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 20,
-            ),
+                  fontSize: 20,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -85,10 +85,11 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
             decoration: const InputDecoration(labelText: 'Modelo (ej. Yaris)'),
           ),
           const SizedBox(height: 16),
-          const Text('Tipo de Combustible:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Tipo de Combustible:',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           DropdownButtonFormField<Fuel>(
-            value: _selectedFuel,
+            initialValue: _selectedFuel,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),

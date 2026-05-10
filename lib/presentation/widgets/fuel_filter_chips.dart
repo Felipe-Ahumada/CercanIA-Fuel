@@ -25,10 +25,11 @@ class FuelFilterChips extends StatelessWidget {
               label: Text(fuel.displayName),
               selected: isSelected,
               onSelected: (selected) {
-                 onSelected(selected ? fuel : null);
+                onSelected(selected ? fuel : null);
               },
               backgroundColor: Colors.white,
-              selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
+              selectedColor:
+                  Theme.of(context).primaryColor.withValues(alpha: 0.2),
               checkmarkColor: Theme.of(context).primaryColor,
             ),
           );

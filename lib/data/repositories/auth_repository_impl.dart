@@ -11,17 +11,20 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<Either<Failure, UserEntity>> signIn(String email, String password) async {
+  Future<Either<Failure, UserEntity>> signIn(
+      String email, String password) async {
     try {
       final user = await remoteDataSource.signIn(email, password);
       return Right(user);
-    } on ServerException catch (e) {
-      return const Left(ServerFailure('Error en el servidor al iniciar sesión.'));
+    } on ServerException {
+      return const Left(
+          ServerFailure('Error en el servidor al iniciar sesión.'));
     }
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signUp(String email, String password, String nombre) async {
+  Future<Either<Failure, UserEntity>> signUp(
+      String email, String password, String nombre) async {
     try {
       final user = await remoteDataSource.signUp(email, password, nombre);
       return Right(user);
@@ -36,7 +39,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await remoteDataSource.signInWithGoogle();
       return Right(user);
     } on ServerException {
-      return const Left(ServerFailure('Error o cancelación al iniciar sesión con Google.'));
+      return const Left(
+          ServerFailure('Error o cancelación al iniciar sesión con Google.'));
     }
   }
 
@@ -56,7 +60,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.sendPasswordResetEmail(email);
       return const Right(null);
     } on ServerException {
-      return const Left(ServerFailure('Error al enviar correo de recuperación.'));
+      return const Left(
+          ServerFailure('Error al enviar correo de recuperación.'));
     }
   }
 

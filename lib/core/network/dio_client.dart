@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+
+import '../config/app_config.dart';
 import 'auth_interceptor.dart';
 
 class DioClient {
@@ -10,9 +12,9 @@ class DioClient {
     required this.dio,
     required this.authInterceptor,
   }) {
-    // Configuración base de la API de backend 
+    // Configuración base de la API de backend
     // (Asegúrate de cambiar esta URL por la de tu backend real en Railway)
-    dio.options.baseUrl = 'https://cercania-fuel-backend.up.railway.app/api/v1'; 
+    dio.options.baseUrl = AppConfig.apiBaseUrl;
     dio.options.connectTimeout = const Duration(seconds: 10);
     dio.options.receiveTimeout = const Duration(seconds: 10);
 
@@ -31,7 +33,8 @@ class DioClient {
     );
   }
 
-  Future<Response> get(String uri, {Map<String, dynamic>? queryParameters}) async {
+  Future<Response> get(String uri,
+      {Map<String, dynamic>? queryParameters}) async {
     return await dio.get(uri, queryParameters: queryParameters);
   }
 

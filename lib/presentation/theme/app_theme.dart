@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static const Color primaryColor = Color(0xFF005C9A); // Azul institucional
-  static const Color secondaryColor = Color(0xFFF2A900); // Detalles amarillos/naranjas
+  static const Color secondaryColor =
+      Color(0xFFF2A900); // Detalles amarillos/naranjas
   static const Color backgroundColor = Color(0xFFFFFFFF);
   static const Color textColor = Color(0xFF333333);
   static const Color errorColor = Color(0xFFD32F2F);
@@ -12,7 +13,7 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
-        background: backgroundColor,
+        surface: backgroundColor,
         error: errorColor,
       ),
       scaffoldBackgroundColor: backgroundColor,
@@ -40,7 +41,8 @@ class AppTheme {
         fillColor: Colors.grey.shade100,
       ),
       textTheme: const TextTheme(
-        headlineMedium: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+        headlineMedium:
+            TextStyle(color: textColor, fontWeight: FontWeight.bold),
         bodyLarge: TextStyle(color: textColor),
       ),
     );

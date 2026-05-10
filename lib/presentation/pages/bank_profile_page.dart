@@ -34,7 +34,7 @@ class _BankProfilePageState extends State<BankProfilePage> {
                 children: [
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Banco'),
-                    value: selectedBanco,
+                    initialValue: selectedBanco,
                     items: state.banksCatalog.map((banco) {
                       return DropdownMenuItem(value: banco, child: Text(banco));
                     }).toList(),
@@ -42,10 +42,12 @@ class _BankProfilePageState extends State<BankProfilePage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Tipo de Tarjeta'),
-                    value: selectedTarjeta,
+                    decoration:
+                        const InputDecoration(labelText: 'Tipo de Tarjeta'),
+                    initialValue: selectedTarjeta,
                     items: state.cardsCatalog.map((tarjeta) {
-                      return DropdownMenuItem(value: tarjeta, child: Text(tarjeta));
+                      return DropdownMenuItem(
+                          value: tarjeta, child: Text(tarjeta));
                     }).toList(),
                     onChanged: (val) => setState(() => selectedTarjeta = val),
                   ),
@@ -59,8 +61,12 @@ class _BankProfilePageState extends State<BankProfilePage> {
                 ElevatedButton(
                   onPressed: () {
                     if (selectedBanco != null && selectedTarjeta != null) {
-                      final convenio = BankConvenio(banco: selectedBanco!, tipoTarjeta: selectedTarjeta!);
-                      this.context.read<BankProfileCubit>().addConvenio(convenio);
+                      final convenio = BankConvenio(
+                          banco: selectedBanco!, tipoTarjeta: selectedTarjeta!);
+                      this
+                          .context
+                          .read<BankProfileCubit>()
+                          .addConvenio(convenio);
                       Navigator.pop(dialogContext);
                     }
                   },
@@ -83,14 +89,14 @@ class _BankProfilePageState extends State<BankProfilePage> {
       body: BlocConsumer<BankProfileCubit, BankProfileState>(
         listener: (context, state) {
           if (state is BankProfileError) {
-             ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
           }
         },
         builder: (context, state) {
           if (state is BankProfileLoading || state is BankProfileInitial) {
-             return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (state is BankProfileLoaded) {
@@ -107,7 +113,8 @@ class _BankProfilePageState extends State<BankProfilePage> {
                 ),
                 Expanded(
                   child: convenios.isEmpty
-                      ? const Center(child: Text('No tienes convenios agregados.'))
+                      ? const Center(
+                          child: Text('No tienes convenios agregados.'))
                       : ListView.builder(
                           itemCount: convenios.length,
                           itemBuilder: (context, index) {
@@ -117,9 +124,12 @@ class _BankProfilePageState extends State<BankProfilePage> {
                               title: Text(convenio.banco),
                               subtitle: Text(convenio.tipoTarjeta),
                               trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () {
-                                  context.read<BankProfileCubit>().removeConvenio(convenio);
+                                  context
+                                      .read<BankProfileCubit>()
+                                      .removeConvenio(convenio);
                                 },
                               ),
                             );

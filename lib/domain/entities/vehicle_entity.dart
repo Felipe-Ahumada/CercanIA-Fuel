@@ -1,9 +1,4 @@
-enum Fuel {
-  bencina93,
-  bencina95,
-  bencina97,
-  diesel
-}
+enum Fuel { bencina93, bencina95, bencina97, diesel }
 
 extension FuelExtension on Fuel {
   String get displayName {
@@ -20,13 +15,20 @@ extension FuelExtension on Fuel {
   }
 
   static Fuel fromString(String fuel) {
-    switch (fuel.toLowerCase()) {
+    switch (fuel.toLowerCase().replaceAll(' ', '')) {
+      case '93':
+      case 'gasolina93':
       case 'bencina93':
         return Fuel.bencina93;
+      case '95':
+      case 'gasolina95':
       case 'bencina95':
         return Fuel.bencina95;
+      case '97':
+      case 'gasolina97':
       case 'bencina97':
         return Fuel.bencina97;
+      case 'di':
       case 'diesel':
       default:
         return Fuel.diesel;

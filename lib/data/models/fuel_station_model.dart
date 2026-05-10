@@ -2,22 +2,14 @@ import '../../domain/entities/fuel_station.dart';
 
 class FuelStationModel extends FuelStation {
   const FuelStationModel({
-    required String id,
-    required String name,
-    required String brand,
-    required String address,
-    required double latitude,
-    required double longitude,
-    required bool isOpen,
-  }) : super(
-          id: id,
-          name: name,
-          brand: brand,
-          address: address,
-          latitude: latitude,
-          longitude: longitude,
-          isOpen: isOpen,
-        );
+    required super.id,
+    required super.name,
+    required super.brand,
+    required super.address,
+    required super.latitude,
+    required super.longitude,
+    required super.isOpen,
+  });
 
   factory FuelStationModel.fromJson(Map<String, dynamic> json) {
     return FuelStationModel(

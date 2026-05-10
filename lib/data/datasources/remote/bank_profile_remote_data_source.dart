@@ -1,4 +1,4 @@
-import 'package:flutter_application_1/domain/entities/bank_profile_entity.dart';
+import '../../../domain/entities/bank_profile_entity.dart';
 
 abstract class BankProfileRemoteDataSource {
   Future<BankProfileEntity> getBankProfile();
