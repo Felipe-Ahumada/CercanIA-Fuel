@@ -10,9 +10,9 @@ import java.util.Optional;
 public interface CardProductRepository extends JpaRepository<CardProduct, Integer> {
 
     @EntityGraph(attributePaths = "bank")
-    List<CardProduct> findAllByBanco_IdOrderByNombreAsc(Integer bankId);
+    List<CardProduct> findAllByBank_IdOrderByNameAsc(Integer bankId);
 
-    Optional<CardProduct> findByBanco_IdAndNombreIgnoreCase(Integer bankId, String name);
+    Optional<CardProduct> findByBank_IdAndNameIgnoreCase(Integer bankId, String name);
 
     boolean existsByBanco_IdAndNombreIgnoreCase(Integer bankId, String name);
 }

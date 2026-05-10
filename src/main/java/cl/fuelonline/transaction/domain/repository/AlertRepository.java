@@ -23,10 +23,10 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     @Modifying
     @Query("""
            update Alert a
-              set a.read = true, a.readAt = :ahora
+              set a.read = true, a.readAt = :now
             where a.user.id = :userId
               and a.read = false
            """)
     int markAllAsRead(@Param("userId") UUID userId,
-                              @Param("ahora") LocalDateTime ahora);
+                              @Param("now") LocalDateTime now);
 }

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_alert_user",     columnList = "user_id"),
         @Index(name = "idx_alert_station",   columnList = "station_id"),
         @Index(name = "idx_alert_type",        columnList = "alert_type"),
-        @Index(name = "idx_alert_read",       columnList = "read"),
+        @Index(name = "idx_alert_read",       columnList = "is_read"),
         @Index(name = "idx_alert_created_at",  columnList = "created_at")
     }
 )
@@ -51,7 +51,7 @@ public class Alert {
     @Column(nullable = false, length = 500)
     private String message;
 
-    @Column(nullable = false)
+    @Column(name = "is_read", nullable = false)
     @Builder.Default
     private Boolean read = Boolean.FALSE;
 

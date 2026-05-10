@@ -28,7 +28,7 @@ public class VehicleModel {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_vehiculo", nullable = false, length = 20)
+    @Column(name = "vehicle_type", nullable = false, length = 20)
     @Builder.Default
     private TipoVehiculo vehicleType = TipoVehiculo.CAR;
 

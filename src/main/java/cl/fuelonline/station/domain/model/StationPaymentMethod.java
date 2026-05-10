@@ -21,6 +21,7 @@ public class StationPaymentMethod {
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "station_id", nullable = false,
+                columnDefinition = "VARCHAR(36)",
                 foreignKey = @ForeignKey(name = "fk_smp_station"))
     private Station station;
 

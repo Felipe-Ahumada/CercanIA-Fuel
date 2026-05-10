@@ -30,7 +30,7 @@ public class CardProductService {
     }
 
     public List<CardProductResponse> listByBank(Integer bankId) {
-        return tarjetaRepository.findAllByBanco_IdOrderByNombreAsc(bankId).stream()
+        return tarjetaRepository.findAllByBank_IdOrderByNameAsc(bankId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }

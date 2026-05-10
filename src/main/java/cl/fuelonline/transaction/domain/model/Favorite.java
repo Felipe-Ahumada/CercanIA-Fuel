@@ -27,12 +27,14 @@ public class Favorite {
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false,
+                columnDefinition = "VARCHAR(36)",
                 foreignKey = @ForeignKey(name = "fk_favorite_user"))
     private User user;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "station_id", nullable = false,
+                columnDefinition = "VARCHAR(36)",
                 foreignKey = @ForeignKey(name = "fk_favorite_station"))
     private Station station;
 
