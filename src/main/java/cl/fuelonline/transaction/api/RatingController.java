@@ -21,7 +21,7 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/ratings")
+@RequestMapping("/api/v1/calificaciones")
 @RequiredArgsConstructor
 @Tag(name = "Calificaciones", description = "Resenas de bencineras por parte de los usuarios")
 public class RatingController {

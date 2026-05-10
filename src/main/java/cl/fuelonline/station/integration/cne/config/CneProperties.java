@@ -29,7 +29,7 @@ public record CneProperties(
         if (apiUrl == null || apiUrl.isBlank())
             apiUrl = "https://api.cne.cl/api/v4";
         if (stationsPath == null || stationsPath.isBlank())
-            stationsPath = "/stations";
+            stationsPath = "/estaciones";
         if (timeout == null) timeout = Duration.ofSeconds(60);
         if (scheduledCron == null || scheduledCron.isBlank())
             scheduledCron = "0 0 */1 * * *";

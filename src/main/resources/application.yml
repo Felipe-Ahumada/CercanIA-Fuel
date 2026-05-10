@@ -1,6 +1,6 @@
 spring:
   application:
-    name: bencina-backend
+    name: fuel-online-backend
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
@@ -26,19 +26,19 @@ management:
 
 app:
   security:
-    # Path al JSON de credenciales de servicio de Firebase. Vacio = Firebase deshabilitado.
+    # Path to the Firebase service account credentials JSON. Empty = Firebase disabled.
     firebase:
       credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
-    # Si esta activo, acepta el header X-Dev-User: <email> para impersonar usuarios locales.
+    # When enabled, accepts the X-Dev-User: <email> header to impersonate local users.
     dev-mode: ${APP_SECURITY_DEV_MODE:false}
     dev-user-header: X-Dev-User
 
   cne:
     enabled: ${CNE_ENABLED:false}
     api-url: ${CNE_API_URL:https://api.cne.cl/api/v4}
-    estaciones-path: /estaciones
+    stations-path: /estaciones
     token: ${CNE_API_TOKEN:}
     timeout: 60s
     scheduled-enabled: ${CNE_SCHEDULED_ENABLED:false}
-    # Cron Spring (6 campos): seg min hora dia mes diaSemana. Default: cada hora en punto.
+    # Spring cron expression (6 fields): sec min hour day month dayOfWeek. Default: every hour on the hour.
     scheduled-cron: ${CNE_SCHEDULED_CRON:0 0 */1 * * *}

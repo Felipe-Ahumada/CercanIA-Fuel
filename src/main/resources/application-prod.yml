@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${BENCINA_DB_URL}
-    username: ${BENCINA_DB_USER}
-    password: ${BENCINA_DB_PASSWORD}
+    url: ${FUEL_DB_URL}
+    username: ${FUEL_DB_USER}
+    password: ${FUEL_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

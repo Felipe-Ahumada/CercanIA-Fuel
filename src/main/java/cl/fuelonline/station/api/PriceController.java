@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/bencineras/{stationId}/prices")
+@RequestMapping("/api/v1/bencineras/{stationId}/precios")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Precios", description = "Precios actuales e historial por station y combustible")

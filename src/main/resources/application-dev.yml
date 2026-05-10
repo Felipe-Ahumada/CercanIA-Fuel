@@ -1,15 +1,15 @@
 spring:
   datasource:
-    # MySQL/MariaDB de XAMPP corriendo en localhost:3306. Crea la BD "bencina_db" en phpMyAdmin antes de arrancar.
-    url: ${BENCINA_DB_URL:jdbc:mysql://localhost:3306/bencina_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Santiago&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true}
-    username: ${BENCINA_DB_USER:root}
-    password: ${BENCINA_DB_PASSWORD:}
-    driver-class-name: ${BENCINA_DB_DRIVER:com.mysql.cj.jdbc.Driver}
+    # XAMPP MySQL/MariaDB running on localhost:3306. Create the "fuel_online_db" database in phpMyAdmin before starting.
+    url: ${FUEL_DB_URL:jdbc:mysql://localhost:3306/fuel_online_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Santiago&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true}
+    username: ${FUEL_DB_USER:root}
+    password: ${FUEL_DB_PASSWORD:}
+    driver-class-name: ${FUEL_DB_DRIVER:com.mysql.cj.jdbc.Driver}
   jpa:
     hibernate:
       ddl-auto: update
     open-in-view: false
-    # Asegura que data.sql se ejecute DESPUES de que Hibernate cree el schema
+    # Ensures data.sql runs AFTER Hibernate has created the schema
     defer-datasource-initialization: true
     properties:
       hibernate:
@@ -23,11 +23,11 @@ spring:
 
 app:
   security:
-    # En dev no se requiere Firebase; usar header X-Dev-User: email@local
+    # In dev no Firebase is required; use the X-Dev-User: email@local header
     dev-mode: true
   cne:
-    # En dev mantenemos el sync programado apagado para no martillar la API CNE
-    # mientras se desarrolla. Para probar manual: POST /api/v1/admin/cne/sync
+    # In dev the scheduled sync is kept off so we don't hammer the CNE API
+    # during development. To test manually: POST /api/v1/admin/cne/sync
     enabled: ${CNE_ENABLED:false}
     scheduled-enabled: false
 

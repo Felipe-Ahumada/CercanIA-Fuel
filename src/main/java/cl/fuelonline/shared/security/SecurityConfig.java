@@ -71,7 +71,7 @@ public class SecurityConfig {
                         "/api/v1/comunas/**",
                         "/api/v1/marcas/**",
                         "/api/v1/tipos-combustible/**",
-                        "/api/v1/prices/**").permitAll()
+                        "/api/v1/precios/**").permitAll()
 
                 // Lectura de descuentos publica; calculo y mutaciones requieren auth
                 .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/**").permitAll()

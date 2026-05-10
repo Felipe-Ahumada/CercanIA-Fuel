@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/favorites")
+@RequestMapping("/api/v1/favoritos")
 @RequiredArgsConstructor
 @Tag(name = "Favoritos", description = "Bencineras favoritas del user")
 public class FavoriteController {

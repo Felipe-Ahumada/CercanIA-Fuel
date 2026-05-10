@@ -1,8 +1,8 @@
--- Seeds para entorno de desarrollo (sintaxis MySQL/MariaDB).
--- INSERT IGNORE evita el error si las filas ya existen (la BD persiste entre arranques).
+-- Development environment seeds (MySQL/MariaDB syntax).
+-- INSERT IGNORE prevents errors if rows already exist (the DB persists across restarts).
 
-INSERT IGNORE INTO rol (id, nombre, descripcion, activo, created_at, updated_at)
-VALUES (1, 'ADMIN', 'Administrador del sistema', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT IGNORE INTO role (id, name, description, active, created_at, updated_at)
+VALUES (1, 'ADMIN', 'System administrator', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
-INSERT IGNORE INTO rol (id, nombre, descripcion, activo, created_at, updated_at)
-VALUES (2, 'USER', 'Usuario regular', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT IGNORE INTO role (id, name, description, active, created_at, updated_at)
+VALUES (2, 'USER', 'Regular user', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
