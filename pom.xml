@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>cl.bencinaenlinea</groupId>
-    <artifactId>bencina-backend</artifactId>
+    <groupId>cl.fuelonline</groupId>
+    <artifactId>fuel-online-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>bencina-backend</name>
-    <description>Backend para la Guía Inteligente de Información de Combustibles</description>
+    <name>fuel-online-backend</name>
+    <description>Backend for the Smart Fuel Information Guide</description>
 
     <properties>
         <java.version>21</java.version>
@@ -78,8 +78,8 @@
             <version>9.4.3</version>
         </dependency>
 
-        <!-- Apache HttpClient 5: lo usa el RestClient de la integracion CNE para
-             descomprimir gzip automaticamente (la API CNE responde gzipeada). -->
+        <!-- Apache HttpClient 5: used by the CNE integration RestClient to
+             automatically decompress gzip (the CNE API returns gzip-encoded responses). -->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>

@@ -15,4 +15,4 @@ spring:
 
 logging:
   level:
-    cl.bencinaenlinea: INFO
+    cl.fuelonline: INFO
