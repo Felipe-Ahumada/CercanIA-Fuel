@@ -1,22 +1,35 @@
 spring:
   datasource:
-    url: ${BENCINA_DB_URL:jdbc:h2:mem:bencina;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
-    username: ${BENCINA_DB_USER:sa}
+    # MySQL/MariaDB de XAMPP corriendo en localhost:3306. Crea la BD "bencina_db" en phpMyAdmin antes de arrancar.
+    url: ${BENCINA_DB_URL:jdbc:mysql://localhost:3306/bencina_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Santiago&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true}
+    username: ${BENCINA_DB_USER:root}
     password: ${BENCINA_DB_PASSWORD:}
-    driver-class-name: ${BENCINA_DB_DRIVER:org.h2.Driver}
+    driver-class-name: ${BENCINA_DB_DRIVER:com.mysql.cj.jdbc.Driver}
   jpa:
     hibernate:
       ddl-auto: update
     open-in-view: false
+    # Asegura que data.sql se ejecute DESPUES de que Hibernate cree el schema
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
         jdbc:
           time_zone: America/Santiago
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+app:
+  security:
+    # En dev no se requiere Firebase; usar header X-Dev-User: email@local
+    dev-mode: true
+  cne:
+    # En dev mantenemos el sync programado apagado para no martillar la API CNE
+    # mientras se desarrolla. Para probar manual: POST /api/v1/admin/cne/sync
+    enabled: ${CNE_ENABLED:false}
+    scheduled-enabled: false
 
 logging:
   level:

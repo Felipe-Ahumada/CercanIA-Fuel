@@ -16,10 +16,14 @@ import java.util.UUID;
 @Table(
     name = "usuario",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_usuario_email", columnNames = "email"),
-        @UniqueConstraint(name = "uq_usuario_rut",   columnNames = "rut")
+        @UniqueConstraint(name = "uq_usuario_email",        columnNames = "email"),
+        @UniqueConstraint(name = "uq_usuario_rut",          columnNames = "rut"),
+        @UniqueConstraint(name = "uq_usuario_firebase_uid", columnNames = "firebase_uid")
     },
-    indexes = @Index(name = "idx_usuario_rol", columnList = "rol_id")
+    indexes = {
+        @Index(name = "idx_usuario_rol",          columnList = "rol_id"),
+        @Index(name = "idx_usuario_firebase_uid", columnList = "firebase_uid")
+    }
 )
 @Getter
 @Setter
@@ -31,8 +35,8 @@ public class Usuario extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @JdbcTypeCode(SqlTypes.UUID)
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(columnDefinition = "VARCHAR(36)", length = 36, updatable = false, nullable = false)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -42,6 +46,10 @@ public class Usuario extends BaseAuditEntity {
 
     @Column(nullable = false, length = 180)
     private String email;
+
+    /** UID de Firebase Authentication. Null si el usuario aun no se autentico. */
+    @Column(name = "firebase_uid", length = 128)
+    private String firebaseUid;
 
     @Column(nullable = false, length = 12)
     private String rut;

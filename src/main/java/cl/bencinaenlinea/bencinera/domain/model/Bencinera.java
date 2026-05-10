@@ -32,8 +32,8 @@ public class Bencinera extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @JdbcTypeCode(SqlTypes.UUID)
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(columnDefinition = "VARCHAR(36)", length = 36, updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "codigo_api", nullable = false, length = 30)

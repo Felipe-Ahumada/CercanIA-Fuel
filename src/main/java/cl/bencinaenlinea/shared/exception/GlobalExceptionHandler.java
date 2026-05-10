@@ -3,6 +3,9 @@ package cl.bencinaenlinea.shared.exception;
 import cl.bencinaenlinea.bencinera.application.exception.BencineraYaExisteException;
 import cl.bencinaenlinea.finanzas.application.exception.BancoYaExisteException;
 import cl.bencinaenlinea.finanzas.application.exception.TarjetaProductoYaExisteException;
+import cl.bencinaenlinea.transaccion.application.exception.CalificacionYaExisteException;
+import cl.bencinaenlinea.transaccion.application.exception.FavoritoYaExisteException;
+import cl.bencinaenlinea.transaccion.application.exception.TransaccionInvalidaException;
 import cl.bencinaenlinea.usuario.application.exception.UsuarioYaExisteException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -29,11 +32,22 @@ public class GlobalExceptionHandler {
             UsuarioYaExisteException.class,
             BencineraYaExisteException.class,
             BancoYaExisteException.class,
-            TarjetaProductoYaExisteException.class
+            TarjetaProductoYaExisteException.class,
+            CalificacionYaExisteException.class,
+            FavoritoYaExisteException.class
     })
     public ResponseEntity<ApiError> conflict(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ApiError(Instant.now(), 409, "Conflict", ex.getMessage()));
+    }
+
+    @ExceptionHandler({
+            TransaccionInvalidaException.class,
+            IllegalArgumentException.class
+    })
+    public ResponseEntity<ApiError> badRequest(RuntimeException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ApiError(Instant.now(), 400, "Bad Request", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

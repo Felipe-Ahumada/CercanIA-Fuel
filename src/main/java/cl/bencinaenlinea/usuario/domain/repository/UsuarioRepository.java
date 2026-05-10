@@ -17,6 +17,9 @@ public interface UsuarioRepository
     @EntityGraph(attributePaths = "rol")
     Optional<Usuario> findByRut(String rut);
 
+    @EntityGraph(attributePaths = "rol")
+    Optional<Usuario> findByFirebaseUid(String firebaseUid);
+
     boolean existsByEmailIgnoreCase(String email);
     boolean existsByRut(String rut);
 }

@@ -23,3 +23,22 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+
+app:
+  security:
+    # Path al JSON de credenciales de servicio de Firebase. Vacio = Firebase deshabilitado.
+    firebase:
+      credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+    # Si esta activo, acepta el header X-Dev-User: <email> para impersonar usuarios locales.
+    dev-mode: ${APP_SECURITY_DEV_MODE:false}
+    dev-user-header: X-Dev-User
+
+  cne:
+    enabled: ${CNE_ENABLED:false}
+    api-url: ${CNE_API_URL:https://api.cne.cl/api/v4}
+    estaciones-path: /estaciones
+    token: ${CNE_API_TOKEN:}
+    timeout: 60s
+    scheduled-enabled: ${CNE_SCHEDULED_ENABLED:false}
+    # Cron Spring (6 campos): seg min hora dia mes diaSemana. Default: cada hora en punto.
+    scheduled-cron: ${CNE_SCHEDULED_CRON:0 0 */1 * * *}
