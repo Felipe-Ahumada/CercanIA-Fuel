@@ -1,7 +1,7 @@
 package cl.fuelonline.station.integration.cne.client;
 
 import cl.fuelonline.station.integration.cne.config.CneProperties;
-import cl.fuelonline.station.integration.cne.dto.CneEstacionDto;
+import cl.fuelonline.station.integration.cne.dto.CneStationDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +27,7 @@ import java.util.List;
 @ConditionalOnProperty(prefix = "app.cne", name = "enabled", havingValue = "true")
 public class CneApiClient {
 
-    private static final TypeReference<List<CneEstacionDto>> LIST_TYPE = new TypeReference<>() {};
+    private static final TypeReference<List<CneStationDto>> LIST_TYPE = new TypeReference<>() {};
 
     private final RestClient restClient;
     private final CneProperties props;
@@ -44,7 +44,7 @@ public class CneApiClient {
     /**
      * GET /api/v4/estaciones — devuelve todas las estaciones con sus precios actuales.
      */
-    public List<CneEstacionDto> obtenerEstaciones() {
+    public List<CneStationDto> obtenerEstaciones() {
         if (!props.tokenConfigurado()) {
             log.warn("CNE: token no configurado (app.cne.token vacio). Sync abortado.");
             return Collections.emptyList();
@@ -74,7 +74,7 @@ public class CneApiClient {
 
         try {
             if (body.startsWith("[")) {
-                List<CneEstacionDto> lista = mapper.readValue(body, LIST_TYPE);
+                List<CneStationDto> lista = mapper.readValue(body, LIST_TYPE);
                 log.info("CNE: recibidas {} estaciones (array directo)", lista.size());
                 return lista;
             }
@@ -85,7 +85,7 @@ public class CneApiClient {
                 for (String campo : posiblesCampos) {
                     JsonNode arr = root.path(campo);
                     if (arr.isArray()) {
-                        List<CneEstacionDto> lista = mapper.readerFor(LIST_TYPE).readValue(arr);
+                        List<CneStationDto> lista = mapper.readerFor(LIST_TYPE).readValue(arr);
                         log.info("CNE: recibidas {} estaciones (wrapper '{}')", lista.size(), campo);
                         return lista;
                     }

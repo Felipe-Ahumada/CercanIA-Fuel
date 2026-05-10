@@ -1,8 +1,8 @@
 package cl.fuelonline.station.integration.cne.service;
 
 import cl.fuelonline.station.integration.cne.client.CneApiClient;
-import cl.fuelonline.station.integration.cne.dto.CneEstacionDto;
-import cl.fuelonline.station.integration.cne.dto.CneSyncResultadoDto;
+import cl.fuelonline.station.integration.cne.dto.CneStationDto;
+import cl.fuelonline.station.integration.cne.dto.CneSyncResultDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Orquesta el sync con la CNE. Sin @Transactional aqui: cada estacion se procesa
- * en su propia transaccion (REQUIRES_NEW) en CneEstacionUpserter, asi un fallo
+ * en su propia transaccion (REQUIRES_NEW) en CneStationUpserter, asi un fallo
  * puntual no descarta el resto del lote.
  *
  * Tambien implementa un guard "running" para evitar dos syncs en paralelo
@@ -28,31 +28,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CneSyncService {
 
     private final CneApiClient apiClient;
-    private final CneEstacionUpserter upserter;
+    private final CneStationUpserter upserter;
 
     private final AtomicBoolean enEjecucion = new AtomicBoolean(false);
 
-    public CneSyncResultadoDto sincronizar() {
+    public CneSyncResultDto sincronizar() {
         LocalDateTime inicio = LocalDateTime.now();
         long t0 = System.currentTimeMillis();
 
         if (!enEjecucion.compareAndSet(false, true)) {
             log.warn("CNE: sync ya en ejecucion, se omite esta invocacion");
-            return CneSyncResultadoDto.vacio(inicio, Duration.ZERO, "sync ya en ejecucion");
+            return CneSyncResultDto.vacio(inicio, Duration.ZERO, "sync ya en ejecucion");
         }
 
         try {
-            List<CneEstacionDto> estaciones = apiClient.obtenerEstaciones();
+            List<CneStationDto> estaciones = apiClient.obtenerEstaciones();
             if (estaciones.isEmpty()) {
                 long ms = System.currentTimeMillis() - t0;
                 log.info("CNE: sync sin estaciones (token o respuesta vacia)");
-                return new CneSyncResultadoDto(inicio, ms, 0, 0, 0, 0, 0, 0);
+                return new CneSyncResultDto(inicio, ms, 0, 0, 0, 0, 0, 0);
             }
 
             int creadas = 0, actualizadas = 0, errores = 0;
             int preciosIns = 0, preciosOmi = 0;
 
-            for (CneEstacionDto dto : estaciones) {
+            for (CneStationDto dto : estaciones) {
                 try {
                     var r = upserter.upsert(dto);
                     if (r.creada()) creadas++; else actualizadas++;
@@ -66,7 +66,7 @@ public class CneSyncService {
             }
 
             long ms = System.currentTimeMillis() - t0;
-            CneSyncResultadoDto resultado = new CneSyncResultadoDto(
+            CneSyncResultDto resultado = new CneSyncResultDto(
                     inicio, ms, estaciones.size(),
                     creadas, actualizadas, preciosIns, preciosOmi, errores);
 

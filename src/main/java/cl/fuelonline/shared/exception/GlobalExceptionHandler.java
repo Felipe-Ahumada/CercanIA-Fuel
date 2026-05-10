@@ -1,12 +1,12 @@
 package cl.fuelonline.shared.exception;
 
-import cl.fuelonline.station.application.exception.BencineraYaExisteException;
-import cl.fuelonline.finance.application.exception.BancoYaExisteException;
-import cl.fuelonline.finance.application.exception.TarjetaProductoYaExisteException;
-import cl.fuelonline.transaction.application.exception.CalificacionYaExisteException;
-import cl.fuelonline.transaction.application.exception.FavoritoYaExisteException;
-import cl.fuelonline.transaction.application.exception.TransaccionInvalidaException;
-import cl.fuelonline.user.application.exception.UsuarioYaExisteException;
+import cl.fuelonline.station.application.exception.StationAlreadyExistsException;
+import cl.fuelonline.finance.application.exception.BankAlreadyExistsException;
+import cl.fuelonline.finance.application.exception.CardProductAlreadyExistsException;
+import cl.fuelonline.transaction.application.exception.RatingAlreadyExistsException;
+import cl.fuelonline.transaction.application.exception.FavoriteAlreadyExistsException;
+import cl.fuelonline.transaction.application.exception.InvalidTransactionException;
+import cl.fuelonline.user.application.exception.UserAlreadyExistsException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,12 +29,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            UsuarioYaExisteException.class,
-            BencineraYaExisteException.class,
-            BancoYaExisteException.class,
-            TarjetaProductoYaExisteException.class,
-            CalificacionYaExisteException.class,
-            FavoritoYaExisteException.class
+            UserAlreadyExistsException.class,
+            StationAlreadyExistsException.class,
+            BankAlreadyExistsException.class,
+            CardProductAlreadyExistsException.class,
+            RatingAlreadyExistsException.class,
+            FavoriteAlreadyExistsException.class
     })
     public ResponseEntity<ApiError> conflict(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            TransaccionInvalidaException.class,
+            InvalidTransactionException.class,
             IllegalArgumentException.class
     })
     public ResponseEntity<ApiError> badRequest(RuntimeException ex) {

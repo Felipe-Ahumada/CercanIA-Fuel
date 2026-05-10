@@ -28,7 +28,7 @@ import java.io.IOException;
  *
  * Flujo:
  *  1. Si hay header "Authorization: Bearer <id-token>" y Firebase esta configurado,
- *     verifica el token con Firebase Admin SDK y resuelve al Usuario local.
+ *     verifica el token con Firebase Admin SDK y resuelve al User local.
  *  2. Si no, y dev-mode esta activo, busca el header X-Dev-User con el email
  *     del usuario a impersonar.
  *  3. Si nada de lo anterior, deja la request sin autenticar (puede ser endpoint publico).

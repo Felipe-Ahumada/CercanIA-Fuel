@@ -1,6 +1,6 @@
 package cl.fuelonline.station.integration.cne.api;
 
-import cl.fuelonline.station.integration.cne.dto.CneSyncResultadoDto;
+import cl.fuelonline.station.integration.cne.dto.CneSyncResultDto;
 import cl.fuelonline.station.integration.cne.service.CneSyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -26,7 +26,7 @@ public class CneSyncController {
     @Operation(summary = "Dispara un sync manual contra la API CNE",
                description = "Solo rol ADMIN. Devuelve metricas del sync.",
                security = @SecurityRequirement(name = "bearerAuth"))
-    public CneSyncResultadoDto sync() {
+    public CneSyncResultDto sync() {
         return syncService.sincronizar();
     }
 }

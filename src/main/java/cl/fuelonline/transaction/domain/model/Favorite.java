@@ -1,0 +1,67 @@
+package cl.fuelonline.transaction.domain.model;
+
+import cl.fuelonline.station.domain.model.Station;
+import cl.fuelonline.user.domain.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.UUID;
+
+@Entity
+@Table(
+    name = "favorito",
+    indexes = @Index(name = "idx_fav_bencinera", columnList = "bencinera_id")
+)
+@IdClass(Favorite.PK.class)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Favorite {
+
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_fav_usuario"))
+    private User usuario;
+
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "bencinera_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_fav_bencinera"))
+    private Station bencinera;
+
+    @Column(length = 80)
+    private String alias;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PK implements Serializable {
+        private UUID usuario;
+        private UUID bencinera;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof PK pk)) return false;
+            return Objects.equals(usuario, pk.usuario)
+                && Objects.equals(bencinera, pk.bencinera);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(usuario, bencinera);
+        }
+    }
+}

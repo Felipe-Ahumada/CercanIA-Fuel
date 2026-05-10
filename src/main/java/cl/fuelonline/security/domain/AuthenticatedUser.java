@@ -1,6 +1,6 @@
 package cl.fuelonline.security.domain;
 
-import cl.fuelonline.user.domain.model.Usuario;
+import cl.fuelonline.user.domain.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -10,7 +10,7 @@ import java.util.UUID;
 
 /**
  * Principal autenticado.
- * Conserva el ID local del Usuario y un snapshot de email + rol al momento del login,
+ * Conserva el ID local del User y un snapshot de email + rol al momento del login,
  * para no abrir una transaccion JPA por cada acceso al principal.
  */
 public record AuthenticatedUser(
@@ -20,7 +20,7 @@ public record AuthenticatedUser(
         String rolNombre
 ) {
 
-    public static AuthenticatedUser fromUsuario(Usuario u) {
+    public static AuthenticatedUser fromUsuario(User u) {
         return new AuthenticatedUser(
                 u.getId(),
                 u.getFirebaseUid(),
