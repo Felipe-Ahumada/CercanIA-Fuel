@@ -9,5 +9,5 @@ import java.util.List;
 public interface DiscountRepository
         extends JpaRepository<Discount, Integer>, JpaSpecificationExecutor<Discount> {
 
-    List<Discount> findAllByMarca_IdOrderByValorDescuentoDesc(Integer marcaId);
+    List<Discount> findAllByBrand_IdOrderByDiscountValueDesc(Integer brandId);
 }

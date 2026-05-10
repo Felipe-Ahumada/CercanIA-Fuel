@@ -24,9 +24,9 @@ public class CneSyncController {
     @PostMapping("/sync")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Dispara un sync manual contra la API CNE",
-               description = "Solo rol ADMIN. Devuelve metricas del sync.",
+               description = "Solo role ADMIN. Devuelve metricas del sync.",
                security = @SecurityRequirement(name = "bearerAuth"))
     public CneSyncResultDto sync() {
-        return syncService.sincronizar();
+        return syncService.synchronize();
     }
 }

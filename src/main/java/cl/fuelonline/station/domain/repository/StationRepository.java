@@ -13,9 +13,9 @@ import java.util.UUID;
 public interface StationRepository
         extends JpaRepository<Station, UUID>, JpaSpecificationExecutor<Station> {
 
-    Optional<Station> findByCodigoApi(String codigoApi);
+    Optional<Station> findByApiCode(String apiCode);
 
-    List<Station> findAllByComuna_Id(Integer comunaId);
+    List<Station> findAllByCommune_Id(Integer communeId);
 
     /**
      * Bencineras dentro de un bounding-box geografico.
@@ -23,9 +23,9 @@ public interface StationRepository
      */
     @Query("""
            SELECT b FROM Station b
-           WHERE b.latitud  BETWEEN :latMin AND :latMax
-             AND b.longitud BETWEEN :lonMin AND :lonMax
+           WHERE b.latitude  BETWEEN :latMin AND :latMax
+             AND b.longitude BETWEEN :lonMin AND :lonMax
            """)
-    List<Station> findEnBoundingBox(BigDecimal latMin, BigDecimal latMax,
+    List<Station> findInBoundingBox(BigDecimal latMin, BigDecimal latMax,
                                       BigDecimal lonMin, BigDecimal lonMax);
 }

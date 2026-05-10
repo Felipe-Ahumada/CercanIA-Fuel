@@ -24,13 +24,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * Filtro que extrae el token del header Authorization y autentica al usuario.
+ * Filtro que extrae el token del header Authorization y autentica al user.
  *
  * Flujo:
  *  1. Si hay header "Authorization: Bearer <id-token>" y Firebase esta configurado,
  *     verifica el token con Firebase Admin SDK y resuelve al User local.
- *  2. Si no, y dev-mode esta activo, busca el header X-Dev-User con el email
- *     del usuario a impersonar.
+ *  2. Si no, y dev-mode esta active, busca el header X-Dev-User con el email
+ *     del user a impersonar.
  *  3. Si nada de lo anterior, deja la request sin autenticar (puede ser endpoint publico).
  */
 @Slf4j
@@ -97,8 +97,8 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
 
         String idToken = header.substring(BEARER.length()).trim();
         try {
-            FirebaseToken token = firebaseTokenService.verificar(idToken);
-            return authenticationService.resolverDesdeFirebase(token.getUid(), token.getEmail());
+            FirebaseToken token = firebaseTokenService.verify(idToken);
+            return authenticationService.resolveFromFirebase(token.getUid(), token.getEmail());
         } catch (FirebaseAuthException ex) {
             throw new AuthenticationFailedException("Token invalido o expirado", ex);
         }
@@ -108,6 +108,6 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         if (!props.devMode()) return null;
         String email = request.getHeader(props.devUserHeader());
         if (email == null || email.isBlank()) return null;
-        return authenticationService.resolverDesdeEmail(email);
+        return authenticationService.resolveFromEmail(email);
     }
 }

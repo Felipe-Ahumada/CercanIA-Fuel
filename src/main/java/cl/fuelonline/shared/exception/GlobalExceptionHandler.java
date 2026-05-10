@@ -52,13 +52,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> validation(MethodArgumentNotValidException ex) {
-        var detalle = ex.getBindingResult().getFieldErrors().stream()
+        var detail = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         f -> f.getField(),
                         f -> f.getDefaultMessage() == null ? "invalido" : f.getDefaultMessage(),
                         (a, b) -> a));
         return ResponseEntity.badRequest()
-                .body(new ApiError(Instant.now(), 400, "Validation Failed", detalle));
+                .body(new ApiError(Instant.now(), 400, "Validation Failed", detail));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

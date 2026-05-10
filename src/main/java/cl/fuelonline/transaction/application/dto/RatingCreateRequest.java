@@ -6,11 +6,11 @@ import java.util.UUID;
 
 public record RatingCreateRequest(
 
-        @NotNull UUID usuarioId,
+        @NotNull UUID userId,
 
-        @NotNull UUID bencineraId,
+        @NotNull UUID stationId,
 
-        @NotNull @Min(1) @Max(5) Integer puntaje,
+        @NotNull @Min(1) @Max(5) Integer score,
 
-        @Size(max = 500) String comentario
+        @Size(max = 500) String comment
 ) {}

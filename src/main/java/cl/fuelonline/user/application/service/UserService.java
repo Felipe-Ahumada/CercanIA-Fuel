@@ -23,64 +23,64 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class UserService {
 
-    private final UserRepository usuarioRepository;
-    private final RoleRepository rolRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final UserMapper mapper;
 
-    public Page<UserResponse> listar(Pageable pageable) {
-        return usuarioRepository.findAll(pageable).map(mapper::toResponse);
+    public Page<UserResponse> list(Pageable pageable) {
+        return userRepository.findAll(pageable).map(mapper::toResponse);
     }
 
-    public UserResponse buscarPorId(UUID id) {
-        return mapper.toResponse(obtener(id));
+    public UserResponse findById(UUID id) {
+        return mapper.toResponse(get(id));
     }
 
     @Transactional
-    public UserResponse crear(UserCreateRequest req) {
-        if (usuarioRepository.existsByEmailIgnoreCase(req.email())) {
+    public UserResponse create(UserCreateRequest req) {
+        if (userRepository.existsByEmailIgnoreCase(req.email())) {
             throw new UserAlreadyExistsException("Email ya registrado: " + req.email());
         }
-        if (usuarioRepository.existsByRut(req.rut())) {
+        if (userRepository.existsByRut(req.rut())) {
             throw new UserAlreadyExistsException("RUT ya registrado: " + req.rut());
         }
 
-        Role rol = rolRepository.findById(req.rolId())
-                .orElseThrow(() -> new ResourceNotFoundException("Role no encontrado: " + req.rolId()));
+        Role role = roleRepository.findById(req.roleId())
+                .orElseThrow(() -> new ResourceNotFoundException("Role no encontrado: " + req.roleId()));
 
         User nuevo = mapper.toEntity(req);
-        nuevo.setRol(rol);
+        nuevo.setRole(role);
 
-        return mapper.toResponse(usuarioRepository.save(nuevo));
+        return mapper.toResponse(userRepository.save(nuevo));
     }
 
     @Transactional
-    public UserResponse actualizar(UUID id, UserUpdateRequest req) {
-        User usuario = obtener(id);
+    public UserResponse update(UUID id, UserUpdateRequest req) {
+        User user = get(id);
 
-        if (req.email() != null && !req.email().equalsIgnoreCase(usuario.getEmail())
-                && usuarioRepository.existsByEmailIgnoreCase(req.email())) {
+        if (req.email() != null && !req.email().equalsIgnoreCase(user.getEmail())
+                && userRepository.existsByEmailIgnoreCase(req.email())) {
             throw new UserAlreadyExistsException("Email ya registrado: " + req.email());
         }
 
-        mapper.updateEntity(req, usuario);
+        mapper.updateEntity(req, user);
 
-        if (req.rolId() != null) {
-            Role rol = rolRepository.findById(req.rolId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Role no encontrado: " + req.rolId()));
-            usuario.setRol(rol);
+        if (req.roleId() != null) {
+            Role role = roleRepository.findById(req.roleId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Role no encontrado: " + req.roleId()));
+            user.setRole(role);
         }
 
-        return mapper.toResponse(usuario);
+        return mapper.toResponse(user);
     }
 
     @Transactional
-    public void eliminar(UUID id) {
-        User usuario = obtener(id);
-        usuario.desactivar();
+    public void delete(UUID id) {
+        User user = get(id);
+        user.deactivate();
     }
 
-    private User obtener(UUID id) {
-        return usuarioRepository.findById(id)
+    private User get(UUID id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + id));
     }
 }

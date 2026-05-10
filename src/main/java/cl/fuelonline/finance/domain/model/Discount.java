@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-    name = "descuento",
+    name = "discount",
     indexes = {
         @Index(name = "idx_desc_marca",             columnList = "marca_id"),
         @Index(name = "idx_desc_tarjeta_producto",  columnList = "tarjeta_producto_id"),
@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class Discount {
 
     @Id
@@ -36,47 +36,47 @@ public class Discount {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "marca_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_desc_marca"))
-    private Brand marca;
+    private Brand brand;
 
     /** Null = aplica a cualquier medio de pago. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tarjeta_producto_id",
                 foreignKey = @ForeignKey(name = "fk_desc_tarjeta_producto"))
-    private CardProduct tarjetaProducto;
+    private CardProduct cardProduct;
 
     /** Null = aplica a cualquier combustible. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_combustible_id",
                 foreignKey = @ForeignKey(name = "fk_desc_combustible"))
-    private FuelType tipoCombustible;
+    private FuelType fuelType;
 
     /** Null = aplica todos los dias. 1 = lunes, 7 = domingo. */
     @Column(name = "dia_semana")
-    private Integer diaSemana;
+    private Integer dayOfWeek;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_descuento", nullable = false, length = 20)
     @Builder.Default
-    private DiscountType tipoDescuento = DiscountType.PORCENTAJE;
+    private DiscountType discountType = DiscountType.PERCENTAGE;
 
     @Column(name = "valor_descuento", nullable = false, precision = 8, scale = 2)
-    private BigDecimal valorDescuento;
+    private BigDecimal discountValue;
 
     @Column(name = "tope_maximo", precision = 10, scale = 2)
-    private BigDecimal topeMaximo;
+    private BigDecimal maxCap;
 
     @Column(length = 255)
-    private String descripcion;
+    private String description;
 
     @Column(name = "fecha_inicio", nullable = false)
-    private LocalDate fechaInicio;
+    private LocalDate startDate;
 
     @Column(name = "fecha_fin")
-    private LocalDate fechaFin;
+    private LocalDate endDate;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

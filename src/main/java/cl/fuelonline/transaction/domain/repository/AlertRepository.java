@@ -13,20 +13,20 @@ import java.util.UUID;
 
 public interface AlertRepository extends JpaRepository<Alert, Long> {
 
-    Page<Alert> findAllByUsuario_IdOrderByCreatedAtDesc(UUID usuarioId, Pageable pageable);
+    Page<Alert> findAllByUser_IdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
-    Page<Alert> findAllByUsuario_IdAndLeidaOrderByCreatedAtDesc(
-            UUID usuarioId, Boolean leida, Pageable pageable);
+    Page<Alert> findAllByUser_IdAndReadOrderByCreatedAtDesc(
+            UUID userId, Boolean read, Pageable pageable);
 
-    long countByUsuario_IdAndLeidaFalse(UUID usuarioId);
+    long countByUser_IdAndReadFalse(UUID userId);
 
     @Modifying
     @Query("""
            update Alert a
-              set a.leida = true, a.leidaAt = :ahora
-            where a.usuario.id = :usuarioId
-              and a.leida = false
+              set a.read = true, a.readAt = :ahora
+            where a.user.id = :userId
+              and a.read = false
            """)
-    int marcarTodasComoLeidas(@Param("usuarioId") UUID usuarioId,
+    int markAllAsRead(@Param("userId") UUID userId,
                               @Param("ahora") LocalDateTime ahora);
 }

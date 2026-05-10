@@ -5,13 +5,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record FavoriteResponse(
-        UUID usuarioId,
-        UUID bencineraId,
-        String bencineraNombre,
-        String bencineraDireccion,
-        String marcaNombre,
-        BigDecimal latitud,
-        BigDecimal longitud,
+        UUID userId,
+        UUID stationId,
+        String stationName,
+        String stationAddress,
+        String brandName,
+        BigDecimal latitude,
+        BigDecimal longitude,
         String alias,
         LocalDateTime createdAt
 ) {}

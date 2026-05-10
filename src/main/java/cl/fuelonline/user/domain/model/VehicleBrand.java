@@ -5,7 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "marca_vehiculo",
-       uniqueConstraints = @UniqueConstraint(name = "uq_marca_vehiculo_nombre", columnNames = "nombre"))
+       uniqueConstraints = @UniqueConstraint(name = "uq_marca_vehiculo_nombre", columnNames = "name"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,5 +18,5 @@ public class VehicleBrand {
     private Integer id;
 
     @Column(nullable = false, length = 80)
-    private String nombre;
+    private String name;
 }

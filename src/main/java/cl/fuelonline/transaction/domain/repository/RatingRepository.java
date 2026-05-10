@@ -10,23 +10,23 @@ import java.util.UUID;
 
 public interface RatingRepository extends JpaRepository<Rating, Long> {
 
-    Optional<Rating> findByUsuario_IdAndBencinera_Id(UUID usuarioId, UUID bencineraId);
+    Optional<Rating> findByUser_IdAndStation_Id(UUID userId, UUID stationId);
 
-    Page<Rating> findAllByBencinera_IdOrderByCreatedAtDesc(UUID bencineraId, Pageable pageable);
+    Page<Rating> findAllByStation_IdOrderByCreatedAtDesc(UUID stationId, Pageable pageable);
 
-    Page<Rating> findAllByUsuario_IdOrderByCreatedAtDesc(UUID usuarioId, Pageable pageable);
+    Page<Rating> findAllByUser_IdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
-    long countByBencinera_Id(UUID bencineraId);
+    long countByStation_Id(UUID stationId);
 
-    interface PromedioProyeccion {
+    interface AverageProjection {
         Double getPromedio();
         Long getTotal();
     }
 
     @org.springframework.data.jpa.repository.Query("""
-           select avg(c.puntaje) as promedio, count(c) as total
+           select avg(c.score) as average, count(c) as total
              from Rating c
-            where c.bencinera.id = :bencineraId
+            where c.station.id = :stationId
            """)
-    PromedioProyeccion calcularResumen(@org.springframework.data.repository.query.Param("bencineraId") UUID bencineraId);
+    AverageProjection calculateSummary(@org.springframework.data.repository.query.Param("stationId") UUID stationId);
 }

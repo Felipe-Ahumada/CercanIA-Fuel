@@ -7,9 +7,9 @@ import java.util.UUID;
 
 public record FavoriteCreateRequest(
 
-        @NotNull UUID usuarioId,
+        @NotNull UUID userId,
 
-        @NotNull UUID bencineraId,
+        @NotNull UUID stationId,
 
         @Size(max = 80) String alias
 ) {}

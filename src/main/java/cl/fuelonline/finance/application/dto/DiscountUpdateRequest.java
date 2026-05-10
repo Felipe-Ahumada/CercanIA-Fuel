@@ -7,13 +7,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record DiscountUpdateRequest(
-        @Positive Integer tarjetaProductoId,
-        @Positive Integer tipoCombustibleId,
-        @Min(1) @Max(7) Integer diaSemana,
-        DiscountType tipoDescuento,
-        @DecimalMin(value = "0.0", inclusive = false) BigDecimal valorDescuento,
-        @DecimalMin(value = "0.0", inclusive = false) BigDecimal topeMaximo,
-        @Size(max = 255) String descripcion,
-        LocalDate fechaInicio,
-        LocalDate fechaFin
+        @Positive Integer cardProductId,
+        @Positive Integer fuelTypeId,
+        @Min(1) @Max(7) Integer dayOfWeek,
+        DiscountType discountType,
+        @DecimalMin(value = "0.0", inclusive = false) BigDecimal discountValue,
+        @DecimalMin(value = "0.0", inclusive = false) BigDecimal maxCap,
+        @Size(max = 255) String description,
+        LocalDate startDate,
+        LocalDate endDate
 ) {}

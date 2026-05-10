@@ -21,63 +21,63 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/calificaciones")
+@RequestMapping("/api/v1/ratings")
 @RequiredArgsConstructor
 @Tag(name = "Calificaciones", description = "Resenas de bencineras por parte de los usuarios")
 public class RatingController {
 
-    private final RatingService calificacionService;
+    private final RatingService ratingService;
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener una calificacion por ID")
-    public RatingResponse buscar(@PathVariable Long id) {
-        return calificacionService.buscarPorId(id);
+    @Operation(summary = "Obtener una rating por ID")
+    public RatingResponse find(@PathVariable Long id) {
+        return ratingService.findById(id);
     }
 
     @GetMapping
-    @Operation(summary = "Listar calificaciones por bencinera o usuario (uno de los dos es obligatorio)")
-    public Page<RatingResponse> listar(
-            @RequestParam(required = false) UUID bencineraId,
-            @RequestParam(required = false) UUID usuarioId,
+    @Operation(summary = "Listar ratings por station o user (uno de los dos es obligatorio)")
+    public Page<RatingResponse> list(
+            @RequestParam(required = false) UUID stationId,
+            @RequestParam(required = false) UUID userId,
             @ParameterObject Pageable pageable) {
-        if (bencineraId != null) {
-            return calificacionService.listarPorBencinera(bencineraId, pageable);
+        if (stationId != null) {
+            return ratingService.listByStation(stationId, pageable);
         }
-        if (usuarioId != null) {
-            return calificacionService.listarPorUsuario(usuarioId, pageable);
+        if (userId != null) {
+            return ratingService.listByUser(userId, pageable);
         }
-        throw new IllegalArgumentException("Debe enviar bencineraId o usuarioId");
+        throw new IllegalArgumentException("Debe enviar stationId o userId");
     }
 
-    @GetMapping("/bencinera/{bencineraId}/resumen")
-    @Operation(summary = "Promedio y total de calificaciones de una bencinera")
-    public RatingSummaryResponse resumen(@PathVariable UUID bencineraId) {
-        return calificacionService.resumen(bencineraId);
+    @GetMapping("/station/{stationId}/summary")
+    @Operation(summary = "Promedio y total de ratings de una station")
+    public RatingSummaryResponse summary(@PathVariable UUID stationId) {
+        return ratingService.summary(stationId);
     }
 
     @PostMapping
-    @Operation(summary = "Crear una calificacion (1 sola por usuario y bencinera)")
-    public ResponseEntity<RatingResponse> crear(
+    @Operation(summary = "Crear una rating (1 sola por user y station)")
+    public ResponseEntity<RatingResponse> create(
             @Valid @RequestBody RatingCreateRequest req,
             UriComponentsBuilder uriBuilder) {
-        RatingResponse creada = calificacionService.crear(req);
-        URI location = uriBuilder.path("/api/v1/calificaciones/{id}")
-                .buildAndExpand(creada.id())
+        RatingResponse created = ratingService.create(req);
+        URI location = uriBuilder.path("/api/v1/ratings/{id}")
+                .buildAndExpand(created.id())
                 .toUri();
-        return ResponseEntity.created(location).body(creada);
+        return ResponseEntity.created(location).body(created);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar una calificacion")
-    public RatingResponse actualizar(@PathVariable Long id,
+    @Operation(summary = "Actualizar una rating")
+    public RatingResponse update(@PathVariable Long id,
                                            @Valid @RequestBody RatingUpdateRequest req) {
-        return calificacionService.actualizar(id, req);
+        return ratingService.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Eliminar una calificacion")
-    public void eliminar(@PathVariable Long id) {
-        calificacionService.eliminar(id);
+    @Operation(summary = "Eliminar una rating")
+    public void delete(@PathVariable Long id) {
+        ratingService.delete(id);
     }
 }

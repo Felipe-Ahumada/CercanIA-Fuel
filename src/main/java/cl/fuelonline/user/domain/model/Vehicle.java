@@ -12,8 +12,8 @@ import java.util.UUID;
 
 @Entity
 @Table(
-    name = "vehiculo",
-    uniqueConstraints = @UniqueConstraint(name = "uq_vehiculo_patente", columnNames = "patente"),
+    name = "vehicle",
+    uniqueConstraints = @UniqueConstraint(name = "uq_vehiculo_patente", columnNames = "licensePlate"),
     indexes = {
         @Index(name = "idx_vehiculo_usuario",     columnList = "usuario_id"),
         @Index(name = "idx_vehiculo_modelo",      columnList = "modelo_vehiculo_id"),
@@ -25,7 +25,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class Vehicle extends BaseAuditEntity {
 
     @Id
@@ -37,25 +37,25 @@ public class Vehicle extends BaseAuditEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "usuario_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_vehiculo_usuario"))
-    private User usuario;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "modelo_vehiculo_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_vehiculo_modelo"))
-    private VehicleModel modelo;
+    private VehicleModel model;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tipo_combustible_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_vehiculo_combustible"))
-    private FuelType tipoCombustible;
+    private FuelType fuelType;
 
     @Column(nullable = false, length = 10)
-    private String patente;
+    private String licensePlate;
 
     @Column(nullable = false)
-    private Integer anio;
+    private Integer year;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 }

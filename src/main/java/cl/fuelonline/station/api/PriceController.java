@@ -20,40 +20,40 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/bencineras/{bencineraId}/precios")
+@RequestMapping("/api/v1/bencineras/{stationId}/prices")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Precios", description = "Precios actuales e historial por bencinera y combustible")
+@Tag(name = "Precios", description = "Precios actuales e historial por station y combustible")
 public class PriceController {
 
-    private final PriceService precioService;
+    private final PriceService priceService;
 
     @GetMapping
-    @Operation(summary = "Precios vigentes de todos los combustibles que vende la bencinera")
-    public List<CurrentPriceResponse> precios(@PathVariable UUID bencineraId) {
-        return precioService.preciosActualesDe(bencineraId);
+    @Operation(summary = "Precios vigentes de todos los combustibles que vende la station")
+    public List<CurrentPriceResponse> prices(@PathVariable UUID stationId) {
+        return priceService.preciosActualesDe(stationId);
     }
 
-    @GetMapping("/{tipoCombustibleId}")
+    @GetMapping("/{fuelTypeId}")
     @Operation(summary = "Precio vigente de un combustible especifico")
-    public CurrentPriceResponse precioActual(@PathVariable UUID bencineraId,
-                                             @PathVariable @Positive Integer tipoCombustibleId) {
-        return precioService.precioActual(bencineraId, tipoCombustibleId);
+    public CurrentPriceResponse precioActual(@PathVariable UUID stationId,
+                                             @PathVariable @Positive Integer fuelTypeId) {
+        return priceService.precioActual(stationId, fuelTypeId);
     }
 
-    @GetMapping("/{tipoCombustibleId}/historial")
-    @Operation(summary = "Historial paginado de precios de un combustible")
-    public Page<PriceHistoryResponse> historial(@PathVariable UUID bencineraId,
-                                                   @PathVariable @Positive Integer tipoCombustibleId,
+    @GetMapping("/{fuelTypeId}/historial")
+    @Operation(summary = "Historial paginado de prices de un combustible")
+    public Page<PriceHistoryResponse> historial(@PathVariable UUID stationId,
+                                                   @PathVariable @Positive Integer fuelTypeId,
                                                    @ParameterObject Pageable pageable) {
-        return precioService.historial(bencineraId, tipoCombustibleId, pageable);
+        return priceService.historial(stationId, fuelTypeId, pageable);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Registrar un nuevo precio (uso administrativo o sync con CNE)")
-    public PriceHistoryResponse registrar(@PathVariable UUID bencineraId,
+    @Operation(summary = "Registrar un nuevo price (uso administrativo o sync con CNE)")
+    public PriceHistoryResponse register(@PathVariable UUID stationId,
                                              @Valid @RequestBody RegistrarPrecioRequest req) {
-        return precioService.registrar(bencineraId, req);
+        return priceService.register(stationId, req);
     }
 }

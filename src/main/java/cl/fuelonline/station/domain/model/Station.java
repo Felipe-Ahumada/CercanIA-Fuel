@@ -13,13 +13,13 @@ import java.util.UUID;
 
 @Entity
 @Table(
-    name = "bencinera",
+    name = "station",
     uniqueConstraints = @UniqueConstraint(name = "uq_bencinera_codigo_api", columnNames = "codigo_api"),
     indexes = {
         @Index(name = "idx_bencinera_marca",  columnList = "marca_id"),
         @Index(name = "idx_bencinera_comuna", columnList = "comuna_id"),
-        @Index(name = "idx_bencinera_latlon", columnList = "latitud, longitud"),
-        @Index(name = "idx_bencinera_activo", columnList = "activo")
+        @Index(name = "idx_bencinera_latlon", columnList = "latitude, longitude"),
+        @Index(name = "idx_bencinera_activo", columnList = "active")
     }
 )
 @Getter
@@ -27,7 +27,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class Station extends BaseAuditEntity {
 
     @Id
@@ -37,43 +37,43 @@ public class Station extends BaseAuditEntity {
     private UUID id;
 
     @Column(name = "codigo_api", nullable = false, length = 30)
-    private String codigoApi;
+    private String apiCode;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "marca_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_bencinera_marca"))
-    private Brand marca;
+    private Brand brand;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "comuna_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_bencinera_comuna"))
-    private Commune comuna;
+    private Commune commune;
 
     @Column(nullable = false, length = 150)
-    private String nombre;
+    private String name;
 
     @Column(nullable = false, length = 255)
-    private String direccion;
+    private String address;
 
     @Column(nullable = false, precision = 10, scale = 7)
-    private BigDecimal latitud;
+    private BigDecimal latitude;
 
     @Column(nullable = false, precision = 10, scale = 7)
-    private BigDecimal longitud;
+    private BigDecimal longitude;
 
     @Column(length = 20)
-    private String telefono;
+    private String phone;
 
     @Column(length = 120)
     private String email;
 
     @Column(name = "en_mantenimiento", nullable = false)
     @Builder.Default
-    private Boolean enMantenimiento = Boolean.FALSE;
+    private Boolean inMaintenance = Boolean.FALSE;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 
     @Column(name = "sync_at")
     private LocalDateTime syncAt;

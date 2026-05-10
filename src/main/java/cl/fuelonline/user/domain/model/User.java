@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(
-    name = "usuario",
+    name = "user",
     uniqueConstraints = {
         @UniqueConstraint(name = "uq_usuario_email",        columnNames = "email"),
         @UniqueConstraint(name = "uq_usuario_rut",          columnNames = "rut"),
@@ -30,7 +30,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class User extends BaseAuditEntity {
 
     @Id
@@ -42,12 +42,12 @@ public class User extends BaseAuditEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "rol_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_usuario_rol"))
-    private Role rol;
+    private Role role;
 
     @Column(nullable = false, length = 180)
     private String email;
 
-    /** UID de Firebase Authentication. Null si el usuario aun no se autentico. */
+    /** UID de Firebase Authentication. Null si el user aun no se autentico. */
     @Column(name = "firebase_uid", length = 128)
     private String firebaseUid;
 
@@ -55,28 +55,28 @@ public class User extends BaseAuditEntity {
     private String rut;
 
     @Column(name = "p_nombre", nullable = false, length = 80)
-    private String primerNombre;
+    private String firstName;
 
     @Column(name = "s_nombre", length = 80)
-    private String segundoNombre;
+    private String middleName;
 
     @Column(name = "p_apellido", nullable = false, length = 80)
-    private String primerApellido;
+    private String lastName;
 
     @Column(name = "s_apellido", nullable = false, length = 80)
-    private String segundoApellido;
+    private String secondLastName;
 
     @Column(name = "fecha_nacimiento", nullable = false)
-    private LocalDate fechaNacimiento;
+    private LocalDate birthDate;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Vehicle> vehiculos = new ArrayList<>();
+    private List<Vehicle> vehicles = new ArrayList<>();
 
-    public void desactivar() { this.activo = Boolean.FALSE; }
-    public void reactivar()  { this.activo = Boolean.TRUE;  }
+    public void deactivate() { this.active = Boolean.FALSE; }
+    public void reactivate()  { this.active = Boolean.TRUE;  }
 }

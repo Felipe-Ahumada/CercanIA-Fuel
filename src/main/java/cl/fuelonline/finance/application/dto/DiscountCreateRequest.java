@@ -9,27 +9,27 @@ import java.time.LocalDate;
 
 public record DiscountCreateRequest(
 
-        @NotNull @Positive Integer marcaId,
+        @NotNull @Positive Integer brandId,
 
         @Schema(description = "Null = aplica a cualquier medio de pago")
-        @Positive Integer tarjetaProductoId,
+        @Positive Integer cardProductId,
 
         @Schema(description = "Null = aplica a cualquier combustible")
-        @Positive Integer tipoCombustibleId,
+        @Positive Integer fuelTypeId,
 
         @Schema(description = "1=lunes, 7=domingo. Null = aplica todos los dias")
-        @Min(1) @Max(7) Integer diaSemana,
+        @Min(1) @Max(7) Integer dayOfWeek,
 
-        @NotNull DiscountType tipoDescuento,
+        @NotNull DiscountType discountType,
 
         @NotNull @DecimalMin(value = "0.0", inclusive = false)
-        BigDecimal valorDescuento,
+        BigDecimal discountValue,
 
         @DecimalMin(value = "0.0", inclusive = false)
-        BigDecimal topeMaximo,
+        BigDecimal maxCap,
 
-        @Size(max = 255) String descripcion,
+        @Size(max = 255) String description,
 
-        @NotNull LocalDate fechaInicio,
-        LocalDate fechaFin
+        @NotNull LocalDate startDate,
+        LocalDate endDate
 ) {}

@@ -5,12 +5,12 @@ import java.util.UUID;
 
 public record RatingResponse(
         Long id,
-        UUID usuarioId,
-        String usuarioNombre,
-        UUID bencineraId,
-        String bencineraNombre,
-        Integer puntaje,
-        String comentario,
+        UUID userId,
+        String userName,
+        UUID stationId,
+        String stationName,
+        Integer score,
+        String comment,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

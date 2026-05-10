@@ -30,25 +30,25 @@ public class PriceHistory {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bencinera_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_ph_bencinera"))
-    private Station bencinera;
+    private Station station;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tipo_combustible_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_ph_combustible"))
-    private FuelType tipoCombustible;
+    private FuelType fuelType;
 
     @Column(nullable = false, precision = 10, scale = 3)
-    private BigDecimal precio;
+    private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "unidad_cobro", nullable = false, length = 10)
     @Builder.Default
-    private ChargeUnit unidadCobro = ChargeUnit.LT;
+    private ChargeUnit chargeUnit = ChargeUnit.LT;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_atencion", nullable = false, length = 10)
     @Builder.Default
-    private TipoAtencion tipoAtencion = TipoAtencion.FULL;
+    private TipoAtencion attentionType = TipoAtencion.FULL;
 
     @Column(name = "api_timestamp", nullable = false)
     private LocalDateTime apiTimestamp;

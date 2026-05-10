@@ -19,46 +19,46 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class BankService {
 
-    private final BankRepository bancoRepository;
+    private final BankRepository bankRepository;
     private final BankMapper mapper;
 
-    public Page<BankResponse> listar(Pageable pageable) {
-        return bancoRepository.findAll(pageable).map(mapper::toResponse);
+    public Page<BankResponse> list(Pageable pageable) {
+        return bankRepository.findAll(pageable).map(mapper::toResponse);
     }
 
-    public BankResponse buscarPorId(Integer id) {
-        return mapper.toResponse(obtener(id));
+    public BankResponse findById(Integer id) {
+        return mapper.toResponse(get(id));
     }
 
     @Transactional
-    public BankResponse crear(BankCreateRequest req) {
-        if (bancoRepository.existsByCodigoIgnoreCase(req.codigo())) {
-            throw new BankAlreadyExistsException("Codigo de banco ya registrado: " + req.codigo());
+    public BankResponse create(BankCreateRequest req) {
+        if (bankRepository.existsByCodeIgnoreCase(req.code())) {
+            throw new BankAlreadyExistsException("Codigo de bank ya registrado: " + req.code());
         }
-        return mapper.toResponse(bancoRepository.save(mapper.toEntity(req)));
+        return mapper.toResponse(bankRepository.save(mapper.toEntity(req)));
     }
 
     @Transactional
-    public BankResponse actualizar(Integer id, BankUpdateRequest req) {
-        Bank banco = obtener(id);
+    public BankResponse update(Integer id, BankUpdateRequest req) {
+        Bank bank = get(id);
 
-        if (req.codigo() != null && !req.codigo().equalsIgnoreCase(banco.getCodigo())
-                && bancoRepository.existsByCodigoIgnoreCase(req.codigo())) {
-            throw new BankAlreadyExistsException("Codigo de banco ya registrado: " + req.codigo());
+        if (req.code() != null && !req.code().equalsIgnoreCase(bank.getCode())
+                && bankRepository.existsByCodeIgnoreCase(req.code())) {
+            throw new BankAlreadyExistsException("Codigo de bank ya registrado: " + req.code());
         }
 
-        mapper.updateEntity(req, banco);
-        return mapper.toResponse(banco);
+        mapper.updateEntity(req, bank);
+        return mapper.toResponse(bank);
     }
 
     @Transactional
-    public void eliminar(Integer id) {
-        Bank banco = obtener(id);
-        banco.setActivo(Boolean.FALSE);
+    public void delete(Integer id) {
+        Bank bank = get(id);
+        bank.setActive(Boolean.FALSE);
     }
 
-    private Bank obtener(Integer id) {
-        return bancoRepository.findById(id)
+    private Bank get(Integer id) {
+        return bankRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bank no encontrado: " + id));
     }
 }

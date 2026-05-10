@@ -8,14 +8,14 @@ import java.util.UUID;
 
 public record AlertCreateRequest(
 
-        @NotNull UUID usuarioId,
+        @NotNull UUID userId,
 
         @Schema(description = "Station asociada (opcional)")
-        UUID bencineraId,
+        UUID stationId,
 
-        @NotNull AlertType tipoAlerta,
+        @NotNull AlertType alertType,
 
-        @NotBlank @Size(max = 150) String titulo,
+        @NotBlank @Size(max = 150) String title,
 
-        @NotBlank @Size(max = 500) String mensaje
+        @NotBlank @Size(max = 500) String message
 ) {}

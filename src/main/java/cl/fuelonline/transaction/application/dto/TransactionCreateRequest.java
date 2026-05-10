@@ -9,32 +9,32 @@ import java.util.UUID;
 
 public record TransactionCreateRequest(
 
-        @NotNull UUID usuarioId,
+        @NotNull UUID userId,
 
-        @NotNull UUID vehiculoId,
+        @NotNull UUID vehicleId,
 
-        @NotNull UUID bencineraId,
+        @NotNull UUID stationId,
 
-        @NotNull @Positive Integer tipoCombustibleId,
+        @NotNull @Positive Integer fuelTypeId,
 
         @Schema(description = "Producto de tarjeta usado. Null si fue efectivo u otro medio.")
-        @Positive Integer tarjetaProductoId,
+        @Positive Integer cardProductId,
 
-        @Schema(description = "Discount aplicado (obtenido desde /descuentos/calcular). Null si no hubo.")
-        @Positive Integer descuentoId,
-
-        @NotNull @DecimalMin(value = "0.0", inclusive = false)
-        BigDecimal precioUnitario,
+        @Schema(description = "Discount aplicado (obtenido desde /descuentos/calculate). Null si no hubo.")
+        @Positive Integer discountId,
 
         @NotNull @DecimalMin(value = "0.0", inclusive = false)
-        BigDecimal litros,
+        BigDecimal unitPrice,
+
+        @NotNull @DecimalMin(value = "0.0", inclusive = false)
+        BigDecimal liters,
 
         @Schema(description = "Monto descontado. Null se interpreta como 0.")
         @DecimalMin(value = "0.0")
-        BigDecimal montoDescuento,
+        BigDecimal discountAmount,
 
         @Schema(description = "Si es null se usa LocalDateTime.now()")
-        LocalDateTime fechaTransaccion,
+        LocalDateTime transactionDate,
 
-        @Size(max = 255) String observaciones
+        @Size(max = 255) String notes
 ) {}

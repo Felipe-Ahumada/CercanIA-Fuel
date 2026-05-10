@@ -4,6 +4,6 @@ import cl.fuelonline.finance.domain.model.CardType;
 import jakarta.validation.constraints.Size;
 
 public record CardProductUpdateRequest(
-        @Size(max = 100) String nombre,
-        CardType tipoTarjeta
+        @Size(max = 100) String name,
+        CardType cardType
 ) {}

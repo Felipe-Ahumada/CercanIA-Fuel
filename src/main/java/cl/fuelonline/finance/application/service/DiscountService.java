@@ -3,7 +3,7 @@ package cl.fuelonline.finance.application.service;
 import cl.fuelonline.station.domain.model.Brand;
 import cl.fuelonline.station.domain.model.FuelType;
 import cl.fuelonline.station.domain.repository.BrandRepository;
-import cl.fuelonline.station.domain.repository.TipoCombustibleRepository;
+import cl.fuelonline.station.domain.repository.FuelTypeRepository;
 import cl.fuelonline.finance.application.dto.*;
 import cl.fuelonline.finance.application.mapper.DiscountMapper;
 import cl.fuelonline.finance.domain.model.Discount;
@@ -30,128 +30,128 @@ public class DiscountService {
 
     private static final BigDecimal CIEN = new BigDecimal("100");
 
-    private final DiscountRepository descuentoRepository;
-    private final BrandRepository marcaRepository;
-    private final TipoCombustibleRepository tipoCombustibleRepository;
-    private final CardProductRepository tarjetaProductoRepository;
+    private final DiscountRepository discountRepository;
+    private final BrandRepository brandRepository;
+    private final FuelTypeRepository fuelTypeRepository;
+    private final CardProductRepository cardProductRepository;
     private final DiscountMapper mapper;
 
-    public List<DiscountResponse> listarPorMarca(Integer marcaId) {
-        return descuentoRepository.findAllByMarca_IdOrderByValorDescuentoDesc(marcaId).stream()
+    public List<DiscountResponse> listByBrand(Integer brandId) {
+        return discountRepository.findAllByBrand_IdOrderByDiscountValueDesc(brandId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
-    public DiscountResponse buscarPorId(Integer id) {
-        return mapper.toResponse(obtener(id));
+    public DiscountResponse findById(Integer id) {
+        return mapper.toResponse(get(id));
     }
 
     @Transactional
-    public DiscountResponse crear(DiscountCreateRequest req) {
-        Brand marca = marcaRepository.findById(req.marcaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.marcaId()));
+    public DiscountResponse create(DiscountCreateRequest req) {
+        Brand brand = brandRepository.findById(req.brandId())
+                .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.brandId()));
 
         Discount entity = mapper.toEntity(req);
-        entity.setMarca(marca);
+        entity.setBrand(brand);
 
-        if (req.tarjetaProductoId() != null) {
-            entity.setTarjetaProducto(tarjetaProductoRepository.findById(req.tarjetaProductoId())
+        if (req.cardProductId() != null) {
+            entity.setCardProduct(cardProductRepository.findById(req.cardProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tarjeta producto no encontrada: " + req.tarjetaProductoId())));
+                            "Tarjeta producto no encontrada: " + req.cardProductId())));
         }
-        if (req.tipoCombustibleId() != null) {
-            entity.setTipoCombustible(tipoCombustibleRepository.findById(req.tipoCombustibleId())
+        if (req.fuelTypeId() != null) {
+            entity.setFuelType(fuelTypeRepository.findById(req.fuelTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tipo de combustible no encontrado: " + req.tipoCombustibleId())));
+                            "Tipo de combustible no encontrado: " + req.fuelTypeId())));
         }
 
-        return mapper.toResponse(descuentoRepository.save(entity));
+        return mapper.toResponse(discountRepository.save(entity));
     }
 
     @Transactional
-    public DiscountResponse actualizar(Integer id, DiscountUpdateRequest req) {
-        Discount entity = obtener(id);
+    public DiscountResponse update(Integer id, DiscountUpdateRequest req) {
+        Discount entity = get(id);
         mapper.updateEntity(req, entity);
 
-        if (req.tarjetaProductoId() != null) {
-            entity.setTarjetaProducto(tarjetaProductoRepository.findById(req.tarjetaProductoId())
+        if (req.cardProductId() != null) {
+            entity.setCardProduct(cardProductRepository.findById(req.cardProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tarjeta producto no encontrada: " + req.tarjetaProductoId())));
+                            "Tarjeta producto no encontrada: " + req.cardProductId())));
         }
-        if (req.tipoCombustibleId() != null) {
-            entity.setTipoCombustible(tipoCombustibleRepository.findById(req.tipoCombustibleId())
+        if (req.fuelTypeId() != null) {
+            entity.setFuelType(fuelTypeRepository.findById(req.fuelTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tipo de combustible no encontrado: " + req.tipoCombustibleId())));
+                            "Tipo de combustible no encontrado: " + req.fuelTypeId())));
         }
 
         return mapper.toResponse(entity);
     }
 
     @Transactional
-    public void eliminar(Integer id) {
-        Discount entity = obtener(id);
-        entity.setActivo(Boolean.FALSE);
+    public void delete(Integer id) {
+        Discount entity = get(id);
+        entity.setActive(Boolean.FALSE);
     }
 
     /**
-     * Calcula el mejor descuento aplicable y devuelve el desglose.
-     * Si ningun descuento aplica, devuelve un response con descuentoId=null y monto descuento=0.
+     * Calcula el mejor discount aplicable y devuelve el desglose.
+     * Si ningun discount aplica, devuelve un response con discountId=null y monto discount=0.
      */
-    public CalculatedDiscountResponse calcularMejorDescuento(CalculateDiscountRequest req) {
-        LocalDate fecha = req.fecha() != null ? req.fecha() : LocalDate.now();
-        int diaSemana = fecha.getDayOfWeek().getValue(); // 1=lunes, 7=domingo
+    public CalculatedDiscountResponse calculateBestDiscount(CalculateDiscountRequest req) {
+        LocalDate date = req.date() != null ? req.date() : LocalDate.now();
+        int dayOfWeek = date.getDayOfWeek().getValue(); // 1=lunes, 7=domingo
 
-        var spec = DiscountSpecifications.aplicables(
-                req.marcaId(), req.tipoCombustibleId(), diaSemana, fecha, req.tarjetasUsuarioIds());
+        var spec = DiscountSpecifications.applicable(
+                req.brandId(), req.fuelTypeId(), dayOfWeek, date, req.userCardIds());
 
-        List<Discount> aplicables = descuentoRepository.findAll(spec);
+        List<Discount> applicable = discountRepository.findAll(spec);
 
-        return aplicables.stream()
-                .map(d -> calcularUno(d, req.montoBruto()))
-                .max(Comparator.comparing(CalculatedDiscountResponse::montoDescuento))
-                .orElseGet(() -> sinDescuento(req.montoBruto()));
+        return applicable.stream()
+                .map(d -> calculateOne(d, req.grossAmount()))
+                .max(Comparator.comparing(CalculatedDiscountResponse::discountAmount))
+                .orElseGet(() -> noDiscount(req.grossAmount()));
     }
 
-    private CalculatedDiscountResponse calcularUno(Discount d, BigDecimal montoBruto) {
-        BigDecimal ahorro = switch (d.getTipoDescuento()) {
-            case PORCENTAJE -> montoBruto
-                    .multiply(d.getValorDescuento())
+    private CalculatedDiscountResponse calculateOne(Discount d, BigDecimal grossAmount) {
+        BigDecimal savings = switch (d.getDiscountType()) {
+            case PERCENTAGE -> grossAmount
+                    .multiply(d.getDiscountValue())
                     .divide(CIEN, 2, RoundingMode.HALF_UP);
-            case MONTO_FIJO -> d.getValorDescuento();
+            case FIXED_AMOUNT -> d.getDiscountValue();
         };
 
-        if (d.getTopeMaximo() != null && ahorro.compareTo(d.getTopeMaximo()) > 0) {
-            ahorro = d.getTopeMaximo();
+        if (d.getMaxCap() != null && savings.compareTo(d.getMaxCap()) > 0) {
+            savings = d.getMaxCap();
         }
-        if (ahorro.compareTo(montoBruto) > 0) {
-            ahorro = montoBruto;
+        if (savings.compareTo(grossAmount) > 0) {
+            savings = grossAmount;
         }
 
         return new CalculatedDiscountResponse(
                 d.getId(),
-                etiqueta(d),
-                montoBruto,
-                ahorro,
-                montoBruto.subtract(ahorro));
+                label(d),
+                grossAmount,
+                savings,
+                grossAmount.subtract(savings));
     }
 
-    private CalculatedDiscountResponse sinDescuento(BigDecimal montoBruto) {
-        return new CalculatedDiscountResponse(null, "Sin descuento aplicable",
-                montoBruto, BigDecimal.ZERO, montoBruto);
+    private CalculatedDiscountResponse noDiscount(BigDecimal grossAmount) {
+        return new CalculatedDiscountResponse(null, "Sin discount aplicable",
+                grossAmount, BigDecimal.ZERO, grossAmount);
     }
 
-    private String etiqueta(Discount d) {
-        if (d.getDescripcion() != null && !d.getDescripcion().isBlank()) {
-            return d.getDescripcion();
+    private String label(Discount d) {
+        if (d.getDescription() != null && !d.getDescription().isBlank()) {
+            return d.getDescription();
         }
-        CardProduct tp = d.getTarjetaProducto();
-        String prefijo = tp != null ? tp.getBanco().getNombre() + " - " + tp.getNombre() : "Promocion";
-        return prefijo + " (" + d.getValorDescuento()
-                + (d.getTipoDescuento() == DiscountType.PORCENTAJE ? "%)" : " CLP)");
+        CardProduct tp = d.getCardProduct();
+        String prefijo = tp != null ? tp.getBank().getName() + " - " + tp.getName() : "Promocion";
+        return prefijo + " (" + d.getDiscountValue()
+                + (d.getDiscountType() == DiscountType.PERCENTAGE ? "%)" : " CLP)");
     }
 
-    private Discount obtener(Integer id) {
-        return descuentoRepository.findById(id)
+    private Discount get(Integer id) {
+        return discountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Discount no encontrado: " + id));
     }
 }

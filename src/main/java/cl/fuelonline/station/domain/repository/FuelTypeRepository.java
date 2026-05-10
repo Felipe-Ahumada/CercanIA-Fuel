@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface TipoCombustibleRepository extends JpaRepository<FuelType, Integer> {
-    Optional<FuelType> findByNombreCortoIgnoreCase(String nombreCorto);
+public interface FuelTypeRepository extends JpaRepository<FuelType, Integer> {
+    Optional<FuelType> findByShortNameIgnoreCase(String shortName);
 }

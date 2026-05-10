@@ -14,49 +14,49 @@ public final class DiscountSpecifications {
     private DiscountSpecifications() {}
 
     /**
-     * Descuentos activos para una marca, opcionalmente filtrados por combustible,
-     * dia de la semana, fecha vigente y tarjetas del usuario.
+     * Descuentos activos para una brand, opcionalmente filtrados por combustible,
+     * dia de la semana, date vigente y tarjetas del user.
      *
      * Reglas:
-     *  - marca: siempre exigida
+     *  - brand: siempre exigida
      *  - combustibleId null en BD significa "aplica a cualquier combustible"
-     *  - diaSemana null en BD significa "aplica todos los dias"
-     *  - tarjetaProducto null en BD significa "aplica a cualquier medio de pago"
-     *  - Si tarjetasUsuarioIds esta vacio o null, solo se traen descuentos sin
+     *  - dayOfWeek null en BD significa "aplica todos los dias"
+     *  - cardProduct null en BD significa "aplica a cualquier medio de pago"
+     *  - Si userCardIds esta empty o null, solo se traen descuentos sin
      *    requerimiento de tarjeta (universales)
      */
-    public static Specification<Discount> aplicables(Integer marcaId,
+    public static Specification<Discount> applicable(Integer brandId,
                                                       Integer combustibleId,
-                                                      Integer diaSemana,
-                                                      LocalDate fecha,
-                                                      Collection<Integer> tarjetasUsuarioIds) {
+                                                      Integer dayOfWeek,
+                                                      LocalDate date,
+                                                      Collection<Integer> userCardIds) {
         return (root, query, cb) -> {
             List<Predicate> preds = new ArrayList<>();
 
-            preds.add(cb.equal(root.get("marca").get("id"), marcaId));
-            preds.add(cb.lessThanOrEqualTo(root.get("fechaInicio"), fecha));
+            preds.add(cb.equal(root.get("brand").get("id"), brandId));
+            preds.add(cb.lessThanOrEqualTo(root.get("startDate"), date));
             preds.add(cb.or(
-                    cb.isNull(root.get("fechaFin")),
-                    cb.greaterThanOrEqualTo(root.get("fechaFin"), fecha)));
+                    cb.isNull(root.get("endDate")),
+                    cb.greaterThanOrEqualTo(root.get("endDate"), date)));
 
             if (combustibleId != null) {
                 preds.add(cb.or(
-                        cb.isNull(root.get("tipoCombustible")),
-                        cb.equal(root.get("tipoCombustible").get("id"), combustibleId)));
+                        cb.isNull(root.get("fuelType")),
+                        cb.equal(root.get("fuelType").get("id"), combustibleId)));
             }
 
-            if (diaSemana != null) {
+            if (dayOfWeek != null) {
                 preds.add(cb.or(
-                        cb.isNull(root.get("diaSemana")),
-                        cb.equal(root.get("diaSemana"), diaSemana)));
+                        cb.isNull(root.get("dayOfWeek")),
+                        cb.equal(root.get("dayOfWeek"), dayOfWeek)));
             }
 
-            if (tarjetasUsuarioIds == null || tarjetasUsuarioIds.isEmpty()) {
-                preds.add(cb.isNull(root.get("tarjetaProducto")));
+            if (userCardIds == null || userCardIds.isEmpty()) {
+                preds.add(cb.isNull(root.get("cardProduct")));
             } else {
                 preds.add(cb.or(
-                        cb.isNull(root.get("tarjetaProducto")),
-                        root.get("tarjetaProducto").get("id").in(tarjetasUsuarioIds)));
+                        cb.isNull(root.get("cardProduct")),
+                        root.get("cardProduct").get("id").in(userCardIds)));
             }
 
             return cb.and(preds.toArray(new Predicate[0]));

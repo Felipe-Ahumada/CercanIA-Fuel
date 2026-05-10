@@ -9,11 +9,11 @@ import java.util.UUID;
 
 public interface FavoriteRepository extends JpaRepository<Favorite, Favorite.PK> {
 
-    Page<Favorite> findAllByUsuario_IdOrderByCreatedAtDesc(UUID usuarioId, Pageable pageable);
+    Page<Favorite> findAllByUser_IdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
-    boolean existsByUsuario_IdAndBencinera_Id(UUID usuarioId, UUID bencineraId);
+    boolean existsByUser_IdAndStation_Id(UUID userId, UUID stationId);
 
-    void deleteByUsuario_IdAndBencinera_Id(UUID usuarioId, UUID bencineraId);
+    void deleteByUser_IdAndStation_Id(UUID userId, UUID stationId);
 
-    long countByBencinera_Id(UUID bencineraId);
+    long countByStation_Id(UUID stationId);
 }

@@ -6,10 +6,10 @@ import java.time.LocalDate;
 
 public record UserUpdateRequest(
         @Email @Size(max = 180) String email,
-        @Size(max = 80)         String primerNombre,
-        @Size(max = 80)         String segundoNombre,
-        @Size(max = 80)         String primerApellido,
-        @Size(max = 80)         String segundoApellido,
-        @Past                   LocalDate fechaNacimiento,
-        @Positive               Integer rolId
+        @Size(max = 80)         String firstName,
+        @Size(max = 80)         String middleName,
+        @Size(max = 80)         String lastName,
+        @Size(max = 80)         String secondLastName,
+        @Past                   LocalDate birthDate,
+        @Positive               Integer roleId
 ) {}

@@ -7,25 +7,25 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Schema(description = "Vista detallada de una bencinera")
+@Schema(description = "Vista detallada de una station")
 public record StationResponse(
         UUID id,
-        String codigoApi,
-        Integer marcaId,
-        String marcaNombre,
-        Integer comunaId,
-        String comunaNombre,
+        String apiCode,
+        Integer brandId,
+        String brandName,
+        Integer communeId,
+        String communeName,
         Integer regionId,
-        String nombre,
-        String direccion,
-        BigDecimal latitud,
-        BigDecimal longitud,
-        String telefono,
+        String name,
+        String address,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String phone,
         String email,
-        Boolean enMantenimiento,
-        Boolean activo,
+        Boolean inMaintenance,
+        Boolean active,
         LocalDateTime syncAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        List<CurrentPriceResponse> precios
+        List<CurrentPriceResponse> prices
 ) {}

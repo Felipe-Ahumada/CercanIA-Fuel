@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface BankRepository extends JpaRepository<Bank, Integer> {
-    Optional<Bank> findByCodigoIgnoreCase(String codigo);
-    boolean existsByCodigoIgnoreCase(String codigo);
+    Optional<Bank> findByCodeIgnoreCase(String code);
+    boolean existsByCodeIgnoreCase(String code);
 }

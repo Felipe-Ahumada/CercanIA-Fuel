@@ -9,7 +9,7 @@ import org.hibernate.annotations.SQLRestriction;
     name = "tarjeta_producto",
     uniqueConstraints = @UniqueConstraint(
         name = "uq_producto_banco_nombre",
-        columnNames = {"banco_id", "nombre"}),
+        columnNames = {"banco_id", "name"}),
     indexes = @Index(name = "idx_tp_banco", columnList = "banco_id")
 )
 @Getter
@@ -17,7 +17,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class CardProduct {
 
     @Id
@@ -27,16 +27,16 @@ public class CardProduct {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "banco_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_tp_banco"))
-    private Bank banco;
+    private Bank bank;
 
     @Column(nullable = false, length = 100)
-    private String nombre;
+    private String name;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_tarjeta", nullable = false, length = 20)
-    private CardType tipoTarjeta;
+    private CardType cardType;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 }

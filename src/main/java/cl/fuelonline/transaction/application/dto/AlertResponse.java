@@ -7,13 +7,13 @@ import java.util.UUID;
 
 public record AlertResponse(
         Long id,
-        UUID usuarioId,
-        UUID bencineraId,
-        String bencineraNombre,
-        AlertType tipoAlerta,
-        String titulo,
-        String mensaje,
-        Boolean leida,
-        LocalDateTime leidaAt,
+        UUID userId,
+        UUID stationId,
+        String stationName,
+        AlertType alertType,
+        String title,
+        String message,
+        Boolean read,
+        LocalDateTime readAt,
         LocalDateTime createdAt
 ) {}

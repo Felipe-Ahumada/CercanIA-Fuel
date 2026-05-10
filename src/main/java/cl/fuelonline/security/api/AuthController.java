@@ -17,11 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@Tag(name = "Autenticacion", description = "Identidad del usuario actual")
+@Tag(name = "Autenticacion", description = "Identidad del user actual")
 public class AuthController {
 
     @GetMapping("/me")
-    @Operation(summary = "Devuelve el perfil del usuario autenticado",
+    @Operation(summary = "Devuelve el perfil del user autenticado",
                security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<MeResponse> me(@AuthenticationPrincipal AuthenticatedUser user,
                                          Authentication auth) {
@@ -30,10 +30,10 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
         return ResponseEntity.ok(new MeResponse(
-                user.usuarioId(),
+                user.userId(),
                 user.email(),
                 user.firebaseUid(),
-                user.rolNombre(),
+                user.roleName(),
                 authorities));
     }
 }

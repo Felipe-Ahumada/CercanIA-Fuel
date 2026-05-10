@@ -20,7 +20,7 @@ import java.util.List;
  *
  * Estrategia robusta: lee la respuesta como String y detecta si viene como
  * array directo "[ ... ]" o como wrapper "{ data: [...] }". Algunas APIs
- * (incluso la misma) cambian la forma segun version o errores.
+ * (incluso la misma) cambian la forma segun version o errors.
  */
 @Slf4j
 @Component
@@ -42,23 +42,23 @@ public class CneApiClient {
     }
 
     /**
-     * GET /api/v4/estaciones — devuelve todas las estaciones con sus precios actuales.
+     * GET /api/v4/stations — devuelve todas las stations con sus prices actuales.
      */
-    public List<CneStationDto> obtenerEstaciones() {
-        if (!props.tokenConfigurado()) {
-            log.warn("CNE: token no configurado (app.cne.token vacio). Sync abortado.");
+    public List<CneStationDto> getStations() {
+        if (!props.tokenConfigured()) {
+            log.warn("CNE: token no configurado (app.cne.token empty). Sync abortado.");
             return Collections.emptyList();
         }
-        log.info("CNE: solicitando estaciones a {}{}", props.apiUrl(), props.estacionesPath());
+        log.info("CNE: solicitando stations a {}{}", props.apiUrl(), props.stationsPath());
 
         String body;
         try {
             body = restClient.get()
-                    .uri(props.estacionesPath())
+                    .uri(props.stationsPath())
                     .retrieve()
                     .body(String.class);
         } catch (RestClientException ex) {
-            log.error("CNE: fallo al consultar estaciones: {}", ex.getMessage());
+            log.error("CNE: fallo al consultar stations: {}", ex.getMessage());
             throw ex;
         }
 
@@ -74,20 +74,20 @@ public class CneApiClient {
 
         try {
             if (body.startsWith("[")) {
-                List<CneStationDto> lista = mapper.readValue(body, LIST_TYPE);
-                log.info("CNE: recibidas {} estaciones (array directo)", lista.size());
-                return lista;
+                List<CneStationDto> list = mapper.readValue(body, LIST_TYPE);
+                log.info("CNE: recibidas {} stations (array directo)", list.size());
+                return list;
             }
             if (body.startsWith("{")) {
                 JsonNode root = mapper.readTree(body);
-                // Probar wrappers comunes: data, estaciones, results, items
-                String[] posiblesCampos = {"data", "estaciones", "results", "items"};
-                for (String campo : posiblesCampos) {
-                    JsonNode arr = root.path(campo);
+                // Probar wrappers comunes: data, stations, results, items
+                String[] possibleFields = {"data", "stations", "results", "items"};
+                for (String field : possibleFields) {
+                    JsonNode arr = root.path(field);
                     if (arr.isArray()) {
-                        List<CneStationDto> lista = mapper.readerFor(LIST_TYPE).readValue(arr);
-                        log.info("CNE: recibidas {} estaciones (wrapper '{}')", lista.size(), campo);
-                        return lista;
+                        List<CneStationDto> list = mapper.readerFor(LIST_TYPE).readValue(arr);
+                        log.info("CNE: recibidas {} stations (wrapper '{}')", list.size(), field);
+                        return list;
                     }
                 }
                 // Si no encontramos array, mostramos el cuerpo para diagnosticar

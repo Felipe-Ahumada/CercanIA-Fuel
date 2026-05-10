@@ -11,7 +11,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class FuelType {
 
     @Id
@@ -19,20 +19,20 @@ public class FuelType {
     private Integer id;
 
     @Column(nullable = false, length = 60)
-    private String nombre;
+    private String name;
 
     @Column(name = "nombre_corto", nullable = false, length = 20)
-    private String nombreCorto;
+    private String shortName;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "unidad_cobro", nullable = false, length = 10)
     @Builder.Default
-    private ChargeUnit unidadCobro = ChargeUnit.LT;
+    private ChargeUnit chargeUnit = ChargeUnit.LT;
 
     @Column(length = 255)
-    private String descripcion;
+    private String description;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 }

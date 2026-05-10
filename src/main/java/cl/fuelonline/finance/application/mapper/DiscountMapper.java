@@ -12,26 +12,26 @@ import org.mapstruct.*;
 public interface DiscountMapper {
 
     @Mapping(target = "id",               ignore = true)
-    @Mapping(target = "marca",            ignore = true)
-    @Mapping(target = "tarjetaProducto",  ignore = true)
-    @Mapping(target = "tipoCombustible",  ignore = true)
-    @Mapping(target = "activo",           constant = "true")
+    @Mapping(target = "brand",            ignore = true)
+    @Mapping(target = "cardProduct",  ignore = true)
+    @Mapping(target = "fuelType",  ignore = true)
+    @Mapping(target = "active",           constant = "true")
     @Mapping(target = "createdAt",        ignore = true)
     Discount toEntity(DiscountCreateRequest req);
 
-    @Mapping(target = "marcaId",                source = "marca.id")
-    @Mapping(target = "marcaNombre",            source = "marca.nombre")
-    @Mapping(target = "tarjetaProductoId",      source = "tarjetaProducto.id")
-    @Mapping(target = "tarjetaProductoNombre",  source = "tarjetaProducto.nombre")
-    @Mapping(target = "tipoCombustibleId",      source = "tipoCombustible.id")
-    @Mapping(target = "tipoCombustibleNombre",  source = "tipoCombustible.nombre")
+    @Mapping(target = "brandId",                source = "brand.id")
+    @Mapping(target = "brandName",            source = "brand.name")
+    @Mapping(target = "cardProductId",      source = "cardProduct.id")
+    @Mapping(target = "cardProductName",  source = "cardProduct.name")
+    @Mapping(target = "fuelTypeId",      source = "fuelType.id")
+    @Mapping(target = "fuelTypeName",  source = "fuelType.name")
     DiscountResponse toResponse(Discount entity);
 
     @Mapping(target = "id",               ignore = true)
-    @Mapping(target = "marca",            ignore = true)
-    @Mapping(target = "tarjetaProducto",  ignore = true)
-    @Mapping(target = "tipoCombustible",  ignore = true)
-    @Mapping(target = "activo",           ignore = true)
+    @Mapping(target = "brand",            ignore = true)
+    @Mapping(target = "cardProduct",  ignore = true)
+    @Mapping(target = "fuelType",  ignore = true)
+    @Mapping(target = "active",           ignore = true)
     @Mapping(target = "createdAt",        ignore = true)
     void updateEntity(DiscountUpdateRequest req, @MappingTarget Discount entity);
 }

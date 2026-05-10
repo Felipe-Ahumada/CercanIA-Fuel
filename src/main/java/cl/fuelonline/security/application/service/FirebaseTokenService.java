@@ -23,7 +23,7 @@ public class FirebaseTokenService {
      * @return el token decodificado con claims (uid, email, name, etc.)
      * @throws FirebaseAuthException si el token es invalido, expirado o revocado.
      */
-    public FirebaseToken verificar(String idToken) throws FirebaseAuthException {
+    public FirebaseToken verify(String idToken) throws FirebaseAuthException {
         return firebaseAuth.verifyIdToken(idToken, /* checkRevoked */ true);
     }
 }

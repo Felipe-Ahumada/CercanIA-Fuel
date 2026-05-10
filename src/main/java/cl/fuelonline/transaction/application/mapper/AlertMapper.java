@@ -9,8 +9,8 @@ import org.mapstruct.*;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AlertMapper {
 
-    @Mapping(target = "usuarioId",        source = "usuario.id")
-    @Mapping(target = "bencineraId",      source = "bencinera.id")
-    @Mapping(target = "bencineraNombre",  source = "bencinera.nombre")
+    @Mapping(target = "userId",        source = "user.id")
+    @Mapping(target = "stationId",      source = "station.id")
+    @Mapping(target = "stationName",  source = "station.name")
     AlertResponse toResponse(Alert entity);
 }

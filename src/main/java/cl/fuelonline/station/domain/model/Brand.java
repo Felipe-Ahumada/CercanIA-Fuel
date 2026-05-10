@@ -5,14 +5,14 @@ import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "marca",
+@Table(name = "brand",
        uniqueConstraints = @UniqueConstraint(name = "uq_marca_codigo_api", columnNames = "codigo_api"))
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class Brand {
 
     @Id
@@ -20,12 +20,12 @@ public class Brand {
     private Integer id;
 
     @Column(name = "codigo_api", nullable = false, length = 30)
-    private String codigoApi;
+    private String apiCode;
 
     @Column(nullable = false, length = 80)
-    private String nombre;
+    private String name;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 }

@@ -16,38 +16,38 @@ import java.util.List;
 public interface StationMapper {
 
     @Mapping(target = "id",                ignore = true)
-    @Mapping(target = "marca",             ignore = true)
-    @Mapping(target = "comuna",            ignore = true)
+    @Mapping(target = "brand",             ignore = true)
+    @Mapping(target = "commune",            ignore = true)
     @Mapping(target = "syncAt",            ignore = true)
-    @Mapping(target = "enMantenimiento",   constant = "false")
-    @Mapping(target = "activo",            constant = "true")
+    @Mapping(target = "inMaintenance",   constant = "false")
+    @Mapping(target = "active",            constant = "true")
     Station toEntity(StationCreateRequest req);
 
     @Mapping(target = "id",           source = "b.id")
-    @Mapping(target = "codigoApi",    source = "b.codigoApi")
-    @Mapping(target = "marcaId",      source = "b.marca.id")
-    @Mapping(target = "marcaNombre",  source = "b.marca.nombre")
-    @Mapping(target = "comunaId",     source = "b.comuna.id")
-    @Mapping(target = "comunaNombre", source = "b.comuna.nombre")
-    @Mapping(target = "regionId",     source = "b.comuna.region.id")
-    @Mapping(target = "precios",      source = "precios")
-    StationResponse toResponse(Station b, List<CurrentPriceResponse> precios);
+    @Mapping(target = "apiCode",    source = "b.apiCode")
+    @Mapping(target = "brandId",      source = "b.brand.id")
+    @Mapping(target = "brandName",  source = "b.brand.name")
+    @Mapping(target = "communeId",     source = "b.commune.id")
+    @Mapping(target = "communeName", source = "b.commune.name")
+    @Mapping(target = "regionId",     source = "b.commune.region.id")
+    @Mapping(target = "prices",      source = "prices")
+    StationResponse toResponse(Station b, List<CurrentPriceResponse> prices);
 
     @Mapping(target = "id",          source = "b.id")
-    @Mapping(target = "nombre",      source = "b.nombre")
-    @Mapping(target = "marca",       source = "b.marca.nombre")
-    @Mapping(target = "direccion",   source = "b.direccion")
-    @Mapping(target = "latitud",     source = "b.latitud")
-    @Mapping(target = "longitud",    source = "b.longitud")
-    @Mapping(target = "enMantenimiento", source = "b.enMantenimiento")
+    @Mapping(target = "name",      source = "b.name")
+    @Mapping(target = "brand",       source = "b.brand.name")
+    @Mapping(target = "address",   source = "b.address")
+    @Mapping(target = "latitude",     source = "b.latitude")
+    @Mapping(target = "longitude",    source = "b.longitude")
+    @Mapping(target = "inMaintenance", source = "b.inMaintenance")
     @Mapping(target = "distanciaKm", source = "distanciaKm")
     StationSummaryResponse toSummary(Station b, Double distanciaKm);
 
     @Mapping(target = "id",        ignore = true)
-    @Mapping(target = "marca",     ignore = true)
-    @Mapping(target = "comuna",    ignore = true)
-    @Mapping(target = "codigoApi", ignore = true)
-    @Mapping(target = "activo",    ignore = true)
+    @Mapping(target = "brand",     ignore = true)
+    @Mapping(target = "commune",    ignore = true)
+    @Mapping(target = "apiCode", ignore = true)
+    @Mapping(target = "active",    ignore = true)
     @Mapping(target = "syncAt",    ignore = true)
     void updateEntity(StationUpdateRequest req, @MappingTarget Station entity);
 }

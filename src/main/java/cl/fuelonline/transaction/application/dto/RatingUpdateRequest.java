@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 
 public record RatingUpdateRequest(
 
-        @Min(1) @Max(5) Integer puntaje,
+        @Min(1) @Max(5) Integer score,
 
-        @Size(max = 500) String comentario
+        @Size(max = 500) String comment
 ) {}

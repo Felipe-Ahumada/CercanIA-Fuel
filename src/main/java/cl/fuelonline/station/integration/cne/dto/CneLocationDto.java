@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CneLocationDto(
-        @JsonProperty("nombre_region")  String nombreRegion,
-        @JsonProperty("codigo_region")  String codigoRegion,
-        @JsonProperty("nombre_comuna")  String nombreComuna,
-        @JsonProperty("codigo_comuna")  String codigoComuna,
-        String direccion,
-        String latitud,
-        String longitud
+        @JsonProperty("nombre_region")  String regionName,
+        @JsonProperty("codigo_region")  String regionCode,
+        @JsonProperty("nombre_comuna")  String communeName,
+        @JsonProperty("codigo_comuna")  String communeCode,
+        String address,
+        String latitude,
+        String longitude
 ) {}

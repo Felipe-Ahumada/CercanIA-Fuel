@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
-    List<Vehicle> findAllByUsuario_Id(UUID usuarioId);
-    Optional<Vehicle> findByPatenteIgnoreCase(String patente);
-    boolean existsByPatenteIgnoreCase(String patente);
+    List<Vehicle> findAllByUser_Id(UUID userId);
+    Optional<Vehicle> findByLicensePlateIgnoreCase(String licensePlate);
+    boolean existsByLicensePlateIgnoreCase(String licensePlate);
 }

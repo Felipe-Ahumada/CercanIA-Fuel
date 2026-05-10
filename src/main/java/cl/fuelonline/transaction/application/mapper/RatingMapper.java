@@ -10,14 +10,14 @@ import org.mapstruct.*;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RatingMapper {
 
-    @Mapping(target = "usuarioId",        source = "usuario.id")
-    @Mapping(target = "usuarioNombre",    expression = "java(nombreUsuario(entity.getUsuario()))")
-    @Mapping(target = "bencineraId",      source = "bencinera.id")
-    @Mapping(target = "bencineraNombre",  source = "bencinera.nombre")
+    @Mapping(target = "userId",        source = "user.id")
+    @Mapping(target = "userName",    expression = "java(nombreUsuario(entity.getUser()))")
+    @Mapping(target = "stationId",      source = "station.id")
+    @Mapping(target = "stationName",  source = "station.name")
     RatingResponse toResponse(Rating entity);
 
     default String nombreUsuario(User u) {
         if (u == null) return null;
-        return (u.getPrimerNombre() + " " + u.getPrimerApellido()).trim();
+        return (u.getFirstName() + " " + u.getLastName()).trim();
     }
 }

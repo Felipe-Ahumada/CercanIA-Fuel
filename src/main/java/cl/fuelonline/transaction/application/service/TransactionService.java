@@ -3,7 +3,7 @@ package cl.fuelonline.transaction.application.service;
 import cl.fuelonline.station.domain.model.Station;
 import cl.fuelonline.station.domain.model.FuelType;
 import cl.fuelonline.station.domain.repository.StationRepository;
-import cl.fuelonline.station.domain.repository.TipoCombustibleRepository;
+import cl.fuelonline.station.domain.repository.FuelTypeRepository;
 import cl.fuelonline.finance.domain.model.Discount;
 import cl.fuelonline.finance.domain.model.CardProduct;
 import cl.fuelonline.finance.domain.repository.DiscountRepository;
@@ -38,126 +38,126 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class TransactionService {
 
-    private final TransactionRepository transaccionRepository;
-    private final UserRepository usuarioRepository;
-    private final VehicleRepository vehiculoRepository;
-    private final StationRepository bencineraRepository;
-    private final TipoCombustibleRepository tipoCombustibleRepository;
-    private final CardProductRepository tarjetaProductoRepository;
-    private final DiscountRepository descuentoRepository;
+    private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
+    private final VehicleRepository vehicleRepository;
+    private final StationRepository stationRepository;
+    private final FuelTypeRepository fuelTypeRepository;
+    private final CardProductRepository cardProductRepository;
+    private final DiscountRepository discountRepository;
     private final TransactionMapper mapper;
 
-    public TransactionResponse buscarPorId(UUID id) {
-        return mapper.toResponse(obtener(id));
+    public TransactionResponse findById(UUID id) {
+        return mapper.toResponse(get(id));
     }
 
-    public Page<TransactionResponse> listarPorUsuario(UUID usuarioId, Pageable pageable) {
-        return transaccionRepository
-                .findAllByUsuario_IdOrderByFechaTransaccionDesc(usuarioId, pageable)
+    public Page<TransactionResponse> listByUser(UUID userId, Pageable pageable) {
+        return transactionRepository
+                .findAllByUser_IdOrderByTransactionDateDesc(userId, pageable)
                 .map(mapper::toResponse);
     }
 
-    public Page<TransactionResponse> listarPorUsuarioEntre(UUID usuarioId,
+    public Page<TransactionResponse> listByUserBetween(UUID userId,
                                                            LocalDate desde,
                                                            LocalDate hasta,
                                                            Pageable pageable) {
-        LocalDateTime ini = desde.atStartOfDay();
-        LocalDateTime fin = hasta.atTime(LocalTime.MAX);
-        return transaccionRepository
-                .findAllByUsuario_IdAndFechaTransaccionBetweenOrderByFechaTransaccionDesc(
-                        usuarioId, ini, fin, pageable)
+        LocalDateTime start = desde.atStartOfDay();
+        LocalDateTime endTime = hasta.atTime(LocalTime.MAX);
+        return transactionRepository
+                .findAllByUser_IdAndTransactionDateBetweenOrderByTransactionDateDesc(
+                        userId, start, endTime, pageable)
                 .map(mapper::toResponse);
     }
 
-    public ExpenseSummaryResponse resumenGasto(UUID usuarioId, LocalDate desde, LocalDate hasta) {
-        LocalDateTime ini = desde.atStartOfDay();
-        LocalDateTime fin = hasta.atTime(LocalTime.MAX);
-        BigDecimal total   = transaccionRepository.sumarGastoTotal(usuarioId, ini, fin);
-        BigDecimal ahorro  = transaccionRepository.sumarAhorroTotal(usuarioId, ini, fin);
-        BigDecimal litros  = transaccionRepository.sumarLitrosTotales(usuarioId, ini, fin);
-        long cargas = transaccionRepository
-                .findAllByUsuario_IdAndFechaTransaccionBetweenOrderByFechaTransaccionDesc(
-                        usuarioId, ini, fin, Pageable.unpaged())
+    public ExpenseSummaryResponse expenseSummary(UUID userId, LocalDate desde, LocalDate hasta) {
+        LocalDateTime start = desde.atStartOfDay();
+        LocalDateTime endTime = hasta.atTime(LocalTime.MAX);
+        BigDecimal total   = transactionRepository.sumTotalSpent(userId, start, endTime);
+        BigDecimal savings  = transactionRepository.sumTotalSaved(userId, start, endTime);
+        BigDecimal liters  = transactionRepository.sumTotalLiters(userId, start, endTime);
+        long fills = transactionRepository
+                .findAllByUser_IdAndTransactionDateBetweenOrderByTransactionDateDesc(
+                        userId, start, endTime, Pageable.unpaged())
                 .getTotalElements();
-        return new ExpenseSummaryResponse(desde, hasta, total, ahorro, litros, cargas);
+        return new ExpenseSummaryResponse(desde, hasta, total, savings, liters, fills);
     }
 
     @Transactional
-    public TransactionResponse registrar(TransactionCreateRequest req) {
-        User usuario = usuarioRepository.findById(req.usuarioId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.usuarioId()));
+    public TransactionResponse register(TransactionCreateRequest req) {
+        User user = userRepository.findById(req.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
 
-        Vehicle vehiculo = vehiculoRepository.findById(req.vehiculoId())
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle no encontrado: " + req.vehiculoId()));
+        Vehicle vehicle = vehicleRepository.findById(req.vehicleId())
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle no encontrado: " + req.vehicleId()));
 
-        if (!vehiculo.getUsuario().getId().equals(usuario.getId())) {
-            throw new InvalidTransactionException("El vehiculo no pertenece al usuario indicado");
+        if (!vehicle.getUser().getId().equals(user.getId())) {
+            throw new InvalidTransactionException("El vehicle no pertenece al user indicado");
         }
 
-        Station bencinera = bencineraRepository.findById(req.bencineraId())
-                .orElseThrow(() -> new ResourceNotFoundException("Station no encontrada: " + req.bencineraId()));
+        Station station = stationRepository.findById(req.stationId())
+                .orElseThrow(() -> new ResourceNotFoundException("Station no encontrada: " + req.stationId()));
 
-        FuelType tipoCombustible = tipoCombustibleRepository.findById(req.tipoCombustibleId())
+        FuelType fuelType = fuelTypeRepository.findById(req.fuelTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Tipo de combustible no encontrado: " + req.tipoCombustibleId()));
+                        "Tipo de combustible no encontrado: " + req.fuelTypeId()));
 
         CardProduct tarjeta = null;
-        if (req.tarjetaProductoId() != null) {
-            tarjeta = tarjetaProductoRepository.findById(req.tarjetaProductoId())
+        if (req.cardProductId() != null) {
+            tarjeta = cardProductRepository.findById(req.cardProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Tarjeta producto no encontrada: " + req.tarjetaProductoId()));
+                            "Tarjeta producto no encontrada: " + req.cardProductId()));
         }
 
-        Discount descuento = null;
-        if (req.descuentoId() != null) {
-            descuento = descuentoRepository.findById(req.descuentoId())
+        Discount discount = null;
+        if (req.discountId() != null) {
+            discount = discountRepository.findById(req.discountId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Discount no encontrado: " + req.descuentoId()));
+                            "Discount no encontrado: " + req.discountId()));
         }
 
-        BigDecimal montoBruto = req.precioUnitario()
-                .multiply(req.litros())
+        BigDecimal grossAmount = req.unitPrice()
+                .multiply(req.liters())
                 .setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal montoDescuento = req.montoDescuento() != null
-                ? req.montoDescuento().setScale(2, RoundingMode.HALF_UP)
+        BigDecimal discountAmount = req.discountAmount() != null
+                ? req.discountAmount().setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        if (montoDescuento.compareTo(montoBruto) > 0) {
-            throw new InvalidTransactionException("El descuento no puede ser mayor al monto bruto");
+        if (discountAmount.compareTo(grossAmount) > 0) {
+            throw new InvalidTransactionException("El discount no puede ser mayor al monto bruto");
         }
 
-        BigDecimal montoFinal = montoBruto.subtract(montoDescuento);
+        BigDecimal finalAmount = grossAmount.subtract(discountAmount);
 
         Transaction entity = Transaction.builder()
-                .usuario(usuario)
-                .vehiculo(vehiculo)
-                .bencinera(bencinera)
-                .tipoCombustible(tipoCombustible)
-                .tarjetaProducto(tarjeta)
-                .descuento(descuento)
-                .precioUnitario(req.precioUnitario())
-                .litros(req.litros())
-                .montoBruto(montoBruto)
-                .montoDescuento(montoDescuento)
-                .montoFinal(montoFinal)
-                .fechaTransaccion(req.fechaTransaccion() != null
-                        ? req.fechaTransaccion()
+                .user(user)
+                .vehicle(vehicle)
+                .station(station)
+                .fuelType(fuelType)
+                .cardProduct(tarjeta)
+                .discount(discount)
+                .unitPrice(req.unitPrice())
+                .liters(req.liters())
+                .grossAmount(grossAmount)
+                .discountAmount(discountAmount)
+                .finalAmount(finalAmount)
+                .transactionDate(req.transactionDate() != null
+                        ? req.transactionDate()
                         : LocalDateTime.now())
-                .observaciones(req.observaciones())
+                .notes(req.notes())
                 .build();
 
-        return mapper.toResponse(transaccionRepository.save(entity));
+        return mapper.toResponse(transactionRepository.save(entity));
     }
 
     @Transactional
-    public void eliminar(UUID id) {
-        Transaction t = obtener(id);
-        transaccionRepository.delete(t);
+    public void delete(UUID id) {
+        Transaction t = get(id);
+        transactionRepository.delete(t);
     }
 
-    private Transaction obtener(UUID id) {
-        return transaccionRepository.findById(id)
+    private Transaction get(UUID id) {
+        return transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction no encontrada: " + id));
     }
 }

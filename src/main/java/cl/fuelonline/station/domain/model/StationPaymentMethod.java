@@ -22,33 +22,33 @@ public class StationPaymentMethod {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bencinera_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_bmp_bencinera"))
-    private Station bencinera;
+    private Station station;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "metodo_pago_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_bmp_metodo_pago"))
-    private PaymentMethod metodoPago;
+    private PaymentMethod paymentMethod;
 
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PK implements Serializable {
-        private UUID bencinera;
-        private Integer metodoPago;
+        private UUID station;
+        private Integer paymentMethod;
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof PK pk)) return false;
-            return Objects.equals(bencinera, pk.bencinera)
-                && Objects.equals(metodoPago, pk.metodoPago);
+            return Objects.equals(station, pk.station)
+                && Objects.equals(paymentMethod, pk.paymentMethod);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(bencinera, metodoPago);
+            return Objects.hash(station, paymentMethod);
         }
     }
 }

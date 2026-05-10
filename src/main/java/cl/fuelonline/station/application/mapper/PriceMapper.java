@@ -10,8 +10,8 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PriceMapper {
 
-    @Mapping(target = "tipoCombustibleId",     source = "tipoCombustible.id")
-    @Mapping(target = "tipoCombustibleNombre", source = "tipoCombustible.nombre")
+    @Mapping(target = "fuelTypeId",     source = "fuelType.id")
+    @Mapping(target = "fuelTypeName", source = "fuelType.name")
     CurrentPriceResponse toActual(PriceHistory p);
 
     PriceHistoryResponse toHistorial(PriceHistory p);

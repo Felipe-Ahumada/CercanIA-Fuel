@@ -11,13 +11,13 @@ import java.util.UUID;
 public interface UserRepository
         extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
 
-    @EntityGraph(attributePaths = "rol")
+    @EntityGraph(attributePaths = "role")
     Optional<User> findByEmailIgnoreCase(String email);
 
-    @EntityGraph(attributePaths = "rol")
+    @EntityGraph(attributePaths = "role")
     Optional<User> findByRut(String rut);
 
-    @EntityGraph(attributePaths = "rol")
+    @EntityGraph(attributePaths = "role")
     Optional<User> findByFirebaseUid(String firebaseUid);
 
     boolean existsByEmailIgnoreCase(String email);

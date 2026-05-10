@@ -6,13 +6,13 @@ import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "rol", uniqueConstraints = @UniqueConstraint(name = "uq_rol_nombre", columnNames = "nombre"))
+@Table(name = "role", uniqueConstraints = @UniqueConstraint(name = "uq_rol_nombre", columnNames = "name"))
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("activo = true")
+@SQLRestriction("active = true")
 public class Role extends BaseAuditEntity {
 
     @Id
@@ -20,12 +20,12 @@ public class Role extends BaseAuditEntity {
     private Integer id;
 
     @Column(nullable = false, length = 50)
-    private String nombre;
+    private String name;
 
     @Column(length = 255)
-    private String descripcion;
+    private String description;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean activo = Boolean.TRUE;
+    private Boolean active = Boolean.TRUE;
 }

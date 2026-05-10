@@ -28,44 +28,44 @@ import java.util.UUID;
 @Tag(name = "Usuarios", description = "Gestion de usuarios de la plataforma Bencina en Linea")
 public class UserController {
 
-    private final UserService usuarioService;
+    private final UserService userService;
 
     @GetMapping
     @Operation(summary = "Listar usuarios paginado")
-    public Page<UserResponse> listar(@ParameterObject Pageable pageable) {
-        return usuarioService.listar(pageable);
+    public Page<UserResponse> list(@ParameterObject Pageable pageable) {
+        return userService.list(pageable);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener un usuario por su UUID")
+    @Operation(summary = "Obtener un user por su UUID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User encontrado"),
             @ApiResponse(responseCode = "404", description = "User no existe", content = @Content)
     })
-    public UserResponse buscar(@PathVariable UUID id) {
-        return usuarioService.buscarPorId(id);
+    public UserResponse find(@PathVariable UUID id) {
+        return userService.findById(id);
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo usuario")
-    public ResponseEntity<UserResponse> crear(@Valid @RequestBody UserCreateRequest req,
+    @Operation(summary = "Crear un nuevo user")
+    public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest req,
                                                  UriComponentsBuilder uriBuilder) {
-        UserResponse creado = usuarioService.crear(req);
+        UserResponse creado = userService.create(req);
         URI location = uriBuilder.path("/api/v1/usuarios/{id}").buildAndExpand(creado.id()).toUri();
         return ResponseEntity.created(location).body(creado);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar datos de un usuario")
-    public UserResponse actualizar(@PathVariable UUID id,
+    @Operation(summary = "Actualizar datos de un user")
+    public UserResponse update(@PathVariable UUID id,
                                       @Valid @RequestBody UserUpdateRequest req) {
-        return usuarioService.actualizar(id, req);
+        return userService.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Borrado logico: marca el usuario como inactivo")
-    public void eliminar(@PathVariable UUID id) {
-        usuarioService.eliminar(id);
+    @Operation(summary = "Borrado logico: brand el user como inactivo")
+    public void delete(@PathVariable UUID id) {
+        userService.delete(id);
     }
 }

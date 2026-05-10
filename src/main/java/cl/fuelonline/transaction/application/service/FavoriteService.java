@@ -24,47 +24,47 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class FavoriteService {
 
-    private final FavoriteRepository favoritoRepository;
-    private final UserRepository usuarioRepository;
-    private final StationRepository bencineraRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final UserRepository userRepository;
+    private final StationRepository stationRepository;
     private final FavoriteMapper mapper;
 
-    public Page<FavoriteResponse> listarPorUsuario(UUID usuarioId, Pageable pageable) {
-        return favoritoRepository
-                .findAllByUsuario_IdOrderByCreatedAtDesc(usuarioId, pageable)
+    public Page<FavoriteResponse> listByUser(UUID userId, Pageable pageable) {
+        return favoriteRepository
+                .findAllByUser_IdOrderByCreatedAtDesc(userId, pageable)
                 .map(mapper::toResponse);
     }
 
-    public boolean esFavorito(UUID usuarioId, UUID bencineraId) {
-        return favoritoRepository.existsByUsuario_IdAndBencinera_Id(usuarioId, bencineraId);
+    public boolean isFavorite(UUID userId, UUID stationId) {
+        return favoriteRepository.existsByUser_IdAndStation_Id(userId, stationId);
     }
 
     @Transactional
-    public FavoriteResponse agregar(FavoriteCreateRequest req) {
-        if (favoritoRepository.existsByUsuario_IdAndBencinera_Id(req.usuarioId(), req.bencineraId())) {
-            throw new FavoriteAlreadyExistsException("La bencinera ya esta en favoritos del usuario");
+    public FavoriteResponse add(FavoriteCreateRequest req) {
+        if (favoriteRepository.existsByUser_IdAndStation_Id(req.userId(), req.stationId())) {
+            throw new FavoriteAlreadyExistsException("La station ya esta en favorites del user");
         }
 
-        User usuario = usuarioRepository.findById(req.usuarioId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.usuarioId()));
-        Station bencinera = bencineraRepository.findById(req.bencineraId())
+        User user = userRepository.findById(req.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
+        Station station = stationRepository.findById(req.stationId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Station no encontrada: " + req.bencineraId()));
+                        "Station no encontrada: " + req.stationId()));
 
-        Favorite favorito = Favorite.builder()
-                .usuario(usuario)
-                .bencinera(bencinera)
+        Favorite favorite = Favorite.builder()
+                .user(user)
+                .station(station)
                 .alias(req.alias())
                 .build();
 
-        return mapper.toResponse(favoritoRepository.save(favorito));
+        return mapper.toResponse(favoriteRepository.save(favorite));
     }
 
     @Transactional
-    public void quitar(UUID usuarioId, UUID bencineraId) {
-        if (!favoritoRepository.existsByUsuario_IdAndBencinera_Id(usuarioId, bencineraId)) {
+    public void remove(UUID userId, UUID stationId) {
+        if (!favoriteRepository.existsByUser_IdAndStation_Id(userId, stationId)) {
             throw new ResourceNotFoundException("Favorite no encontrado");
         }
-        favoritoRepository.deleteByUsuario_IdAndBencinera_Id(usuarioId, bencineraId);
+        favoriteRepository.deleteByUser_IdAndStation_Id(userId, stationId);
     }
 }

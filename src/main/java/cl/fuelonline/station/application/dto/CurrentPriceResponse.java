@@ -7,12 +7,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Schema(description = "Precio vigente de un combustible en una bencinera")
+@Schema(description = "Precio vigente de un combustible en una station")
 public record CurrentPriceResponse(
-        Integer tipoCombustibleId,
-        String tipoCombustibleNombre,
-        BigDecimal precio,
-        ChargeUnit unidadCobro,
-        TipoAtencion tipoAtencion,
+        Integer fuelTypeId,
+        String fuelTypeName,
+        BigDecimal price,
+        ChargeUnit chargeUnit,
+        TipoAtencion attentionType,
         LocalDateTime apiTimestamp
 ) {}

@@ -2,7 +2,7 @@ package cl.fuelonline.station.integration.cne.service;
 
 import cl.fuelonline.station.domain.model.*;
 import cl.fuelonline.station.domain.repository.StationRepository;
-import cl.fuelonline.station.domain.repository.PrecioHistorialRepository;
+import cl.fuelonline.station.domain.repository.PriceHistoryRepository;
 import cl.fuelonline.station.integration.cne.dto.CneStationDto;
 import cl.fuelonline.station.integration.cne.dto.CnePriceDto;
 import cl.fuelonline.station.integration.cne.dto.CneLocationDto;
@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Persiste UNA estacion CNE en una transaccion propia.
- * Si una estacion falla, no contamina el resto.
+ * Persiste UNA station CNE en una transaction propia.
+ * Si una station falla, no contamina el resto.
  */
 @Slf4j
 @Component
@@ -32,47 +32,47 @@ public class CneStationUpserter {
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter HORA  = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    private final StationRepository bencineraRepository;
-    private final PrecioHistorialRepository precioHistorialRepository;
+    private final StationRepository stationRepository;
+    private final PriceHistoryRepository priceHistoryRepository;
     private final CneCatalogResolver catalogos;
 
-    /** Resultado de procesar una estacion. */
-    public record ResultadoEstacion(boolean creada, int preciosInsertados, int preciosOmitidos) {}
+    /** Resultado de procesar una station. */
+    public record StationResult(boolean created, int pricesInserted, int pricesSkipped) {}
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ResultadoEstacion upsert(CneStationDto dto) {
-        if (dto.codigo() == null || dto.codigo().isBlank()) {
-            throw new IllegalArgumentException("Estacion sin codigo");
+    public StationResult upsert(CneStationDto dto) {
+        if (dto.code() == null || dto.code().isBlank()) {
+            throw new IllegalArgumentException("Estacion sin code");
         }
-        if (dto.ubicacion() == null) {
-            throw new IllegalArgumentException("Estacion " + dto.codigo() + " sin ubicacion");
+        if (dto.location() == null) {
+            throw new IllegalArgumentException("Estacion " + dto.code() + " sin location");
         }
 
-        Brand marca = catalogos.resolverMarca(dto.distribuidor());
-        Region region = catalogos.resolverRegion(dto.ubicacion());
-        Commune comuna = catalogos.resolverComuna(dto.ubicacion(), region);
+        Brand brand = catalogos.resolveBrand(dto.distributor());
+        Region region = catalogos.resolveRegion(dto.location());
+        Commune commune = catalogos.resolveCommune(dto.location(), region);
 
-        Optional<Station> existente = bencineraRepository.findByCodigoApi(dto.codigo());
+        Optional<Station> existing = stationRepository.findByApiCode(dto.code());
         Station b;
-        boolean creada;
+        boolean created;
 
-        if (existente.isPresent()) {
-            b = existente.get();
-            creada = false;
-            actualizarCampos(b, dto, marca, comuna);
+        if (existing.isPresent()) {
+            b = existing.get();
+            created = false;
+            updateFields(b, dto, brand, commune);
         } else {
-            b = nuevaBencinera(dto, marca, comuna);
-            b = bencineraRepository.save(b);
-            creada = true;
+            b = newStation(dto, brand, commune);
+            b = stationRepository.save(b);
+            created = true;
         }
 
         b.setSyncAt(LocalDateTime.now());
 
         // Precios
         int insertados = 0, omitidos = 0;
-        if (dto.precios() != null) {
-            for (Map.Entry<String, CnePriceDto> entry : dto.precios().entrySet()) {
-                if (procesarPrecio(b, entry.getKey(), entry.getValue())) {
+        if (dto.prices() != null) {
+            for (Map.Entry<String, CnePriceDto> entry : dto.prices().entrySet()) {
+                if (processPrice(b, entry.getKey(), entry.getValue())) {
                     insertados++;
                 } else {
                     omitidos++;
@@ -80,89 +80,89 @@ public class CneStationUpserter {
             }
         }
 
-        return new ResultadoEstacion(creada, insertados, omitidos);
+        return new StationResult(created, insertados, omitidos);
     }
 
-    private Station nuevaBencinera(CneStationDto dto, Brand marca, Commune comuna) {
-        CneLocationDto u = dto.ubicacion();
+    private Station newStation(CneStationDto dto, Brand brand, Commune commune) {
+        CneLocationDto u = dto.location();
         return Station.builder()
-                .codigoApi(dto.codigo())
-                .nombre(nombreEstacion(dto))
-                .marca(marca)
-                .comuna(comuna)
-                .direccion(u.direccion() != null ? u.direccion().trim() : "")
-                .latitud(parseDecimal(u.latitud()))
-                .longitud(parseDecimal(u.longitud()))
-                .enMantenimiento(dto.enMantenimientoBool())
-                .activo(Boolean.TRUE)
+                .apiCode(dto.code())
+                .name(stationName(dto))
+                .brand(brand)
+                .commune(commune)
+                .address(u.address() != null ? u.address().trim() : "")
+                .latitude(parseDecimal(u.latitude()))
+                .longitude(parseDecimal(u.longitude()))
+                .inMaintenance(dto.inMaintenanceBool())
+                .active(Boolean.TRUE)
                 .build();
     }
 
-    private void actualizarCampos(Station b, CneStationDto dto, Brand marca, Commune comuna) {
-        CneLocationDto u = dto.ubicacion();
-        b.setNombre(nombreEstacion(dto));
-        b.setMarca(marca);
-        b.setComuna(comuna);
-        if (u.direccion() != null && !u.direccion().isBlank())
-            b.setDireccion(u.direccion().trim());
-        BigDecimal lat = parseDecimal(u.latitud());
-        BigDecimal lon = parseDecimal(u.longitud());
-        if (lat != null) b.setLatitud(lat);
-        if (lon != null) b.setLongitud(lon);
-        b.setEnMantenimiento(dto.enMantenimientoBool());
+    private void updateFields(Station b, CneStationDto dto, Brand brand, Commune commune) {
+        CneLocationDto u = dto.location();
+        b.setName(stationName(dto));
+        b.setBrand(brand);
+        b.setCommune(commune);
+        if (u.address() != null && !u.address().isBlank())
+            b.setAddress(u.address().trim());
+        BigDecimal lat = parseDecimal(u.latitude());
+        BigDecimal lon = parseDecimal(u.longitude());
+        if (lat != null) b.setLatitude(lat);
+        if (lon != null) b.setLongitude(lon);
+        b.setInMaintenance(dto.inMaintenanceBool());
     }
 
-    private String nombreEstacion(CneStationDto dto) {
-        if (dto.razonSocial() != null && !dto.razonSocial().isBlank())
-            return dto.razonSocial().trim();
-        if (dto.distribuidor() != null && dto.distribuidor().marca() != null)
-            return dto.distribuidor().marca() + " " + dto.codigo();
-        return dto.codigo();
+    private String stationName(CneStationDto dto) {
+        if (dto.legalName() != null && !dto.legalName().isBlank())
+            return dto.legalName().trim();
+        if (dto.distributor() != null && dto.distributor().brand() != null)
+            return dto.distributor().brand() + " " + dto.code();
+        return dto.code();
     }
 
     /**
-     * Inserta el precio en historial solo si su apiTimestamp es estrictamente
-     * mas reciente que el ultimo registrado para esa (bencinera, combustible).
+     * Inserta el price en historial solo si su apiTimestamp es estrictamente
+     * mas reciente que el lastEntry registrado para esa (station, combustible).
      * Devuelve true si se inserto, false si se omitio.
      */
-    private boolean procesarPrecio(Station b, String cneKey, CnePriceDto precio) {
-        if (precio == null || precio.precio() == null) return false;
+    private boolean processPrice(Station b, String cneKey, CnePriceDto price) {
+        if (price == null || price.price() == null) return false;
 
-        BigDecimal valor;
+        BigDecimal value;
         try {
-            valor = new BigDecimal(precio.precio().trim());
+            value = new BigDecimal(price.price().trim());
         } catch (NumberFormatException ex) {
-            log.warn("CNE: precio invalido en {} ({}): {}", b.getCodigoApi(), cneKey, precio.precio());
+            log.warn("CNE: price invalido en {} ({}): {}", b.getApiCode(), cneKey, price.price());
             return false;
         }
 
-        ChargeUnit unidad = catalogos.parsearUnidadCobro(precio.unidadCobro());
-        FuelType tipo = catalogos.resolverCombustible(cneKey, unidad);
+        ChargeUnit unit = catalogos.parseChargeUnit(price.chargeUnit());
+        FuelType type = catalogos.resolveFuel(cneKey, unit);
 
-        LocalDateTime apiTs = parseFechaHora(precio.fechaActualizacion(), precio.horaActualizacion());
+        LocalDateTime apiTs = parseDateTime(price.updateDate(), price.updateTime());
         if (apiTs == null) {
-            log.warn("CNE: fecha/hora invalida en {} ({})", b.getCodigoApi(), cneKey);
+            log.warn("CNE: date/time invalida en {} ({})", b.getApiCode(), cneKey);
             return false;
         }
 
-        Optional<PriceHistory> ultimo = precioHistorialRepository
-                .findFirstByBencinera_IdAndTipoCombustible_IdOrderByApiTimestampDesc(
-                        b.getId(), tipo.getId());
+        Optional<PriceHistory> lastEntry = priceHistoryRepository
+                .findFirstByStation_IdAndFuelType_IdOrderByApiTimestampDesc(
+                        b.getId(), type.getId());
 
-        if (ultimo.isPresent() && !apiTs.isAfter(ultimo.get().getApiTimestamp())) {
+        if (lastEntry.isPresent() && !apiTs.isAfter(lastEntry.get().getApiTimestamp())) {
             return false; // ya tenemos uno mas nuevo o igual
         }
 
-        PriceHistory.TipoAtencion atencion = "Asistido".equalsIgnoreCase(precio.tipoAtencion())
+        PriceHistory.TipoAtencion attention = "Asistido".equalsIgnoreCase(price.attentionType())
                 ? PriceHistory.TipoAtencion.FULL
                 : PriceHistory.TipoAtencion.SELF;
 
-        precioHistorialRepository.save(PriceHistory.builder()
-                .bencinera(b)
-                .tipoCombustible(tipo)
-                .precio(valor)
-                .unidadCobro(unidad)
-                .tipoAtencion(atencion)
+        priceHistoryRepository.save(PriceHistory.builder()
+                .station(b)
+                .fuelType(type)
+                .price(value)
+                .chargeUnit(unit)
+                .attentionType(attention)
                 .apiTimestamp(apiTs)
                 .build());
         return true;
@@ -177,12 +177,12 @@ public class CneStationUpserter {
         }
     }
 
-    private static LocalDateTime parseFechaHora(String fecha, String hora) {
-        if (fecha == null || fecha.isBlank()) return null;
+    private static LocalDateTime parseDateTime(String date, String time) {
+        if (date == null || date.isBlank()) return null;
         try {
-            LocalDate f = LocalDate.parse(fecha.trim(), FECHA);
-            LocalTime h = (hora != null && !hora.isBlank())
-                    ? LocalTime.parse(hora.trim(), HORA)
+            LocalDate f = LocalDate.parse(date.trim(), FECHA);
+            LocalTime h = (time != null && !time.isBlank())
+                    ? LocalTime.parse(time.trim(), HORA)
                     : LocalTime.MIDNIGHT;
             return LocalDateTime.of(f, h);
         } catch (Exception ex) {

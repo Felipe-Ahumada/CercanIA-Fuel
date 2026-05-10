@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Entity
 @Table(
-    name = "transaccion",
+    name = "transaction",
     indexes = {
         @Index(name = "idx_tx_usuario",     columnList = "usuario_id"),
         @Index(name = "idx_tx_vehiculo",    columnList = "vehiculo_id"),
@@ -43,54 +43,54 @@ public class Transaction extends BaseAuditEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "usuario_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_tx_usuario"))
-    private User usuario;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "vehiculo_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_tx_vehiculo"))
-    private Vehicle vehiculo;
+    private Vehicle vehicle;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bencinera_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_tx_bencinera"))
-    private Station bencinera;
+    private Station station;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tipo_combustible_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_tx_combustible"))
-    private FuelType tipoCombustible;
+    private FuelType fuelType;
 
     /** Null = no se uso tarjeta (efectivo u otro). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tarjeta_producto_id",
                 foreignKey = @ForeignKey(name = "fk_tx_tarjeta_producto"))
-    private CardProduct tarjetaProducto;
+    private CardProduct cardProduct;
 
-    /** Null = no se aplico descuento. */
+    /** Null = no se aplico discount. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "descuento_id",
                 foreignKey = @ForeignKey(name = "fk_tx_descuento"))
-    private Discount descuento;
+    private Discount discount;
 
     @Column(name = "precio_unitario", nullable = false, precision = 10, scale = 3)
-    private BigDecimal precioUnitario;
+    private BigDecimal unitPrice;
 
     @Column(nullable = false, precision = 10, scale = 3)
-    private BigDecimal litros;
+    private BigDecimal liters;
 
     @Column(name = "monto_bruto", nullable = false, precision = 12, scale = 2)
-    private BigDecimal montoBruto;
+    private BigDecimal grossAmount;
 
     @Column(name = "monto_descuento", nullable = false, precision = 12, scale = 2)
     @Builder.Default
-    private BigDecimal montoDescuento = BigDecimal.ZERO;
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @Column(name = "monto_final", nullable = false, precision = 12, scale = 2)
-    private BigDecimal montoFinal;
+    private BigDecimal finalAmount;
 
     @Column(name = "fecha_transaccion", nullable = false)
-    private LocalDateTime fechaTransaccion;
+    private LocalDateTime transactionDate;
 
     @Column(length = 255)
-    private String observaciones;
+    private String notes;
 }

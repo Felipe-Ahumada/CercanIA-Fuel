@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 
 public record PriceHistoryResponse(
         Long id,
-        BigDecimal precio,
-        ChargeUnit unidadCobro,
-        TipoAtencion tipoAtencion,
+        BigDecimal price,
+        ChargeUnit chargeUnit,
+        TipoAtencion attentionType,
         LocalDateTime apiTimestamp,
         LocalDateTime createdAt
 ) {}

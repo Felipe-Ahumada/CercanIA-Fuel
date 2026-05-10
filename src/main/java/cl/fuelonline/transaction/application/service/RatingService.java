@@ -26,79 +26,79 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class RatingService {
 
-    private final RatingRepository calificacionRepository;
-    private final UserRepository usuarioRepository;
-    private final StationRepository bencineraRepository;
+    private final RatingRepository ratingRepository;
+    private final UserRepository userRepository;
+    private final StationRepository stationRepository;
     private final RatingMapper mapper;
 
-    public RatingResponse buscarPorId(Long id) {
-        return mapper.toResponse(obtener(id));
+    public RatingResponse findById(Long id) {
+        return mapper.toResponse(get(id));
     }
 
-    public Page<RatingResponse> listarPorBencinera(UUID bencineraId, Pageable pageable) {
-        return calificacionRepository
-                .findAllByBencinera_IdOrderByCreatedAtDesc(bencineraId, pageable)
+    public Page<RatingResponse> listByStation(UUID stationId, Pageable pageable) {
+        return ratingRepository
+                .findAllByStation_IdOrderByCreatedAtDesc(stationId, pageable)
                 .map(mapper::toResponse);
     }
 
-    public Page<RatingResponse> listarPorUsuario(UUID usuarioId, Pageable pageable) {
-        return calificacionRepository
-                .findAllByUsuario_IdOrderByCreatedAtDesc(usuarioId, pageable)
+    public Page<RatingResponse> listByUser(UUID userId, Pageable pageable) {
+        return ratingRepository
+                .findAllByUser_IdOrderByCreatedAtDesc(userId, pageable)
                 .map(mapper::toResponse);
     }
 
-    public RatingSummaryResponse resumen(UUID bencineraId) {
-        var p = calificacionRepository.calcularResumen(bencineraId);
-        Double promedio = p != null && p.getPromedio() != null
+    public RatingSummaryResponse summary(UUID stationId) {
+        var p = ratingRepository.calculateSummary(stationId);
+        Double average = p != null && p.getPromedio() != null
                 ? Math.round(p.getPromedio() * 100.0) / 100.0
                 : 0.0;
         Long total = p != null && p.getTotal() != null ? p.getTotal() : 0L;
-        return new RatingSummaryResponse(bencineraId, promedio, total);
+        return new RatingSummaryResponse(stationId, average, total);
     }
 
     @Transactional
-    public RatingResponse crear(RatingCreateRequest req) {
-        if (calificacionRepository
-                .findByUsuario_IdAndBencinera_Id(req.usuarioId(), req.bencineraId())
+    public RatingResponse create(RatingCreateRequest req) {
+        if (ratingRepository
+                .findByUser_IdAndStation_Id(req.userId(), req.stationId())
                 .isPresent()) {
             throw new RatingAlreadyExistsException(
-                    "El usuario ya califico esta bencinera. Use PUT para actualizar.");
+                    "El user ya califico esta station. Use PUT para update.");
         }
 
-        User usuario = usuarioRepository.findById(req.usuarioId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.usuarioId()));
-        Station bencinera = bencineraRepository.findById(req.bencineraId())
+        User user = userRepository.findById(req.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
+        Station station = stationRepository.findById(req.stationId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Station no encontrada: " + req.bencineraId()));
+                        "Station no encontrada: " + req.stationId()));
 
         Rating entity = Rating.builder()
-                .usuario(usuario)
-                .bencinera(bencinera)
-                .puntaje(req.puntaje())
-                .comentario(req.comentario())
+                .user(user)
+                .station(station)
+                .score(req.score())
+                .comment(req.comment())
                 .build();
 
-        return mapper.toResponse(calificacionRepository.save(entity));
+        return mapper.toResponse(ratingRepository.save(entity));
     }
 
     @Transactional
-    public RatingResponse actualizar(Long id, RatingUpdateRequest req) {
-        Rating entity = obtener(id);
-        if (req.puntaje() != null)    entity.setPuntaje(req.puntaje());
-        if (req.comentario() != null) entity.setComentario(req.comentario());
+    public RatingResponse update(Long id, RatingUpdateRequest req) {
+        Rating entity = get(id);
+        if (req.score() != null)    entity.setScore(req.score());
+        if (req.comment() != null) entity.setComment(req.comment());
         return mapper.toResponse(entity);
     }
 
     @Transactional
-    public void eliminar(Long id) {
-        if (!calificacionRepository.existsById(id)) {
+    public void delete(Long id) {
+        if (!ratingRepository.existsById(id)) {
             throw new ResourceNotFoundException("Rating no encontrada: " + id);
         }
-        calificacionRepository.deleteById(id);
+        ratingRepository.deleteById(id);
     }
 
-    private Rating obtener(Long id) {
-        return calificacionRepository.findById(id)
+    private Rating get(Long id) {
+        return ratingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rating no encontrada: " + id));
     }
 }

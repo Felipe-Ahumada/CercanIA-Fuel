@@ -5,7 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "metodo_pago",
-       uniqueConstraints = @UniqueConstraint(name = "uq_metodo_pago_codigo", columnNames = "codigo"))
+       uniqueConstraints = @UniqueConstraint(name = "uq_metodo_pago_codigo", columnNames = "code"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,8 +18,8 @@ public class PaymentMethod {
     private Integer id;
 
     @Column(nullable = false, length = 40)
-    private String codigo;
+    private String code;
 
     @Column(nullable = false, length = 80)
-    private String nombre;
+    private String name;
 }

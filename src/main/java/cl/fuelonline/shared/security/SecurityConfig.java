@@ -61,7 +61,7 @@ public class SecurityConfig {
                 // Autenticacion: el filtro decide si la peticion trae token; /me requiere auth
                 .requestMatchers("/api/v1/auth/me").authenticated()
 
-                // Registro publico de usuario
+                // Registro publico de user
                 .requestMatchers(HttpMethod.POST, "/api/v1/usuarios").permitAll()
 
                 // Catalogos de bencineras (lectura publica)
@@ -71,7 +71,7 @@ public class SecurityConfig {
                         "/api/v1/comunas/**",
                         "/api/v1/marcas/**",
                         "/api/v1/tipos-combustible/**",
-                        "/api/v1/precios/**").permitAll()
+                        "/api/v1/prices/**").permitAll()
 
                 // Lectura de descuentos publica; calculo y mutaciones requieren auth
                 .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/**").permitAll()

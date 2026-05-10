@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface MetodoPagoRepository extends JpaRepository<PaymentMethod, Integer> {
-    Optional<PaymentMethod> findByCodigo(String codigo);
+public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Integer> {
+    Optional<PaymentMethod> findByCode(String code);
 }

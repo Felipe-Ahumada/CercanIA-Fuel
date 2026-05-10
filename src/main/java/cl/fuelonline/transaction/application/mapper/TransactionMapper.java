@@ -9,14 +9,14 @@ import org.mapstruct.*;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TransactionMapper {
 
-    @Mapping(target = "usuarioId",              source = "usuario.id")
-    @Mapping(target = "vehiculoId",             source = "vehiculo.id")
-    @Mapping(target = "bencineraId",            source = "bencinera.id")
-    @Mapping(target = "bencineraNombre",        source = "bencinera.nombre")
-    @Mapping(target = "tipoCombustibleId",      source = "tipoCombustible.id")
-    @Mapping(target = "tipoCombustibleNombre",  source = "tipoCombustible.nombre")
-    @Mapping(target = "tarjetaProductoId",      source = "tarjetaProducto.id")
-    @Mapping(target = "tarjetaProductoNombre",  source = "tarjetaProducto.nombre")
-    @Mapping(target = "descuentoId",            source = "descuento.id")
+    @Mapping(target = "userId",              source = "user.id")
+    @Mapping(target = "vehicleId",             source = "vehicle.id")
+    @Mapping(target = "stationId",            source = "station.id")
+    @Mapping(target = "stationName",        source = "station.name")
+    @Mapping(target = "fuelTypeId",      source = "fuelType.id")
+    @Mapping(target = "fuelTypeName",  source = "fuelType.name")
+    @Mapping(target = "cardProductId",      source = "cardProduct.id")
+    @Mapping(target = "cardProductName",  source = "cardProduct.name")
+    @Mapping(target = "discountId",            source = "discount.id")
     TransactionResponse toResponse(Transaction entity);
 }

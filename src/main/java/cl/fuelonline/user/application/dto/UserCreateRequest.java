@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-@Schema(description = "Datos para crear un usuario")
+@Schema(description = "Datos para create un user")
 public record UserCreateRequest(
 
         @Schema(example = "rolando.lopez@correo.cl")
@@ -14,13 +14,13 @@ public record UserCreateRequest(
         @Schema(example = "12.345.678-9", description = "RUT chileno con o sin formato")
         @NotBlank @Size(max = 12) String rut,
 
-        @NotBlank @Size(max = 80) String primerNombre,
-        @Size(max = 80)           String segundoNombre,
-        @NotBlank @Size(max = 80) String primerApellido,
-        @NotBlank @Size(max = 80) String segundoApellido,
+        @NotBlank @Size(max = 80) String firstName,
+        @Size(max = 80)           String middleName,
+        @NotBlank @Size(max = 80) String lastName,
+        @NotBlank @Size(max = 80) String secondLastName,
 
-        @NotNull @Past LocalDate fechaNacimiento,
+        @NotNull @Past LocalDate birthDate,
 
         @Schema(example = "2", description = "ID del Role asignado")
-        @NotNull @Positive Integer rolId
+        @NotNull @Positive Integer roleId
 ) {}

@@ -23,12 +23,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CneCatalogResolver {
 
-    private final BrandRepository marcaRepository;
+    private final BrandRepository brandRepository;
     private final RegionRepository regionRepository;
-    private final CommuneRepository comunaRepository;
-    private final TipoCombustibleRepository tipoCombustibleRepository;
+    private final CommuneRepository communeRepository;
+    private final FuelTypeRepository fuelTypeRepository;
 
-    /** Mapeo de la llave del JSON CNE a (nombreCorto, nombreLargo). */
+    /** Mapeo de la llave del JSON CNE a (shortName, nombreLargo). */
     private static final Map<String, String[]> COMBUSTIBLE_NOMBRES = Map.of(
             "93",  new String[]{"93",  "Gasolina 93"},
             "95",  new String[]{"95",  "Gasolina 95"},
@@ -39,83 +39,83 @@ public class CneCatalogResolver {
             "GNC", new String[]{"GNC", "Gas Natural Comprimido"}
     );
 
-    /** Resuelve la marca por codigo_api (uppercase). Auto-crea si falta. */
-    public Brand resolverMarca(CneDistributorDto distribuidor) {
-        if (distribuidor == null || distribuidor.marca() == null || distribuidor.marca().isBlank()) {
-            throw new IllegalArgumentException("Distribuidor sin marca");
+    /** Resuelve la brand por codigo_api (uppercase). Auto-crea si falta. */
+    public Brand resolveBrand(CneDistributorDto distributor) {
+        if (distributor == null || distributor.brand() == null || distributor.brand().isBlank()) {
+            throw new IllegalArgumentException("Distribuidor sin brand");
         }
-        String codigo = distribuidor.marca().trim().toUpperCase();
-        return marcaRepository.findByCodigoApi(codigo)
+        String code = distributor.brand().trim().toUpperCase();
+        return brandRepository.findByApiCode(code)
                 .orElseGet(() -> {
-                    log.info("CNE: auto-creando marca {} ", codigo);
-                    return marcaRepository.save(Brand.builder()
-                            .codigoApi(codigo)
-                            .nombre(codigo)
-                            .activo(Boolean.TRUE)
+                    log.info("CNE: auto-creando brand {} ", code);
+                    return brandRepository.save(Brand.builder()
+                            .apiCode(code)
+                            .name(code)
+                            .active(Boolean.TRUE)
                             .build());
                 });
     }
 
-    /** Resuelve la region por codigo. Auto-crea si falta. */
-    public Region resolverRegion(CneLocationDto u) {
-        if (u == null || u.codigoRegion() == null || u.codigoRegion().isBlank()) {
+    /** Resuelve la region por code. Auto-crea si falta. */
+    public Region resolveRegion(CneLocationDto u) {
+        if (u == null || u.regionCode() == null || u.regionCode().isBlank()) {
             throw new IllegalArgumentException("Ubicacion sin codigo_region");
         }
-        return regionRepository.findByCodigo(u.codigoRegion())
+        return regionRepository.findByCode(u.regionCode())
                 .orElseGet(() -> {
-                    log.info("CNE: auto-creando region {} - {}", u.codigoRegion(), u.nombreRegion());
+                    log.info("CNE: auto-creando region {} - {}", u.regionCode(), u.regionName());
                     return regionRepository.save(Region.builder()
-                            .codigo(u.codigoRegion())
-                            .nombre(u.nombreRegion() != null ? u.nombreRegion() : u.codigoRegion())
+                            .code(u.regionCode())
+                            .name(u.regionName() != null ? u.regionName() : u.regionCode())
                             .build());
                 });
     }
 
-    /** Resuelve la comuna por codigo. Auto-crea bajo la region indicada si falta. */
-    public Commune resolverComuna(CneLocationDto u, Region region) {
-        if (u == null || u.codigoComuna() == null || u.codigoComuna().isBlank()) {
+    /** Resuelve la commune por code. Auto-crea bajo la region indicada si falta. */
+    public Commune resolveCommune(CneLocationDto u, Region region) {
+        if (u == null || u.communeCode() == null || u.communeCode().isBlank()) {
             throw new IllegalArgumentException("Ubicacion sin codigo_comuna");
         }
-        return comunaRepository.findByCodigo(u.codigoComuna())
+        return communeRepository.findByCode(u.communeCode())
                 .orElseGet(() -> {
-                    log.info("CNE: auto-creando comuna {} - {}", u.codigoComuna(), u.nombreComuna());
-                    return comunaRepository.save(Commune.builder()
-                            .codigo(u.codigoComuna())
-                            .nombre(u.nombreComuna() != null ? u.nombreComuna() : u.codigoComuna())
+                    log.info("CNE: auto-creando commune {} - {}", u.communeCode(), u.communeName());
+                    return communeRepository.save(Commune.builder()
+                            .code(u.communeCode())
+                            .name(u.communeName() != null ? u.communeName() : u.communeCode())
                             .region(region)
                             .build());
                 });
     }
 
     /**
-     * Resuelve el tipo de combustible por la llave de la CNE.
-     * Auto-crea uno con la unidad indicada si no existe.
+     * Resuelve el type de combustible por la llave de la CNE.
+     * Auto-crea uno con la unit indicada si no existe.
      */
-    public FuelType resolverCombustible(String cneKey, ChargeUnit unidadCobro) {
+    public FuelType resolveFuel(String cneKey, ChargeUnit chargeUnit) {
         if (cneKey == null || cneKey.isBlank()) {
             throw new IllegalArgumentException("CNE key vacia para combustible");
         }
         String key = cneKey.trim().toUpperCase();
         String[] nombres = COMBUSTIBLE_NOMBRES.getOrDefault(key, new String[]{key, key});
-        String nombreCorto = nombres[0];
+        String shortName = nombres[0];
         String nombreLargo = nombres[1];
 
-        return tipoCombustibleRepository.findByNombreCortoIgnoreCase(nombreCorto)
+        return fuelTypeRepository.findByShortNameIgnoreCase(shortName)
                 .orElseGet(() -> {
-                    log.info("CNE: auto-creando tipo_combustible {} ({})", nombreCorto, unidadCobro);
-                    return tipoCombustibleRepository.save(FuelType.builder()
-                            .nombreCorto(nombreCorto)
-                            .nombre(nombreLargo)
-                            .unidadCobro(unidadCobro != null ? unidadCobro : ChargeUnit.LT)
-                            .activo(Boolean.TRUE)
+                    log.info("CNE: auto-creando tipo_combustible {} ({})", shortName, chargeUnit);
+                    return fuelTypeRepository.save(FuelType.builder()
+                            .shortName(shortName)
+                            .name(nombreLargo)
+                            .chargeUnit(chargeUnit != null ? chargeUnit : ChargeUnit.LT)
+                            .active(Boolean.TRUE)
                             .build());
                 });
     }
 
-    /** Convierte la unidad string ("$/L", "$/m3", "$/kg", "$/kWh") al enum. */
-    public ChargeUnit parsearUnidadCobro(String unidad) {
-        if (unidad == null) return ChargeUnit.LT;
-        String u = unidad.trim().toLowerCase();
+    /** Convierte la unit string ("$/L", "$/m3", "$/kg", "$/kWh") al enum. */
+    public ChargeUnit parseChargeUnit(String unit) {
+        if (unit == null) return ChargeUnit.LT;
+        String u = unit.trim().toLowerCase();
         if (u.contains("/l"))   return ChargeUnit.LT;
         if (u.contains("/m3"))  return ChargeUnit.M3;
         if (u.contains("/kg"))  return ChargeUnit.KG;

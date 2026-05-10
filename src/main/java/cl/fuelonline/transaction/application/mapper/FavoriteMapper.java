@@ -9,12 +9,12 @@ import org.mapstruct.*;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface FavoriteMapper {
 
-    @Mapping(target = "usuarioId",          source = "usuario.id")
-    @Mapping(target = "bencineraId",        source = "bencinera.id")
-    @Mapping(target = "bencineraNombre",    source = "bencinera.nombre")
-    @Mapping(target = "bencineraDireccion", source = "bencinera.direccion")
-    @Mapping(target = "marcaNombre",        source = "bencinera.marca.nombre")
-    @Mapping(target = "latitud",            source = "bencinera.latitud")
-    @Mapping(target = "longitud",           source = "bencinera.longitud")
+    @Mapping(target = "userId",          source = "user.id")
+    @Mapping(target = "stationId",        source = "station.id")
+    @Mapping(target = "stationName",    source = "station.name")
+    @Mapping(target = "stationAddress", source = "station.address")
+    @Mapping(target = "brandName",        source = "station.brand.name")
+    @Mapping(target = "latitude",            source = "station.latitude")
+    @Mapping(target = "longitude",           source = "station.longitude")
     FavoriteResponse toResponse(Favorite entity);
 }

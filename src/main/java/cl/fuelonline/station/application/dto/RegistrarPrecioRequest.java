@@ -8,9 +8,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record RegistrarPrecioRequest(
-        @NotNull @Positive Integer tipoCombustibleId,
-        @NotNull @DecimalMin(value = "0.0", inclusive = false) BigDecimal precio,
-        ChargeUnit unidadCobro,
-        TipoAtencion tipoAtencion,
+        @NotNull @Positive Integer fuelTypeId,
+        @NotNull @DecimalMin(value = "0.0", inclusive = false) BigDecimal price,
+        ChargeUnit chargeUnit,
+        TipoAtencion attentionType,
         @NotNull @PastOrPresent LocalDateTime apiTimestamp
 ) {}

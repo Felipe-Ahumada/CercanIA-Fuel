@@ -19,45 +19,45 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/tarjetas-producto")
 @RequiredArgsConstructor
-@Tag(name = "Productos de tarjeta", description = "Productos de tarjeta por banco (ej: Visa Platinum Scotiabank)")
+@Tag(name = "Productos de tarjeta", description = "Productos de tarjeta por bank (ej: Visa Platinum Scotiabank)")
 public class CardProductController {
 
-    private final CardProductService tarjetaService;
+    private final CardProductService cardProductService;
 
     @GetMapping
-    @Operation(summary = "Listar productos de tarjeta. Filtra por bancoId si se provee.")
-    public List<CardProductResponse> listar(@RequestParam(required = false) Integer bancoId) {
-        return bancoId != null
-                ? tarjetaService.listarPorBanco(bancoId)
-                : tarjetaService.listar();
+    @Operation(summary = "Listar productos de tarjeta. Filtra por bankId si se provee.")
+    public List<CardProductResponse> list(@RequestParam(required = false) Integer bankId) {
+        return bankId != null
+                ? cardProductService.listByBank(bankId)
+                : cardProductService.list();
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Obtener producto de tarjeta por ID")
-    public CardProductResponse buscar(@PathVariable Integer id) {
-        return tarjetaService.buscarPorId(id);
+    public CardProductResponse find(@PathVariable Integer id) {
+        return cardProductService.findById(id);
     }
 
     @PostMapping
     @Operation(summary = "Crear un producto de tarjeta")
-    public ResponseEntity<CardProductResponse> crear(@Valid @RequestBody CardProductCreateRequest req,
+    public ResponseEntity<CardProductResponse> create(@Valid @RequestBody CardProductCreateRequest req,
                                                          UriComponentsBuilder uriBuilder) {
-        CardProductResponse creado = tarjetaService.crear(req);
+        CardProductResponse creado = cardProductService.create(req);
         URI location = uriBuilder.path("/api/v1/tarjetas-producto/{id}").buildAndExpand(creado.id()).toUri();
         return ResponseEntity.created(location).body(creado);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar producto de tarjeta")
-    public CardProductResponse actualizar(@PathVariable Integer id,
+    public CardProductResponse update(@PathVariable Integer id,
                                               @Valid @RequestBody CardProductUpdateRequest req) {
-        return tarjetaService.actualizar(id, req);
+        return cardProductService.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Borrado logico del producto de tarjeta")
-    public void eliminar(@PathVariable Integer id) {
-        tarjetaService.eliminar(id);
+    public void delete(@PathVariable Integer id) {
+        cardProductService.delete(id);
     }
 }

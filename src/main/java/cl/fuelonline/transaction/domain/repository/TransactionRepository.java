@@ -13,38 +13,38 @@ import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    Page<Transaction> findAllByUsuario_IdOrderByFechaTransaccionDesc(UUID usuarioId, Pageable pageable);
+    Page<Transaction> findAllByUser_IdOrderByTransactionDateDesc(UUID userId, Pageable pageable);
 
-    Page<Transaction> findAllByUsuario_IdAndFechaTransaccionBetweenOrderByFechaTransaccionDesc(
-            UUID usuarioId, LocalDateTime desde, LocalDateTime hasta, Pageable pageable);
+    Page<Transaction> findAllByUser_IdAndTransactionDateBetweenOrderByTransactionDateDesc(
+            UUID userId, LocalDateTime desde, LocalDateTime hasta, Pageable pageable);
 
     @Query("""
-           select coalesce(sum(t.montoFinal), 0)
+           select coalesce(sum(t.finalAmount), 0)
              from Transaction t
-            where t.usuario.id = :usuarioId
-              and t.fechaTransaccion between :desde and :hasta
+            where t.user.id = :userId
+              and t.transactionDate between :desde and :hasta
            """)
-    BigDecimal sumarGastoTotal(@Param("usuarioId") UUID usuarioId,
+    BigDecimal sumTotalSpent(@Param("userId") UUID userId,
                                @Param("desde") LocalDateTime desde,
                                @Param("hasta") LocalDateTime hasta);
 
     @Query("""
-           select coalesce(sum(t.montoDescuento), 0)
+           select coalesce(sum(t.discountAmount), 0)
              from Transaction t
-            where t.usuario.id = :usuarioId
-              and t.fechaTransaccion between :desde and :hasta
+            where t.user.id = :userId
+              and t.transactionDate between :desde and :hasta
            """)
-    BigDecimal sumarAhorroTotal(@Param("usuarioId") UUID usuarioId,
+    BigDecimal sumTotalSaved(@Param("userId") UUID userId,
                                 @Param("desde") LocalDateTime desde,
                                 @Param("hasta") LocalDateTime hasta);
 
     @Query("""
-           select coalesce(sum(t.litros), 0)
+           select coalesce(sum(t.liters), 0)
              from Transaction t
-            where t.usuario.id = :usuarioId
-              and t.fechaTransaccion between :desde and :hasta
+            where t.user.id = :userId
+              and t.transactionDate between :desde and :hasta
            """)
-    BigDecimal sumarLitrosTotales(@Param("usuarioId") UUID usuarioId,
+    BigDecimal sumTotalLiters(@Param("userId") UUID userId,
                                   @Param("desde") LocalDateTime desde,
                                   @Param("hasta") LocalDateTime hasta);
 }

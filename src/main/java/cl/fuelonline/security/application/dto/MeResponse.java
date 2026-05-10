@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.UUID;
 
 public record MeResponse(
-        UUID usuarioId,
+        UUID userId,
         String email,
         String firebaseUid,
-        String rol,
+        String role,
         Collection<String> authorities
 ) {}

@@ -27,24 +27,24 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class StationService {
 
-    private final StationRepository bencineraRepository;
-    private final BrandRepository marcaRepository;
-    private final CommuneRepository comunaRepository;
-    private final PriceService precioService;
+    private final StationRepository stationRepository;
+    private final BrandRepository brandRepository;
+    private final CommuneRepository communeRepository;
+    private final PriceService priceService;
     private final StationMapper mapper;
 
-    public Page<StationSummaryResponse> listar(Pageable pageable) {
-        return bencineraRepository.findAll(pageable)
+    public Page<StationSummaryResponse> list(Pageable pageable) {
+        return stationRepository.findAll(pageable)
                 .map(b -> mapper.toSummary(b, null));
     }
 
-    public StationResponse buscarPorId(UUID id) {
-        Station b = obtener(id);
-        return mapper.toResponse(b, precioService.preciosActualesDe(id));
+    public StationResponse findById(UUID id) {
+        Station b = get(id);
+        return mapper.toResponse(b, priceService.preciosActualesDe(id));
     }
 
-    public List<StationSummaryResponse> listarPorComuna(Integer comunaId) {
-        return bencineraRepository.findAllByComuna_Id(comunaId).stream()
+    public List<StationSummaryResponse> listarPorComuna(Integer communeId) {
+        return stationRepository.findAllByCommune_Id(communeId).stream()
                 .map(b -> mapper.toSummary(b, null))
                 .toList();
     }
@@ -54,13 +54,13 @@ public class StationService {
      * lat/lon) y luego refina con Haversine para distancia exacta. Devuelve
      * resultados ordenados por distancia ascendente.
      */
-    public List<StationSummaryResponse> buscarCercanas(double lat, double lon, double radioKm) {
+    public List<StationSummaryResponse> findNearby(double lat, double lon, double radioKm) {
         BoundingBox box = GeoUtils.boundingBox(lat, lon, radioKm);
-        return bencineraRepository.findEnBoundingBox(
+        return stationRepository.findInBoundingBox(
                         box.latMin(), box.latMax(), box.lonMin(), box.lonMax()).stream()
                 .map(b -> {
                     double d = GeoUtils.distanciaKm(lat, lon,
-                            b.getLatitud().doubleValue(), b.getLongitud().doubleValue());
+                            b.getLatitude().doubleValue(), b.getLongitude().doubleValue());
                     return mapper.toSummary(b, d);
                 })
                 .filter(s -> s.distanciaKm() <= radioKm)
@@ -69,52 +69,52 @@ public class StationService {
     }
 
     @Transactional
-    public StationResponse crear(StationCreateRequest req) {
-        if (bencineraRepository.findByCodigoApi(req.codigoApi()).isPresent()) {
-            throw new StationAlreadyExistsException("codigoApi ya existe: " + req.codigoApi());
+    public StationResponse create(StationCreateRequest req) {
+        if (stationRepository.findByApiCode(req.apiCode()).isPresent()) {
+            throw new StationAlreadyExistsException("apiCode ya existe: " + req.apiCode());
         }
 
-        Brand marca = marcaRepository.findById(req.marcaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.marcaId()));
-        Commune comuna = comunaRepository.findById(req.comunaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Commune no encontrada: " + req.comunaId()));
+        Brand brand = brandRepository.findById(req.brandId())
+                .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.brandId()));
+        Commune commune = communeRepository.findById(req.communeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Commune no encontrada: " + req.communeId()));
 
         Station nueva = mapper.toEntity(req);
-        nueva.setMarca(marca);
-        nueva.setComuna(comuna);
+        nueva.setBrand(brand);
+        nueva.setCommune(commune);
 
-        Station persistida = bencineraRepository.save(nueva);
+        Station persistida = stationRepository.save(nueva);
         return mapper.toResponse(persistida, List.of());
     }
 
     @Transactional
-    public StationResponse actualizar(UUID id, StationUpdateRequest req) {
-        Station b = obtener(id);
+    public StationResponse update(UUID id, StationUpdateRequest req) {
+        Station b = get(id);
 
         mapper.updateEntity(req, b);
 
-        if (req.marcaId() != null) {
-            Brand marca = marcaRepository.findById(req.marcaId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.marcaId()));
-            b.setMarca(marca);
+        if (req.brandId() != null) {
+            Brand brand = brandRepository.findById(req.brandId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Brand no encontrada: " + req.brandId()));
+            b.setBrand(brand);
         }
-        if (req.comunaId() != null) {
-            Commune comuna = comunaRepository.findById(req.comunaId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Commune no encontrada: " + req.comunaId()));
-            b.setComuna(comuna);
+        if (req.communeId() != null) {
+            Commune commune = communeRepository.findById(req.communeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Commune no encontrada: " + req.communeId()));
+            b.setCommune(commune);
         }
 
-        return mapper.toResponse(b, precioService.preciosActualesDe(id));
+        return mapper.toResponse(b, priceService.preciosActualesDe(id));
     }
 
     @Transactional
-    public void eliminar(UUID id) {
-        Station b = obtener(id);
-        b.setActivo(Boolean.FALSE);
+    public void delete(UUID id) {
+        Station b = get(id);
+        b.setActive(Boolean.FALSE);
     }
 
-    Station obtener(UUID id) {
-        return bencineraRepository.findById(id)
+    Station get(UUID id) {
+        return stationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Station no encontrada: " + id));
     }
 }

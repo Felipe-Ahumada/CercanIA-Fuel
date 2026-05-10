@@ -24,40 +24,40 @@ import java.net.URI;
 @Tag(name = "Bancos", description = "Catalogo de bancos emisores de tarjetas")
 public class BankController {
 
-    private final BankService bancoService;
+    private final BankService bankService;
 
     @GetMapping
     @Operation(summary = "Listar bancos paginado")
-    public Page<BankResponse> listar(@ParameterObject Pageable pageable) {
-        return bancoService.listar(pageable);
+    public Page<BankResponse> list(@ParameterObject Pageable pageable) {
+        return bankService.list(pageable);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener banco por ID")
-    public BankResponse buscar(@PathVariable Integer id) {
-        return bancoService.buscarPorId(id);
+    @Operation(summary = "Obtener bank por ID")
+    public BankResponse find(@PathVariable Integer id) {
+        return bankService.findById(id);
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo banco")
-    public ResponseEntity<BankResponse> crear(@Valid @RequestBody BankCreateRequest req,
+    @Operation(summary = "Crear un nuevo bank")
+    public ResponseEntity<BankResponse> create(@Valid @RequestBody BankCreateRequest req,
                                                UriComponentsBuilder uriBuilder) {
-        BankResponse creado = bancoService.crear(req);
+        BankResponse creado = bankService.create(req);
         URI location = uriBuilder.path("/api/v1/bancos/{id}").buildAndExpand(creado.id()).toUri();
         return ResponseEntity.created(location).body(creado);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar banco")
-    public BankResponse actualizar(@PathVariable Integer id,
+    @Operation(summary = "Actualizar bank")
+    public BankResponse update(@PathVariable Integer id,
                                     @Valid @RequestBody BankUpdateRequest req) {
-        return bancoService.actualizar(id, req);
+        return bankService.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Borrado logico del banco")
-    public void eliminar(@PathVariable Integer id) {
-        bancoService.eliminar(id);
+    @Operation(summary = "Borrado logico del bank")
+    public void delete(@PathVariable Integer id) {
+        bankService.delete(id);
     }
 }

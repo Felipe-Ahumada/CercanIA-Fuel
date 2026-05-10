@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Table(
-    name = "favorito",
+    name = "favorite",
     indexes = @Index(name = "idx_fav_bencinera", columnList = "bencinera_id")
 )
 @IdClass(Favorite.PK.class)
@@ -28,13 +28,13 @@ public class Favorite {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "usuario_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_fav_usuario"))
-    private User usuario;
+    private User user;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bencinera_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_fav_bencinera"))
-    private Station bencinera;
+    private Station station;
 
     @Column(length = 80)
     private String alias;
@@ -48,20 +48,20 @@ public class Favorite {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PK implements Serializable {
-        private UUID usuario;
-        private UUID bencinera;
+        private UUID user;
+        private UUID station;
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof PK pk)) return false;
-            return Objects.equals(usuario, pk.usuario)
-                && Objects.equals(bencinera, pk.bencinera);
+            return Objects.equals(user, pk.user)
+                && Objects.equals(station, pk.station);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(usuario, bencinera);
+            return Objects.hash(user, station);
         }
     }
 }

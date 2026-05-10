@@ -10,28 +10,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface PrecioHistorialRepository extends JpaRepository<PriceHistory, Long> {
+public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long> {
 
-    Optional<PriceHistory> findFirstByBencinera_IdAndTipoCombustible_IdOrderByApiTimestampDesc(
-            UUID bencineraId, Integer tipoCombustibleId);
+    Optional<PriceHistory> findFirstByStation_IdAndFuelType_IdOrderByApiTimestampDesc(
+            UUID stationId, Integer fuelTypeId);
 
-    Page<PriceHistory> findAllByBencinera_IdAndTipoCombustible_IdOrderByApiTimestampDesc(
-            UUID bencineraId, Integer tipoCombustibleId, Pageable pageable);
+    Page<PriceHistory> findAllByStation_IdAndFuelType_IdOrderByApiTimestampDesc(
+            UUID stationId, Integer fuelTypeId, Pageable pageable);
 
     /**
-     * Ultimo precio registrado por cada tipo de combustible para una bencinera.
+     * Ultimo price registrado por cada type de combustible para una station.
      * Subquery correlacionada — apta para el volumen actual.
      * En PostgreSQL puro convendria usar DISTINCT ON o window functions.
      */
     @Query("""
            SELECT p FROM PriceHistory p
-           WHERE p.bencinera.id = :bencineraId
+           WHERE p.station.id = :stationId
              AND p.apiTimestamp = (
                  SELECT MAX(p2.apiTimestamp) FROM PriceHistory p2
-                 WHERE p2.bencinera.id = p.bencinera.id
-                   AND p2.tipoCombustible.id = p.tipoCombustible.id
+                 WHERE p2.station.id = p.station.id
+                   AND p2.fuelType.id = p.fuelType.id
              )
-           ORDER BY p.tipoCombustible.id ASC
+           ORDER BY p.fuelType.id ASC
            """)
-    List<PriceHistory> findUltimosPreciosPorCombustible(UUID bencineraId);
+    List<PriceHistory> findCurrentPricesByFuel(UUID stationId);
 }

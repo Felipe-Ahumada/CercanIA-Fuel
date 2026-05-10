@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 /**
  * Utilidades geograficas. Distancias calculadas con la formula de Haversine
- * sobre una Tierra esferica de radio promedio 6371 km. Precision suficiente
+ * sobre una Tierra esferica de radio average 6371 km. Precision suficiente
  * para distancias urbanas (error tipico < 0.5%).
  */
 public final class GeoUtils {
@@ -31,7 +31,7 @@ public final class GeoUtils {
 
     /**
      * Aproxima un bounding-box (latMin/latMax/lonMin/lonMax) alrededor de un punto
-     * para filtrar candidatos via indice antes de calcular distancia exacta.
+     * para filtrar candidatos via indice antes de calculate distancia exacta.
      * Sobreestima el rango (no falsos negativos), aceptando algunos falsos positivos.
      */
     public static BoundingBox boundingBox(double lat, double lon, double radioKm) {

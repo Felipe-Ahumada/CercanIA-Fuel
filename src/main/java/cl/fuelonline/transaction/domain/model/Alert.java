@@ -10,12 +10,12 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-    name = "alerta",
+    name = "alert",
     indexes = {
         @Index(name = "idx_alerta_usuario",     columnList = "usuario_id"),
         @Index(name = "idx_alerta_bencinera",   columnList = "bencinera_id"),
         @Index(name = "idx_alerta_tipo",        columnList = "tipo_alerta"),
-        @Index(name = "idx_alerta_leida",       columnList = "leida"),
+        @Index(name = "idx_alerta_leida",       columnList = "read"),
         @Index(name = "idx_alerta_created_at",  columnList = "created_at")
     }
 )
@@ -33,37 +33,37 @@ public class Alert {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "usuario_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_alerta_usuario"))
-    private User usuario;
+    private User user;
 
-    /** Null = alerta no asociada a una bencinera (ej: SISTEMA). */
+    /** Null = alert no asociada a una station (ej: SYSTEM). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bencinera_id",
                 foreignKey = @ForeignKey(name = "fk_alerta_bencinera"))
-    private Station bencinera;
+    private Station station;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_alerta", nullable = false, length = 30)
-    private AlertType tipoAlerta;
+    private AlertType alertType;
 
     @Column(nullable = false, length = 150)
-    private String titulo;
+    private String title;
 
     @Column(nullable = false, length = 500)
-    private String mensaje;
+    private String message;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean leida = Boolean.FALSE;
+    private Boolean read = Boolean.FALSE;
 
     @Column(name = "leida_at")
-    private LocalDateTime leidaAt;
+    private LocalDateTime readAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public void marcarLeida() {
-        this.leida = Boolean.TRUE;
-        this.leidaAt = LocalDateTime.now();
+    public void markAsRead() {
+        this.read = Boolean.TRUE;
+        this.readAt = LocalDateTime.now();
     }
 }

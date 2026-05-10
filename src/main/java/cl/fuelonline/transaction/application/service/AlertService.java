@@ -24,70 +24,70 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class AlertService {
 
-    private final AlertRepository alertaRepository;
-    private final UserRepository usuarioRepository;
-    private final StationRepository bencineraRepository;
+    private final AlertRepository alertRepository;
+    private final UserRepository userRepository;
+    private final StationRepository stationRepository;
     private final AlertMapper mapper;
 
-    public Page<AlertResponse> listarPorUsuario(UUID usuarioId, Boolean leida, Pageable pageable) {
-        if (leida == null) {
-            return alertaRepository
-                    .findAllByUsuario_IdOrderByCreatedAtDesc(usuarioId, pageable)
+    public Page<AlertResponse> listByUser(UUID userId, Boolean read, Pageable pageable) {
+        if (read == null) {
+            return alertRepository
+                    .findAllByUser_IdOrderByCreatedAtDesc(userId, pageable)
                     .map(mapper::toResponse);
         }
-        return alertaRepository
-                .findAllByUsuario_IdAndLeidaOrderByCreatedAtDesc(usuarioId, leida, pageable)
+        return alertRepository
+                .findAllByUser_IdAndReadOrderByCreatedAtDesc(userId, read, pageable)
                 .map(mapper::toResponse);
     }
 
-    public long contarNoLeidas(UUID usuarioId) {
-        return alertaRepository.countByUsuario_IdAndLeidaFalse(usuarioId);
+    public long countUnread(UUID userId) {
+        return alertRepository.countByUser_IdAndReadFalse(userId);
     }
 
     @Transactional
-    public AlertResponse crear(AlertCreateRequest req) {
-        User usuario = usuarioRepository.findById(req.usuarioId())
-                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.usuarioId()));
+    public AlertResponse create(AlertCreateRequest req) {
+        User user = userRepository.findById(req.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("User no encontrado: " + req.userId()));
 
-        Station bencinera = null;
-        if (req.bencineraId() != null) {
-            bencinera = bencineraRepository.findById(req.bencineraId())
+        Station station = null;
+        if (req.stationId() != null) {
+            station = stationRepository.findById(req.stationId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Station no encontrada: " + req.bencineraId()));
+                            "Station no encontrada: " + req.stationId()));
         }
 
-        Alert alerta = Alert.builder()
-                .usuario(usuario)
-                .bencinera(bencinera)
-                .tipoAlerta(req.tipoAlerta())
-                .titulo(req.titulo())
-                .mensaje(req.mensaje())
-                .leida(Boolean.FALSE)
+        Alert alert = Alert.builder()
+                .user(user)
+                .station(station)
+                .alertType(req.alertType())
+                .title(req.title())
+                .message(req.message())
+                .read(Boolean.FALSE)
                 .build();
 
-        return mapper.toResponse(alertaRepository.save(alerta));
+        return mapper.toResponse(alertRepository.save(alert));
     }
 
     @Transactional
-    public AlertResponse marcarLeida(Long id) {
-        Alert alerta = alertaRepository.findById(id)
+    public AlertResponse markAsRead(Long id) {
+        Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Alert no encontrada: " + id));
-        if (Boolean.FALSE.equals(alerta.getLeida())) {
-            alerta.marcarLeida();
+        if (Boolean.FALSE.equals(alert.getRead())) {
+            alert.markAsRead();
         }
-        return mapper.toResponse(alerta);
+        return mapper.toResponse(alert);
     }
 
     @Transactional
-    public int marcarTodasLeidas(UUID usuarioId) {
-        return alertaRepository.marcarTodasComoLeidas(usuarioId, LocalDateTime.now());
+    public int markAllAsRead(UUID userId) {
+        return alertRepository.markAllAsRead(userId, LocalDateTime.now());
     }
 
     @Transactional
-    public void eliminar(Long id) {
-        if (!alertaRepository.existsById(id)) {
+    public void delete(Long id) {
+        if (!alertRepository.existsById(id)) {
             throw new ResourceNotFoundException("Alert no encontrada: " + id);
         }
-        alertaRepository.deleteById(id);
+        alertRepository.deleteById(id);
     }
 }

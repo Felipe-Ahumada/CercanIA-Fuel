@@ -20,51 +20,51 @@ import java.util.List;
 @RequestMapping("/api/v1/descuentos")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Descuentos", description = "Promociones y calculo del mejor descuento aplicable")
+@Tag(name = "Descuentos", description = "Promociones y calculo del mejor discount aplicable")
 public class DiscountController {
 
-    private final DiscountService descuentoService;
+    private final DiscountService discountService;
 
     @GetMapping
-    @Operation(summary = "Listar descuentos por marca")
-    public List<DiscountResponse> listarPorMarca(@RequestParam @Positive Integer marcaId) {
-        return descuentoService.listarPorMarca(marcaId);
+    @Operation(summary = "Listar descuentos por brand")
+    public List<DiscountResponse> listByBrand(@RequestParam @Positive Integer brandId) {
+        return discountService.listByBrand(brandId);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener descuento por ID")
-    public DiscountResponse buscar(@PathVariable Integer id) {
-        return descuentoService.buscarPorId(id);
+    @Operation(summary = "Obtener discount por ID")
+    public DiscountResponse find(@PathVariable Integer id) {
+        return discountService.findById(id);
     }
 
     @PostMapping
-    @Operation(summary = "Crear un descuento")
-    public ResponseEntity<DiscountResponse> crear(@Valid @RequestBody DiscountCreateRequest req,
+    @Operation(summary = "Crear un discount")
+    public ResponseEntity<DiscountResponse> create(@Valid @RequestBody DiscountCreateRequest req,
                                                    UriComponentsBuilder uriBuilder) {
-        DiscountResponse creado = descuentoService.crear(req);
+        DiscountResponse creado = discountService.create(req);
         URI location = uriBuilder.path("/api/v1/descuentos/{id}").buildAndExpand(creado.id()).toUri();
         return ResponseEntity.created(location).body(creado);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar descuento")
-    public DiscountResponse actualizar(@PathVariable Integer id,
+    @Operation(summary = "Actualizar discount")
+    public DiscountResponse update(@PathVariable Integer id,
                                         @Valid @RequestBody DiscountUpdateRequest req) {
-        return descuentoService.actualizar(id, req);
+        return discountService.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Borrado logico del descuento")
-    public void eliminar(@PathVariable Integer id) {
-        descuentoService.eliminar(id);
+    @Operation(summary = "Borrado logico del discount")
+    public void delete(@PathVariable Integer id) {
+        discountService.delete(id);
     }
 
-    @PostMapping("/calcular")
-    @Operation(summary = "Calcular el mejor descuento aplicable a una compra",
-               description = "Recibe marca, combustible, monto bruto y tarjetas del usuario. " +
-                             "Devuelve el descuento que entrega el mayor ahorro.")
-    public CalculatedDiscountResponse calcular(@Valid @RequestBody CalculateDiscountRequest req) {
-        return descuentoService.calcularMejorDescuento(req);
+    @PostMapping("/calculate")
+    @Operation(summary = "Calcular el mejor discount aplicable a una compra",
+               description = "Recibe brand, combustible, monto bruto y tarjetas del user. " +
+                             "Devuelve el discount que entrega el mayor savings.")
+    public CalculatedDiscountResponse calculate(@Valid @RequestBody CalculateDiscountRequest req) {
+        return discountService.calculateBestDiscount(req);
     }
 }

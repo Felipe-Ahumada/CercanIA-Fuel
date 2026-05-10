@@ -24,57 +24,57 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/transacciones")
 @RequiredArgsConstructor
-@Tag(name = "Transacciones", description = "Registro de cargas de combustible y resumen de gasto")
+@Tag(name = "Transacciones", description = "Registro de fills de combustible y summary de gasto")
 public class TransactionController {
 
-    private final TransactionService transaccionService;
+    private final TransactionService transactionService;
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener una transaccion por ID")
-    public TransactionResponse buscar(@PathVariable UUID id) {
-        return transaccionService.buscarPorId(id);
+    @Operation(summary = "Obtener una transaction por ID")
+    public TransactionResponse find(@PathVariable UUID id) {
+        return transactionService.findById(id);
     }
 
     @GetMapping
-    @Operation(summary = "Listar transacciones de un usuario, opcionalmente entre fechas")
-    public Page<TransactionResponse> listar(
-            @RequestParam UUID usuarioId,
+    @Operation(summary = "Listar transacciones de un user, opcionalmente entre fechas")
+    public Page<TransactionResponse> list(
+            @RequestParam UUID userId,
             @RequestParam(required = false)
                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false)
                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @ParameterObject Pageable pageable) {
         if (desde != null && hasta != null) {
-            return transaccionService.listarPorUsuarioEntre(usuarioId, desde, hasta, pageable);
+            return transactionService.listByUserBetween(userId, desde, hasta, pageable);
         }
-        return transaccionService.listarPorUsuario(usuarioId, pageable);
+        return transactionService.listByUser(userId, pageable);
     }
 
-    @GetMapping("/resumen")
-    @Operation(summary = "Resumen agregado de gasto y ahorro por rango de fechas")
-    public ExpenseSummaryResponse resumen(
-            @RequestParam UUID usuarioId,
+    @GetMapping("/summary")
+    @Operation(summary = "Resumen agregado de gasto y savings por rango de fechas")
+    public ExpenseSummaryResponse summary(
+            @RequestParam UUID userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
-        return transaccionService.resumenGasto(usuarioId, desde, hasta);
+        return transactionService.expenseSummary(userId, desde, hasta);
     }
 
     @PostMapping
-    @Operation(summary = "Registrar una nueva transaccion (carga de combustible)")
-    public ResponseEntity<TransactionResponse> registrar(
+    @Operation(summary = "Registrar una nueva transaction (carga de combustible)")
+    public ResponseEntity<TransactionResponse> register(
             @Valid @RequestBody TransactionCreateRequest req,
             UriComponentsBuilder uriBuilder) {
-        TransactionResponse creada = transaccionService.registrar(req);
+        TransactionResponse created = transactionService.register(req);
         URI location = uriBuilder.path("/api/v1/transacciones/{id}")
-                .buildAndExpand(creada.id())
+                .buildAndExpand(created.id())
                 .toUri();
-        return ResponseEntity.created(location).body(creada);
+        return ResponseEntity.created(location).body(created);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Eliminar una transaccion")
-    public void eliminar(@PathVariable UUID id) {
-        transaccionService.eliminar(id);
+    @Operation(summary = "Eliminar una transaction")
+    public void delete(@PathVariable UUID id) {
+        transactionService.delete(id);
     }
 }

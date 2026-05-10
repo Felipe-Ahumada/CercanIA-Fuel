@@ -5,7 +5,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "region",
-       uniqueConstraints = @UniqueConstraint(name = "uq_region_codigo", columnNames = "codigo"))
+       uniqueConstraints = @UniqueConstraint(name = "uq_region_codigo", columnNames = "code"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,8 +18,8 @@ public class Region {
     private Integer id;
 
     @Column(nullable = false, length = 2)
-    private String codigo;
+    private String code;
 
     @Column(nullable = false, length = 80)
-    private String nombre;
+    private String name;
 }

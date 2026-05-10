@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommuneRepository extends JpaRepository<Commune, Integer> {
-    List<Commune> findAllByRegion_IdOrderByNombreAsc(Integer regionId);
-    Optional<Commune> findByCodigo(String codigo);
+    List<Commune> findAllByRegion_IdOrderByNameAsc(Integer regionId);
+    Optional<Commune> findByCode(String code);
 }

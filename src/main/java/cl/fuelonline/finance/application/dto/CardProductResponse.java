@@ -4,9 +4,9 @@ import cl.fuelonline.finance.domain.model.CardType;
 
 public record CardProductResponse(
         Integer id,
-        Integer bancoId,
-        String bancoNombre,
-        String nombre,
-        CardType tipoTarjeta,
-        Boolean activo
+        Integer bankId,
+        String bankName,
+        String name,
+        CardType cardType,
+        Boolean active
 ) {}

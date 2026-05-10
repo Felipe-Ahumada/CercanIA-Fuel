@@ -22,10 +22,10 @@ public class CneSyncScheduler {
     private final CneProperties props;
 
     @Scheduled(cron = "${app.cne.scheduled-cron:0 0 */1 * * *}")
-    public void ejecutar() {
+    public void execute() {
         log.info("CNE: disparando sync programado (cron={})", props.scheduledCron());
         try {
-            syncService.sincronizar();
+            syncService.synchronize();
         } catch (Exception ex) {
             log.error("CNE: sync programado fallo", ex);
         }

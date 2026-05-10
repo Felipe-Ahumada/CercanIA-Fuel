@@ -12,12 +12,12 @@ import org.mapstruct.*;
 public interface BankMapper {
 
     @Mapping(target = "id",     ignore = true)
-    @Mapping(target = "activo", constant = "true")
+    @Mapping(target = "active", constant = "true")
     Bank toEntity(BankCreateRequest req);
 
-    BankResponse toResponse(Bank banco);
+    BankResponse toResponse(Bank bank);
 
     @Mapping(target = "id",     ignore = true)
-    @Mapping(target = "activo", ignore = true)
+    @Mapping(target = "active", ignore = true)
     void updateEntity(BankUpdateRequest req, @MappingTarget Bank entity);
 }

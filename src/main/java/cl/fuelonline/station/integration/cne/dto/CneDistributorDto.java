@@ -4,6 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CneDistributorDto(
-        String marca,
+        String brand,
         String logo
 ) {}

@@ -12,19 +12,19 @@ import org.mapstruct.*;
 public interface UserMapper {
 
     @Mapping(target = "id",         ignore = true)
-    @Mapping(target = "rol",        ignore = true)
-    @Mapping(target = "vehiculos",  ignore = true)
-    @Mapping(target = "activo",     constant = "true")
+    @Mapping(target = "role",        ignore = true)
+    @Mapping(target = "vehicles",  ignore = true)
+    @Mapping(target = "active",     constant = "true")
     User toEntity(UserCreateRequest req);
 
-    @Mapping(target = "rolId",     source = "rol.id")
-    @Mapping(target = "rolNombre", source = "rol.nombre")
+    @Mapping(target = "roleId",     source = "role.id")
+    @Mapping(target = "roleName", source = "role.name")
     UserResponse toResponse(User u);
 
     @Mapping(target = "id",        ignore = true)
-    @Mapping(target = "rol",       ignore = true)
-    @Mapping(target = "vehiculos", ignore = true)
-    @Mapping(target = "activo",    ignore = true)
+    @Mapping(target = "role",       ignore = true)
+    @Mapping(target = "vehicles", ignore = true)
+    @Mapping(target = "active",    ignore = true)
     @Mapping(target = "rut",       ignore = true)
     void updateEntity(UserUpdateRequest req, @MappingTarget User entity);
 }

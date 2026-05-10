@@ -6,9 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Configuracion de seguridad cargada desde application.yml bajo "app.security".
  *
  * Modos de operacion:
- *  - firebase.credentials-path con valor: usa Firebase Admin SDK para validar ID Tokens
+ *  - firebase.credentials-path con value: usa Firebase Admin SDK para validar ID Tokens
  *  - dev-mode = true: acepta header "X-Dev-User: email@dominio" para impersonar
- *    al usuario local (sin verificar firma). Util para desarrollo sin Firebase.
+ *    al user local (sin verify firma). Util para desarrollo sin Firebase.
  *
  * Si ambos estan apagados, todas las requests no anonimas resultan en 401.
  */

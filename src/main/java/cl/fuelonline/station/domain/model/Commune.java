@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "comuna",
-       uniqueConstraints = @UniqueConstraint(name = "uq_comuna_codigo", columnNames = "codigo"),
+@Table(name = "commune",
+       uniqueConstraints = @UniqueConstraint(name = "uq_comuna_codigo", columnNames = "code"),
        indexes = @Index(name = "idx_comuna_region", columnList = "region_id"))
 @Getter
 @Setter
@@ -25,8 +25,8 @@ public class Commune {
 
     /** Codigo territorial chileno (5 digitos). Ej: "13101" para Santiago. */
     @Column(length = 8)
-    private String codigo;
+    private String code;
 
     @Column(nullable = false, length = 80)
-    private String nombre;
+    private String name;
 }

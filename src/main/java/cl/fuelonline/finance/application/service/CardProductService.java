@@ -22,47 +22,47 @@ import java.util.List;
 public class CardProductService {
 
     private final CardProductRepository tarjetaRepository;
-    private final BankRepository bancoRepository;
+    private final BankRepository bankRepository;
     private final CardProductMapper mapper;
 
-    public List<CardProductResponse> listar() {
+    public List<CardProductResponse> list() {
         return tarjetaRepository.findAll().stream().map(mapper::toResponse).toList();
     }
 
-    public List<CardProductResponse> listarPorBanco(Integer bancoId) {
-        return tarjetaRepository.findAllByBanco_IdOrderByNombreAsc(bancoId).stream()
+    public List<CardProductResponse> listByBank(Integer bankId) {
+        return tarjetaRepository.findAllByBanco_IdOrderByNombreAsc(bankId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
-    public CardProductResponse buscarPorId(Integer id) {
-        return mapper.toResponse(obtener(id));
+    public CardProductResponse findById(Integer id) {
+        return mapper.toResponse(get(id));
     }
 
     @Transactional
-    public CardProductResponse crear(CardProductCreateRequest req) {
-        Bank banco = bancoRepository.findById(req.bancoId())
-                .orElseThrow(() -> new ResourceNotFoundException("Bank no encontrado: " + req.bancoId()));
+    public CardProductResponse create(CardProductCreateRequest req) {
+        Bank bank = bankRepository.findById(req.bankId())
+                .orElseThrow(() -> new ResourceNotFoundException("Bank no encontrado: " + req.bankId()));
 
-        if (tarjetaRepository.existsByBanco_IdAndNombreIgnoreCase(req.bancoId(), req.nombre())) {
+        if (tarjetaRepository.existsByBanco_IdAndNombreIgnoreCase(req.bankId(), req.name())) {
             throw new CardProductAlreadyExistsException(
-                    "Producto '%s' ya existe para banco %d".formatted(req.nombre(), req.bancoId()));
+                    "Producto '%s' ya existe para bank %d".formatted(req.name(), req.bankId()));
         }
 
         CardProduct entity = mapper.toEntity(req);
-        entity.setBanco(banco);
+        entity.setBank(bank);
         return mapper.toResponse(tarjetaRepository.save(entity));
     }
 
     @Transactional
-    public CardProductResponse actualizar(Integer id, CardProductUpdateRequest req) {
-        CardProduct entity = obtener(id);
+    public CardProductResponse update(Integer id, CardProductUpdateRequest req) {
+        CardProduct entity = get(id);
 
-        if (req.nombre() != null && !req.nombre().equalsIgnoreCase(entity.getNombre())
+        if (req.name() != null && !req.name().equalsIgnoreCase(entity.getName())
                 && tarjetaRepository.existsByBanco_IdAndNombreIgnoreCase(
-                        entity.getBanco().getId(), req.nombre())) {
+                        entity.getBank().getId(), req.name())) {
             throw new CardProductAlreadyExistsException(
-                    "Producto '%s' ya existe para banco %d".formatted(req.nombre(), entity.getBanco().getId()));
+                    "Producto '%s' ya existe para bank %d".formatted(req.name(), entity.getBank().getId()));
         }
 
         mapper.updateEntity(req, entity);
@@ -70,12 +70,12 @@ public class CardProductService {
     }
 
     @Transactional
-    public void eliminar(Integer id) {
-        CardProduct entity = obtener(id);
-        entity.setActivo(Boolean.FALSE);
+    public void delete(Integer id) {
+        CardProduct entity = get(id);
+        entity.setActive(Boolean.FALSE);
     }
 
-    private CardProduct obtener(Integer id) {
+    private CardProduct get(Integer id) {
         return tarjetaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto de tarjeta no encontrado: " + id));
     }

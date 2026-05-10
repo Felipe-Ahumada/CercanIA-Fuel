@@ -8,8 +8,8 @@ import cl.fuelonline.station.domain.model.Station;
 import cl.fuelonline.station.domain.model.PriceHistory;
 import cl.fuelonline.station.domain.model.FuelType;
 import cl.fuelonline.station.domain.repository.StationRepository;
-import cl.fuelonline.station.domain.repository.PrecioHistorialRepository;
-import cl.fuelonline.station.domain.repository.TipoCombustibleRepository;
+import cl.fuelonline.station.domain.repository.PriceHistoryRepository;
+import cl.fuelonline.station.domain.repository.FuelTypeRepository;
 import cl.fuelonline.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,51 +25,51 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class PriceService {
 
-    private final PrecioHistorialRepository precioRepository;
-    private final StationRepository bencineraRepository;
-    private final TipoCombustibleRepository tipoCombustibleRepository;
+    private final PriceHistoryRepository precioRepository;
+    private final StationRepository stationRepository;
+    private final FuelTypeRepository fuelTypeRepository;
     private final PriceMapper mapper;
 
-    public List<CurrentPriceResponse> preciosActualesDe(UUID bencineraId) {
-        return precioRepository.findUltimosPreciosPorCombustible(bencineraId).stream()
+    public List<CurrentPriceResponse> preciosActualesDe(UUID stationId) {
+        return precioRepository.findCurrentPricesByFuel(stationId).stream()
                 .map(mapper::toActual)
                 .toList();
     }
 
-    public CurrentPriceResponse precioActual(UUID bencineraId, Integer tipoCombustibleId) {
+    public CurrentPriceResponse precioActual(UUID stationId, Integer fuelTypeId) {
         return precioRepository
-                .findFirstByBencinera_IdAndTipoCombustible_IdOrderByApiTimestampDesc(
-                        bencineraId, tipoCombustibleId)
+                .findFirstByStation_IdAndFuelType_IdOrderByApiTimestampDesc(
+                        stationId, fuelTypeId)
                 .map(mapper::toActual)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Sin precios para bencinera %s y combustible %d"
-                                .formatted(bencineraId, tipoCombustibleId)));
+                        "Sin prices para station %s y combustible %d"
+                                .formatted(stationId, fuelTypeId)));
     }
 
-    public Page<PriceHistoryResponse> historial(UUID bencineraId, Integer tipoCombustibleId,
+    public Page<PriceHistoryResponse> historial(UUID stationId, Integer fuelTypeId,
                                                    Pageable pageable) {
         return precioRepository
-                .findAllByBencinera_IdAndTipoCombustible_IdOrderByApiTimestampDesc(
-                        bencineraId, tipoCombustibleId, pageable)
+                .findAllByStation_IdAndFuelType_IdOrderByApiTimestampDesc(
+                        stationId, fuelTypeId, pageable)
                 .map(mapper::toHistorial);
     }
 
     @Transactional
-    public PriceHistoryResponse registrar(UUID bencineraId, RegistrarPrecioRequest req) {
-        Station bencinera = bencineraRepository.findById(bencineraId)
+    public PriceHistoryResponse register(UUID stationId, RegistrarPrecioRequest req) {
+        Station station = stationRepository.findById(stationId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Station no encontrada: " + bencineraId));
-        FuelType combustible = tipoCombustibleRepository.findById(req.tipoCombustibleId())
+                        "Station no encontrada: " + stationId));
+        FuelType combustible = fuelTypeRepository.findById(req.fuelTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Tipo de combustible no encontrado: " + req.tipoCombustibleId()));
+                        "Tipo de combustible no encontrado: " + req.fuelTypeId()));
 
         PriceHistory nuevo = PriceHistory.builder()
-                .bencinera(bencinera)
-                .tipoCombustible(combustible)
-                .precio(req.precio())
-                .unidadCobro(req.unidadCobro() != null ? req.unidadCobro() : combustible.getUnidadCobro())
-                .tipoAtencion(req.tipoAtencion() != null
-                        ? req.tipoAtencion()
+                .station(station)
+                .fuelType(combustible)
+                .price(req.price())
+                .chargeUnit(req.chargeUnit() != null ? req.chargeUnit() : combustible.getChargeUnit())
+                .attentionType(req.attentionType() != null
+                        ? req.attentionType()
                         : PriceHistory.TipoAtencion.FULL)
                 .apiTimestamp(req.apiTimestamp())
                 .build();
