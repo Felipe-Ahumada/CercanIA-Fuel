@@ -1,6 +1,6 @@
 package cl.fuelonline.station.application.dto;
 
-import cl.fuelonline.station.domain.model.PriceHistory.TipoAtencion;
+import cl.fuelonline.station.domain.model.PriceHistory.AttentionType;
 import cl.fuelonline.station.domain.model.ChargeUnit;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -13,6 +13,6 @@ public record CurrentPriceResponse(
         String fuelTypeName,
         BigDecimal price,
         ChargeUnit chargeUnit,
-        TipoAtencion attentionType,
+        AttentionType attentionType,
         LocalDateTime apiTimestamp
 ) {}

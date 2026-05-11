@@ -14,5 +14,5 @@ public interface CardProductRepository extends JpaRepository<CardProduct, Intege
 
     Optional<CardProduct> findByBank_IdAndNameIgnoreCase(Integer bankId, String name);
 
-    boolean existsByBanco_IdAndNombreIgnoreCase(Integer bankId, String name);
+    boolean existsByBank_IdAndNameIgnoreCase(Integer bankId, String name);
 }

@@ -21,7 +21,7 @@ public class FuelType {
     @Column(nullable = false, length = 60)
     private String name;
 
-    @Column(name = "nombre_corto", nullable = false, length = 20)
+    @Column(name = "short_name", nullable = false, length = 20)
     private String shortName;
 
     @Enumerated(EnumType.STRING)

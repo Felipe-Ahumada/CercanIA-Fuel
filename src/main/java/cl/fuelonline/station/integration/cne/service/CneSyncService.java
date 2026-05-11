@@ -30,13 +30,13 @@ public class CneSyncService {
     private final CneApiClient apiClient;
     private final CneStationUpserter upserter;
 
-    private final AtomicBoolean enEjecucion = new AtomicBoolean(false);
+    private final AtomicBoolean running = new AtomicBoolean(false);
 
     public CneSyncResultDto synchronize() {
         LocalDateTime start = LocalDateTime.now();
         long t0 = System.currentTimeMillis();
 
-        if (!enEjecucion.compareAndSet(false, true)) {
+        if (!running.compareAndSet(false, true)) {
             log.warn("CNE: sync already running, skipping this invocation");
             return CneSyncResultDto.empty(start, Duration.ZERO, "sync already running");
         }
@@ -45,38 +45,38 @@ public class CneSyncService {
             List<CneStationDto> stations = apiClient.getStations();
             if (stations.isEmpty()) {
                 long ms = System.currentTimeMillis() - t0;
-                log.info("CNE: sync sin stations (token o respuesta vacia)");
+                log.info("CNE: sync returned no stations (missing token or empty response)");
                 return new CneSyncResultDto(start, ms, 0, 0, 0, 0, 0, 0);
             }
 
-            int creadas = 0, actualizadas = 0, errors = 0;
-            int pricesIns = 0, pricesOmi = 0;
+            int createdCount = 0, updatedCount = 0, errors = 0;
+            int pricesInserted = 0, pricesSkipped = 0;
 
             for (CneStationDto dto : stations) {
                 try {
                     var r = upserter.upsert(dto);
-                    if (r.created()) creadas++; else actualizadas++;
-                    pricesIns += r.pricesInserted();
-                    pricesOmi += r.pricesSkipped();
+                    if (r.created()) createdCount++; else updatedCount++;
+                    pricesInserted += r.pricesInserted();
+                    pricesSkipped += r.pricesSkipped();
                 } catch (Exception ex) {
                     errors++;
-                    log.warn("CNE: error procesando station {}: {}",
+                    log.warn("CNE: error processing station {}: {}",
                             dto.code(), ex.getMessage());
                 }
             }
 
             long ms = System.currentTimeMillis() - t0;
-            CneSyncResultDto resultado = new CneSyncResultDto(
+            CneSyncResultDto result = new CneSyncResultDto(
                     start, ms, stations.size(),
-                    creadas, actualizadas, pricesIns, pricesOmi, errors);
+                    createdCount, updatedCount, pricesInserted, pricesSkipped, errors);
 
             log.info("CNE: sync completed in {} ms - read={}, created={}, "
-                    + "actualizadas={}, prices+={}, prices-={}, errors={}",
-                    ms, stations.size(), creadas, actualizadas,
-                    pricesIns, pricesOmi, errors);
-            return resultado;
+                    + "updated={}, pricesInserted={}, pricesSkipped={}, errors={}",
+                    ms, stations.size(), createdCount, updatedCount,
+                    pricesInserted, pricesSkipped, errors);
+            return result;
         } finally {
-            enEjecucion.set(false);
+            running.set(false);
         }
     }
 }

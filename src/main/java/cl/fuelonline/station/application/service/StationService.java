@@ -40,7 +40,7 @@ public class StationService {
 
     public StationResponse findById(UUID id) {
         Station b = get(id);
-        return mapper.toResponse(b, priceService.preciosActualesDe(id));
+        return mapper.toResponse(b, priceService.currentPricesOf(id));
     }
 
     public List<StationSummaryResponse> listarPorComuna(Integer communeId) {
@@ -104,7 +104,7 @@ public class StationService {
             b.setCommune(commune);
         }
 
-        return mapper.toResponse(b, priceService.preciosActualesDe(id));
+        return mapper.toResponse(b, priceService.currentPricesOf(id));
     }
 
     @Transactional

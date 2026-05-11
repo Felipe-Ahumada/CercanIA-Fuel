@@ -48,7 +48,7 @@ public class PriceHistory {
     @Enumerated(EnumType.STRING)
     @Column(name = "attention_type", nullable = false, length = 10)
     @Builder.Default
-    private TipoAtencion attentionType = TipoAtencion.FULL;
+    private AttentionType attentionType = AttentionType.FULL;
 
     @Column(name = "api_timestamp", nullable = false)
     private LocalDateTime apiTimestamp;
@@ -57,5 +57,5 @@ public class PriceHistory {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public enum TipoAtencion { FULL, SELF }
+    public enum AttentionType { FULL, SELF }
 }

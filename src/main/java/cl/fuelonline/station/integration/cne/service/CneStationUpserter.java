@@ -29,12 +29,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CneStationUpserter {
 
-    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter HORA  = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final StationRepository stationRepository;
     private final PriceHistoryRepository priceHistoryRepository;
-    private final CneCatalogResolver catalogos;
+    private final CneCatalogResolver catalogs;
 
     /** Result of processing one station. */
     public record StationResult(boolean created, int pricesInserted, int pricesSkipped) {}
@@ -42,15 +42,15 @@ public class CneStationUpserter {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public StationResult upsert(CneStationDto dto) {
         if (dto.code() == null || dto.code().isBlank()) {
-            throw new IllegalArgumentException("Estacion sin code");
+            throw new IllegalArgumentException("Station without code");
         }
         if (dto.location() == null) {
-            throw new IllegalArgumentException("Estacion " + dto.code() + " sin location");
+            throw new IllegalArgumentException("Station " + dto.code() + " without location");
         }
 
-        Brand brand = catalogos.resolveBrand(dto.distributor());
-        Region region = catalogos.resolveRegion(dto.location());
-        Commune commune = catalogos.resolveCommune(dto.location(), region);
+        Brand brand = catalogs.resolveBrand(dto.distributor());
+        Region region = catalogs.resolveRegion(dto.location());
+        Commune commune = catalogs.resolveCommune(dto.location(), region);
 
         Optional<Station> existing = stationRepository.findByApiCode(dto.code());
         Station b;
@@ -136,8 +136,8 @@ public class CneStationUpserter {
             return false;
         }
 
-        ChargeUnit unit = catalogos.parseChargeUnit(price.chargeUnit());
-        FuelType type = catalogos.resolveFuel(cneKey, unit);
+        ChargeUnit unit = catalogs.parseChargeUnit(price.chargeUnit());
+        FuelType type = catalogs.resolveFuel(cneKey, unit);
 
         LocalDateTime apiTs = parseDateTime(price.updateDate(), price.updateTime());
         if (apiTs == null) {
@@ -153,9 +153,9 @@ public class CneStationUpserter {
             return false; // we already have a newer or equal one
         }
 
-        PriceHistory.TipoAtencion attention = "Asistido".equalsIgnoreCase(price.attentionType())
-                ? PriceHistory.TipoAtencion.FULL
-                : PriceHistory.TipoAtencion.SELF;
+        PriceHistory.AttentionType attention = "Asistido".equalsIgnoreCase(price.attentionType())
+                ? PriceHistory.AttentionType.FULL
+                : PriceHistory.AttentionType.SELF;
 
         priceHistoryRepository.save(PriceHistory.builder()
                 .station(b)
@@ -180,7 +180,7 @@ public class CneStationUpserter {
     private static LocalDateTime parseDateTime(String date, String time) {
         if (date == null || date.isBlank()) return null;
         try {
-            LocalDate f = LocalDate.parse(date.trim(), FECHA);
+            LocalDate f = LocalDate.parse(date.trim(), DATE_FORMAT);
             LocalTime h = (time != null && !time.isBlank())
                     ? LocalTime.parse(time.trim(), HORA)
                     : LocalTime.MIDNIGHT;

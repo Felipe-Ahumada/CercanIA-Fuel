@@ -25,7 +25,7 @@ public class CardProductController {
     private final CardProductService cardProductService;
 
     @GetMapping
-    @Operation(summary = "Listar productos de tarjeta. Filtra por bankId si se provee.")
+    @Operation(summary = "List card products. Filter by bankId if provided.")
     public List<CardProductResponse> list(@RequestParam(required = false) Integer bankId) {
         return bankId != null
                 ? cardProductService.listByBank(bankId)

@@ -2,7 +2,7 @@ package cl.fuelonline.station.api;
 
 import cl.fuelonline.station.application.dto.CurrentPriceResponse;
 import cl.fuelonline.station.application.dto.PriceHistoryResponse;
-import cl.fuelonline.station.application.dto.RegistrarPrecioRequest;
+import cl.fuelonline.station.application.dto.PriceRegisterRequest;
 import cl.fuelonline.station.application.service.PriceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,29 +31,29 @@ public class PriceController {
     @GetMapping
     @Operation(summary = "Current prices for every fuel sold by the station")
     public List<CurrentPriceResponse> prices(@PathVariable UUID stationId) {
-        return priceService.preciosActualesDe(stationId);
+        return priceService.currentPricesOf(stationId);
     }
 
     @GetMapping("/{fuelTypeId}")
     @Operation(summary = "Current price of a specific fuel")
-    public CurrentPriceResponse precioActual(@PathVariable UUID stationId,
+    public CurrentPriceResponse currentPrice(@PathVariable UUID stationId,
                                              @PathVariable @Positive Integer fuelTypeId) {
-        return priceService.precioActual(stationId, fuelTypeId);
+        return priceService.currentPrice(stationId, fuelTypeId);
     }
 
     @GetMapping("/{fuelTypeId}/historial")
     @Operation(summary = "Paged price history for a fuel")
-    public Page<PriceHistoryResponse> historial(@PathVariable UUID stationId,
-                                                   @PathVariable @Positive Integer fuelTypeId,
-                                                   @ParameterObject Pageable pageable) {
-        return priceService.historial(stationId, fuelTypeId, pageable);
+    public Page<PriceHistoryResponse> history(@PathVariable UUID stationId,
+                                              @PathVariable @Positive Integer fuelTypeId,
+                                              @ParameterObject Pageable pageable) {
+        return priceService.history(stationId, fuelTypeId, pageable);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Register a new price (admin or CNE sync use)")
     public PriceHistoryResponse register(@PathVariable UUID stationId,
-                                             @Valid @RequestBody RegistrarPrecioRequest req) {
+                                             @Valid @RequestBody PriceRegisterRequest req) {
         return priceService.register(stationId, req);
     }
 }

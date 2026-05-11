@@ -49,7 +49,7 @@ public class CneApiClient {
             log.warn("CNE: token not configured (app.cne.token empty). Sync aborted.");
             return Collections.emptyList();
         }
-        log.info("CNE: solicitando stations a {}{}", props.apiUrl(), props.stationsPath());
+        log.info("CNE: requesting stations from {}{}", props.apiUrl(), props.stationsPath());
 
         String body;
         try {

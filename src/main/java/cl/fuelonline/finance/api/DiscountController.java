@@ -62,7 +62,7 @@ public class DiscountController {
 
     @PostMapping("/calculate")
     @Operation(summary = "Calcular el mejor discount aplicable a una compra",
-               description = "Recibe brand, combustible, monto bruto y tarjetas del user. " +
+               description = "Takes brand, fuel, gross amount and user cards. " +
                              "Devuelve el discount que entrega el mayor savings.")
     public CalculatedDiscountResponse calculate(@Valid @RequestBody CalculateDiscountRequest req) {
         return discountService.calculateBestDiscount(req);

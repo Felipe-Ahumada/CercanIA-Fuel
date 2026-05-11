@@ -101,9 +101,9 @@ public class TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Fuel type not found: " + req.fuelTypeId()));
 
-        CardProduct tarjeta = null;
+        CardProduct cardProduct = null;
         if (req.cardProductId() != null) {
-            tarjeta = cardProductRepository.findById(req.cardProductId())
+            cardProduct = cardProductRepository.findById(req.cardProductId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Card product not found: " + req.cardProductId()));
         }
@@ -124,7 +124,7 @@ public class TransactionService {
                 : BigDecimal.ZERO;
 
         if (discountAmount.compareTo(grossAmount) > 0) {
-            throw new InvalidTransactionException("El discount no puede ser mayor al monto bruto");
+            throw new InvalidTransactionException("Discount amount cannot exceed gross amount");
         }
 
         BigDecimal finalAmount = grossAmount.subtract(discountAmount);
@@ -134,7 +134,7 @@ public class TransactionService {
                 .vehicle(vehicle)
                 .station(station)
                 .fuelType(fuelType)
-                .cardProduct(tarjeta)
+                .cardProduct(cardProduct)
                 .discount(discount)
                 .unitPrice(req.unitPrice())
                 .liters(req.liters())

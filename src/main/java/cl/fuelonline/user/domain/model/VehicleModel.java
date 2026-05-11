@@ -30,7 +30,7 @@ public class VehicleModel {
     @Enumerated(EnumType.STRING)
     @Column(name = "vehicle_type", nullable = false, length = 20)
     @Builder.Default
-    private TipoVehiculo vehicleType = TipoVehiculo.CAR;
+    private VehicleType vehicleType = VehicleType.CAR;
 
-    public enum TipoVehiculo { CAR, SUV, PICKUP, MOTORCYCLE, VAN, OTHER }
+    public enum VehicleType { CAR, SUV, PICKUP, MOTORCYCLE, VAN, OTHER }
 }

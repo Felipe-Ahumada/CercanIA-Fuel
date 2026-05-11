@@ -30,7 +30,7 @@ public class StationSchedule {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day_of_week", nullable = false, length = 12)
-    private DiaSemana dayOfWeek;
+    private DayOfWeek dayOfWeek;
 
     @Column(name = "opening_time")
     private LocalTime openingTime;
@@ -46,5 +46,5 @@ public class StationSchedule {
     @Builder.Default
     private Boolean closed = Boolean.FALSE;
 
-    public enum DiaSemana { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY }
+    public enum DayOfWeek { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY }
 }

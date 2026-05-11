@@ -33,7 +33,7 @@ public class BankService {
     @Transactional
     public BankResponse create(BankCreateRequest req) {
         if (bankRepository.existsByCodeIgnoreCase(req.code())) {
-            throw new BankAlreadyExistsException("Codigo de bank already registered: " + req.code());
+            throw new BankAlreadyExistsException("Bank code already registered: " + req.code());
         }
         return mapper.toResponse(bankRepository.save(mapper.toEntity(req)));
     }
@@ -44,7 +44,7 @@ public class BankService {
 
         if (req.code() != null && !req.code().equalsIgnoreCase(bank.getCode())
                 && bankRepository.existsByCodeIgnoreCase(req.code())) {
-            throw new BankAlreadyExistsException("Codigo de bank already registered: " + req.code());
+            throw new BankAlreadyExistsException("Bank code already registered: " + req.code());
         }
 
         mapper.updateEntity(req, bank);

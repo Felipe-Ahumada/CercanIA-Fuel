@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface StationScheduleRepository extends JpaRepository<StationSchedule, Integer> {
-    List<StationSchedule> findAllByBencinera_IdOrderByDiaSemanaAsc(UUID stationId);
+    List<StationSchedule> findAllByStation_IdOrderByDayOfWeekAsc(UUID stationId);
 }
