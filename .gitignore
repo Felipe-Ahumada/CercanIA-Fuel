@@ -41,6 +41,9 @@ application-local.properties
 .env
 .env.local
 
+### Claude Code workspace files ###
+.claude/
+
 ### Secrets ###
 secrets/*
 !secrets/.gitkeep
