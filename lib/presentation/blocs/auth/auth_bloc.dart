@@ -1,11 +1,21 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../data/models/user_model.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/auth_usecases.dart';
 
+// ── Persistence key ───────────────────────────────────────────────────────────
+
+const _kProfileComplete = 'profile_complete';
+
+String _prefKey(String uid) => '${_kProfileComplete}_$uid';
+
+// ── Events ────────────────────────────────────────────────────────────────────
+
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
-
   @override
   List<Object?> get props => [];
 }
@@ -15,9 +25,7 @@ class AuthCheckRequested extends AuthEvent {}
 class AuthSignInRequested extends AuthEvent {
   final String email;
   final String password;
-
   const AuthSignInRequested(this.email, this.password);
-
   @override
   List<Object?> get props => [email, password];
 }
@@ -25,21 +33,54 @@ class AuthSignInRequested extends AuthEvent {
 class AuthSignUpRequested extends AuthEvent {
   final String email;
   final String password;
-  final String nombre;
+  final String firstName;
+  final String? middleName;
+  final String lastName;
+  final String secondLastName;
+  final String rut;
+  final DateTime birthDate;
 
-  const AuthSignUpRequested(this.email, this.password, this.nombre);
+  const AuthSignUpRequested({
+    required this.email,
+    required this.password,
+    required this.firstName,
+    this.middleName,
+    required this.lastName,
+    required this.secondLastName,
+    required this.rut,
+    required this.birthDate,
+  });
 
   @override
-  List<Object?> get props => [email, password, nombre];
+  List<Object?> get props =>
+      [email, password, firstName, middleName, lastName, secondLastName, rut, birthDate];
 }
 
 class AuthGoogleSignInRequested extends AuthEvent {}
 
+class AuthCompleteProfileRequested extends AuthEvent {
+  final String rut;
+  final String? middleName;
+  final String secondLastName;
+  final DateTime birthDate;
+
+  const AuthCompleteProfileRequested({
+    required this.rut,
+    this.middleName,
+    required this.secondLastName,
+    required this.birthDate,
+  });
+
+  @override
+  List<Object?> get props => [rut, middleName, secondLastName, birthDate];
+}
+
 class AuthSignOutRequested extends AuthEvent {}
+
+// ── States ────────────────────────────────────────────────────────────────────
 
 abstract class AuthState extends Equatable {
   const AuthState();
-
   @override
   List<Object?> get props => [];
 }
@@ -50,28 +91,52 @@ class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
   final UserEntity user;
-
   const AuthAuthenticated(this.user);
-
   @override
   List<Object?> get props => [user];
+}
+
+class AuthNeedsProfileCompletion extends AuthState {
+  final String email;
+  final String firstName;
+  final String lastName;
+  final String? error;
+
+  const AuthNeedsProfileCompletion({
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+    this.error,
+  });
+
+  AuthNeedsProfileCompletion copyWithError(String err) =>
+      AuthNeedsProfileCompletion(
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        error: err,
+      );
+
+  @override
+  List<Object?> get props => [email, firstName, lastName, error];
 }
 
 class AuthUnauthenticated extends AuthState {}
 
 class AuthError extends AuthState {
   final String message;
-
   const AuthError(this.message);
-
   @override
   List<Object?> get props => [message];
 }
+
+// ── BLoC ──────────────────────────────────────────────────────────────────────
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignInUseCase signInUseCase;
   final SignUpUseCase signUpUseCase;
   final SignInWithGoogleUseCase signInWithGoogleUseCase;
+  final CompleteProfileUseCase completeProfileUseCase;
   final SignOutUseCase signOutUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
 
@@ -79,63 +144,149 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.signInUseCase,
     required this.signUpUseCase,
     required this.signInWithGoogleUseCase,
+    required this.completeProfileUseCase,
     required this.signOutUseCase,
     required this.getCurrentUserUseCase,
   }) : super(AuthInitial()) {
-    on<AuthCheckRequested>(_onAuthCheckRequested);
-    on<AuthSignInRequested>(_onAuthSignInRequested);
-    on<AuthSignUpRequested>(_onAuthSignUpRequested);
-    on<AuthGoogleSignInRequested>(_onAuthGoogleSignInRequested);
-    on<AuthSignOutRequested>(_onAuthSignOutRequested);
+    on<AuthCheckRequested>(_onCheckRequested);
+    on<AuthSignInRequested>(_onSignInRequested);
+    on<AuthSignUpRequested>(_onSignUpRequested);
+    on<AuthGoogleSignInRequested>(_onGoogleSignInRequested);
+    on<AuthCompleteProfileRequested>(_onCompleteProfileRequested);
+    on<AuthSignOutRequested>(_onSignOutRequested);
   }
 
-  Future<void> _onAuthCheckRequested(
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  Future<void> _onCheckRequested(
       AuthCheckRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     final result = await getCurrentUserUseCase();
-    result.fold(
-      (failure) => emit(AuthUnauthenticated()),
-      (user) => emit(AuthAuthenticated(user)),
+    await result.fold(
+      (_) async => emit(AuthUnauthenticated()),
+      (user) async {
+        // Google user without a backend account → must complete profile.
+        if (user.authProvider == 'FIREBASE' && user.backendId == null) {
+          emit(_needsCompletionFromUser(user));
+          return;
+        }
+        final prefs = await SharedPreferences.getInstance();
+        final complete = prefs.getBool(_prefKey(user.uid)) ?? false;
+        if (!complete) {
+          emit(_needsCompletionFromUser(user));
+        } else {
+          emit(AuthAuthenticated(user));
+        }
+      },
     );
   }
 
-  Future<void> _onAuthSignInRequested(
+  Future<void> _onSignInRequested(
       AuthSignInRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     final result = await signInUseCase(event.email, event.password);
-    result.fold(
-      (failure) => emit(const AuthError('Error al iniciar sesión')),
-      (user) => emit(AuthAuthenticated(user)),
+    await result.fold(
+      (failure) async => emit(AuthError(failure.message)),
+      (user) async {
+        // signIn = credentials verified = profile is complete
+        await _markProfileComplete(user.uid);
+        emit(AuthAuthenticated(user));
+      },
     );
   }
 
-  Future<void> _onAuthSignUpRequested(
+  Future<void> _onSignUpRequested(
       AuthSignUpRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    final result = await signUpUseCase(event.email, event.password, event.nombre);
-    result.fold(
-      (failure) => emit(const AuthError('Error al registrar usuario')),
-      (user) => emit(AuthAuthenticated(user)),
+    final result = await signUpUseCase(
+      email: event.email,
+      password: event.password,
+      firstName: event.firstName,
+      middleName: event.middleName,
+      lastName: event.lastName,
+      secondLastName: event.secondLastName,
+      rut: event.rut,
+      birthDate: event.birthDate,
+    );
+    await result.fold(
+      (failure) async => emit(AuthError(failure.message)),
+      (user) async {
+        await _markProfileComplete(user.uid);
+        emit(AuthAuthenticated(user));
+      },
     );
   }
 
-  Future<void> _onAuthGoogleSignInRequested(
+  Future<void> _onGoogleSignInRequested(
       AuthGoogleSignInRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     final result = await signInWithGoogleUseCase();
-    result.fold(
-      (failure) => emit(AuthError(failure.message)), // Usamos el mensaje del failure
-      (user) => emit(AuthAuthenticated(user)),
+    await result.fold(
+      (failure) async => emit(AuthError(failure.message)),
+      (user) async {
+        // New Google user OR user exists in Firebase but not in backend DB.
+        if (user is UserModel && (user.isNewGoogleUser || user.backendId == null)) {
+          emit(_needsCompletionFromUser(user));
+          return;
+        }
+        final prefs = await SharedPreferences.getInstance();
+        final complete = prefs.getBool(_prefKey(user.uid)) ?? false;
+        if (!complete) {
+          emit(_needsCompletionFromUser(user));
+        } else {
+          emit(AuthAuthenticated(user));
+        }
+      },
     );
   }
 
-  Future<void> _onAuthSignOutRequested(
+  Future<void> _onCompleteProfileRequested(
+      AuthCompleteProfileRequested event, Emitter<AuthState> emit) async {
+    if (state is! AuthNeedsProfileCompletion) return;
+    final profileState = state as AuthNeedsProfileCompletion;
+
+    emit(AuthLoading());
+    final result = await completeProfileUseCase(
+      email: profileState.email,
+      firstName: profileState.firstName,
+      middleName: event.middleName,
+      lastName: profileState.lastName,
+      secondLastName: event.secondLastName,
+      rut: event.rut,
+      birthDate: event.birthDate,
+    );
+    await result.fold(
+      (failure) async => emit(profileState.copyWithError(failure.message)),
+      (user) async {
+        await _markProfileComplete(user.uid);
+        emit(AuthAuthenticated(user));
+      },
+    );
+  }
+
+  Future<void> _onSignOutRequested(
       AuthSignOutRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     final result = await signOutUseCase();
-    result.fold(
-      (failure) => emit(const AuthError('Error al cerrar sesión')),
-      (_) => emit(AuthUnauthenticated()),
+    await result.fold(
+      (_) async => emit(const AuthError('Error al cerrar sesión')),
+      (_) async => emit(AuthUnauthenticated()),
     );
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  AuthNeedsProfileCompletion _needsCompletionFromUser(UserEntity user) {
+    final parts = (user.name ?? '').trim().split(' ');
+    return AuthNeedsProfileCompletion(
+      email: user.email,
+      firstName: parts.isNotEmpty ? parts[0] : '',
+      lastName: parts.length > 1 ? parts[1] : '',
+    );
+  }
+
+  Future<void> _markProfileComplete(String uid) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefKey(uid), true);
   }
 }

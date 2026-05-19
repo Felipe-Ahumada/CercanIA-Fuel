@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../util/go_router_refresh_stream.dart';
+import '../network/auth_token_events.dart';
+import '../../presentation/pages/home_shell.dart';
 import '../../presentation/pages/login_page.dart';
 import '../../presentation/pages/register_page.dart';
 import '../../presentation/pages/forgot_password_page.dart';
+import '../../presentation/pages/complete_profile_page.dart';
+import '../../presentation/pages/chat_page.dart';
+import '../../presentation/pages/stats_page.dart';
 import '../../presentation/screens/map_screen.dart';
 import '../../presentation/pages/profile_page.dart';
 import '../../presentation/pages/vehicles_page.dart';
 import '../../presentation/pages/bank_profile_page.dart';
 import '../../presentation/pages/station_detail_page.dart';
+import '../../presentation/pages/edit_profile_page.dart';
 
 class AppRouter {
   final FirebaseAuth firebaseAuth;
@@ -18,54 +26,61 @@ class AppRouter {
 
   late final GoRouter router = GoRouter(
     initialLocation: '/login',
-    redirect: (BuildContext context, GoRouterState state) {
-      final bool isAuthenticated = firebaseAuth.currentUser != null;
-      final bool isAuthRoute = state.matchedLocation == '/login' || 
-                               state.matchedLocation == '/register' ||
-                               state.matchedLocation == '/forgot_password';
+    // Combina Firebase auth changes (usuarios FIREBASE) con AuthTokenEvents
+    // (usuarios LOCAL cuyo JWT expiró). Ambas fuentes disparan el redirect check.
+    refreshListenable: Listenable.merge([
+      GoRouterRefreshStream(firebaseAuth.authStateChanges()),
+      AuthTokenEvents.listenable,
+    ]),
+    redirect: (BuildContext context, GoRouterState state) async {
+      final prefs = await SharedPreferences.getInstance();
+      final provider = prefs.getString('auth_provider');
+      final bool isLocalAuth =
+          provider == 'LOCAL' && prefs.getString('local_jwt') != null;
+      final bool isAuthenticated =
+          firebaseAuth.currentUser != null || isLocalAuth;
 
-      if (!isAuthenticated && !isAuthRoute) {
-        return '/login';
-      }
+      final bool isAuthRoute = const {'/login', '/register', '/forgot_password'}
+          .contains(state.matchedLocation);
 
-      if (isAuthenticated && isAuthRoute) {
-        return '/map';
-      }
-
-      return null; // No redirigir
+      if (!isAuthenticated && !isAuthRoute) return '/login';
+      if (isAuthenticated && isAuthRoute) return '/home/map';
+      return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginPage(),
+      // ── Auth routes ───────────────────────────────────────────────────────
+      GoRoute(path: '/login',           builder: (_, __) => const LoginPage()),
+      GoRoute(path: '/register',        builder: (_, __) => const RegisterPage()),
+      GoRoute(path: '/forgot_password', builder: (_, __) => const ForgotPasswordPage()),
+      GoRoute(path: '/complete_profile',builder: (_, __) => const CompleteProfilePage()),
+
+      // ── Shell con BottomNavigationBar ─────────────────────────────────────
+      StatefulShellRoute.indexedStack(
+        builder: (ctx, state, shell) => HomeShell(navigationShell: shell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/home/map',   builder: (_, __) => const MapScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/home/chat',  builder: (_, __) => const ChatPage()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/home/stats', builder: (_, __) => const StatsPage()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/home/profile', builder: (_, __) => const ProfilePage()),
+          ]),
+        ],
       ),
-      GoRoute(
-        path: '/register',
-        builder: (context, state) => const RegisterPage(),
-      ),
-      GoRoute(
-        path: '/forgot_password',
-        builder: (context, state) => const ForgotPasswordPage(),
-      ),
-      GoRoute(
-        path: '/map',
-        builder: (context, state) => const MapScreen(),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfilePage(),
-      ),
-      GoRoute(
-        path: '/vehicles',
-        builder: (context, state) => const VehiclesPage(),
-      ),
-      GoRoute(
-        path: '/bank_profile',
-        builder: (context, state) => const BankProfilePage(),
-      ),
+
+      // ── Rutas auxiliares fuera del shell ──────────────────────────────────
+      GoRoute(path: '/vehicles',    builder: (_, __) => const VehiclesPage()),
+      GoRoute(path: '/bank_profile',builder: (_, __) => const BankProfilePage()),
+      GoRoute(path: '/edit_profile', builder: (_, __) => const EditProfilePage()),
       GoRoute(
         path: '/station_detail',
-        builder: (context, state) => StationDetailPage(stationId: state.extra as String),
+        redirect: (_, state) => state.extra == null ? '/home/map' : null,
+        builder: (_, state) => StationDetailPage(stationId: state.extra as String),
       ),
     ],
   );

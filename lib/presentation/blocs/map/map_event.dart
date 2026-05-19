@@ -12,19 +12,10 @@ class RequestLocationAndLoadStations extends MapEvent {}
 
 class FetchStations extends MapEvent {
   final LatLng location;
+  final double radiusKm;
 
-  const FetchStations(this.location);
-
-  @override
-  List<Object> get props => [location];
-}
-
-class ToggleStationFavorite extends MapEvent {
-  final String stationId;
-  final bool isFavorite;
-
-  const ToggleStationFavorite({required this.stationId, required this.isFavorite});
+  const FetchStations(this.location, {this.radiusKm = 10.0});
 
   @override
-  List<Object> get props => [stationId, isFavorite];
+  List<Object> get props => [location, radiusKm];
 }

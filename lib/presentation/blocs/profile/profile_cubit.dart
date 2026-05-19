@@ -20,9 +20,19 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
-  Future<void> updateProfile(String name, {String? photoUrl}) async {
+  Future<void> updateProfile({
+    required String firstName,
+    String? middleName,
+    required String lastName,
+    String? secondLastName,
+  }) async {
     emit(ProfileLoading());
-    final result = await updateUserProfileUseCase(name, photoUrl: photoUrl);
+    final result = await updateUserProfileUseCase(
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
+      secondLastName: secondLastName,
+    );
     result.fold(
       (failure) => emit(ProfileError(failure.message)),
       (user) => emit(ProfileLoaded(user)),

@@ -1,79 +1,58 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../domain/usecases/bank_profile_usecases.dart';
-import '../../../../domain/entities/bank_profile_entity.dart';
 import 'bank_profile_state.dart';
 
 class BankProfileCubit extends Cubit<BankProfileState> {
-  final GetBankProfileUseCase getBankProfileUseCase;
-  final UpdateBankProfileUseCase updateBankProfileUseCase;
-  final GetBanksCatalogUseCase getBanksCatalogUseCase;
-  final GetCardTypesCatalogUseCase getCardTypesCatalogUseCase;
+  final GetDiscountsCatalogUseCase _getCatalog;
+  final GetSelectedDiscountsUseCase _getSelected;
+  final UpdateSelectedDiscountsUseCase _updateSelected;
 
   BankProfileCubit({
-    required this.getBankProfileUseCase,
-    required this.updateBankProfileUseCase,
-    required this.getBanksCatalogUseCase,
-    required this.getCardTypesCatalogUseCase,
-  }) : super(BankProfileInitial());
+    required GetDiscountsCatalogUseCase getCatalogUseCase,
+    required GetSelectedDiscountsUseCase getSelectedUseCase,
+    required UpdateSelectedDiscountsUseCase updateSelectedUseCase,
+  })  : _getCatalog = getCatalogUseCase,
+        _getSelected = getSelectedUseCase,
+        _updateSelected = updateSelectedUseCase,
+        super(BankProfileInitial());
 
-  Future<void> fetchProfileAndCatalogs() async {
+  Future<void> load() async {
     emit(BankProfileLoading());
 
-    final profileResult = await getBankProfileUseCase();
-    final banksResult = await getBanksCatalogUseCase();
-    final cardsResult = await getCardTypesCatalogUseCase();
+    final catalogResult = await _getCatalog();
+    final selectedResult = await _getSelected();
 
-    String? error;
-    BankProfileEntity? profile;
-    List<String> banks = [];
-    List<String> cards = [];
+    final catalog = catalogResult.getOrElse(() => []);
+    final selected = selectedResult.getOrElse(() => []);
+    final selectedIds = selected.map((d) => d.id).toSet();
 
-    profileResult.fold((l) => error = l.message, (r) => profile = r);
-    banksResult.fold((l) => error ??= l.message, (r) => banks = r);
-    cardsResult.fold((l) => error ??= l.message, (r) => cards = r);
+    emit(BankProfileLoaded(allDiscounts: catalog, selectedIds: selectedIds));
+  }
 
-    if (error != null && profile == null) {
-      emit(BankProfileError(error!));
+  Future<void> toggleDiscount(int discountId) async {
+    final s = state;
+    if (s is! BankProfileLoaded) return;
+
+    final newIds = Set<int>.from(s.selectedIds);
+    if (newIds.contains(discountId)) {
+      newIds.remove(discountId);
     } else {
-      emit(BankProfileLoaded(
-        profile: profile ?? BankProfileEntity(userId: '', convenios: []),
-        banksCatalog: banks,
-        cardsCatalog: cards,
-      ));
+      newIds.add(discountId);
     }
-  }
 
-  Future<void> addConvenio(BankConvenio convenio) async {
-    if (state is BankProfileLoaded) {
-      final currentState = state as BankProfileLoaded;
-      final newConvenios =
-          List<BankConvenio>.from(currentState.profile.convenios)
-            ..add(convenio);
-      await _update(currentState, newConvenios);
-    }
-  }
+    // Optimistic update
+    emit(s.copyWith(selectedIds: newIds, saving: true));
 
-  Future<void> removeConvenio(BankConvenio convenio) async {
-    if (state is BankProfileLoaded) {
-      final currentState = state as BankProfileLoaded;
-      final newConvenios = currentState.profile.convenios
-          .where((c) =>
-              c.banco != convenio.banco ||
-              c.tipoTarjeta != convenio.tipoTarjeta)
-          .toList();
-      await _update(currentState, newConvenios);
-    }
-  }
-
-  Future<void> _update(
-      BankProfileLoaded currentState, List<BankConvenio> newConvenios) async {
-    emit(BankProfileLoading());
-    final result = await updateBankProfileUseCase(newConvenios);
-    result.fold((failure) {
-      emit(BankProfileError(failure.message));
-      emit(currentState); // Restore previous state
-    }, (profile) {
-      emit(currentState.copyWith(profile: profile));
-    });
+    final result = await _updateSelected(newIds.toList());
+    result.fold(
+      (failure) {
+        // Revert on error
+        emit(s.copyWith(saving: false));
+        emit(BankProfileError(failure.message));
+        emit(s);
+      },
+      (_) => emit((state as BankProfileLoaded).copyWith(saving: false)),
+    );
   }
 }

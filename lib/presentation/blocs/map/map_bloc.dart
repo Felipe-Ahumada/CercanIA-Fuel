@@ -7,15 +7,12 @@ import 'map_state.dart';
 
 class MapBloc extends Bloc<MapEvent, MapState> {
   final GetNearbyStationsUseCase getNearbyStationsUseCase;
-  final ToggleFavoriteUseCase toggleFavoriteUseCase;
 
   MapBloc({
     required this.getNearbyStationsUseCase,
-    required this.toggleFavoriteUseCase,
   }) : super(MapInitial()) {
     on<RequestLocationAndLoadStations>(_onRequestLocationAndLoadStations);
     on<FetchStations>(_onFetchStations);
-    on<ToggleStationFavorite>(_onToggleStationFavorite);
   }
 
   Future<void> _onRequestLocationAndLoadStations(
@@ -43,16 +40,20 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      emit(const MapLoaded(stations: [], locationPermissionDenied: true));
+      emit(const MapLoaded(
+          stations: [],
+          locationPermissionDenied: true,
+          locationPermissionDeniedForever: true));
       return;
     }
 
     try {
       final position = await Geolocator.getCurrentPosition();
       final userLocation = LatLng(position.latitude, position.longitude);
-      
-      final result = await getNearbyStationsUseCase(userLocation.latitude, userLocation.longitude, 10.0);
-      
+
+      final result = await getNearbyStationsUseCase(
+          userLocation.latitude, userLocation.longitude, 10.0);
+
       result.fold(
         (failure) => emit(MapError(failure.message)),
         (stations) => emit(MapLoaded(stations: stations, userLocation: userLocation)),
@@ -66,41 +67,18 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     FetchStations event,
     Emitter<MapState> emit,
   ) async {
-    if (state is MapLoaded) {
-      final currentState = state as MapLoaded;
-      emit(MapLoading());
+    if (state is! MapLoaded) return;
+    final currentState = state as MapLoaded;
 
-      final result = await getNearbyStationsUseCase(event.location.latitude, event.location.longitude, 10.0);
-      
-      result.fold(
-        (failure) => emit(MapError(failure.message)),
-        (stations) => emit(MapLoaded(
-          stations: stations,
-          userLocation: currentState.userLocation,
-          locationPermissionDenied: currentState.locationPermissionDenied,
-        )),
-      );
-    }
-  }
+    final result = await getNearbyStationsUseCase(
+      event.location.latitude,
+      event.location.longitude,
+      event.radiusKm,
+    );
 
-  Future<void> _onToggleStationFavorite(
-    ToggleStationFavorite event,
-    Emitter<MapState> emit,
-  ) async {
-    if (state is MapLoaded) {
-      final currentState = state as MapLoaded;
-      final result = await toggleFavoriteUseCase(event.stationId, event.isFavorite);
-      
-      result.fold(
-        (failure) => emit(MapError(failure.message)), // might want to not completely break state, just emit error then current
-        (updatedStation) {
-          final newStations = currentState.stations.map((s) {
-            return s.id == updatedStation.id ? updatedStation : s;
-          }).toList();
-          
-          emit(currentState.copyWith(stations: newStations));
-        }
-      );
-    }
+    result.fold(
+      (failure) => emit(currentState.copyWith(inlineError: failure.message)),
+      (stations) => emit(currentState.copyWith(stations: stations, clearError: true)),
+    );
   }
 }

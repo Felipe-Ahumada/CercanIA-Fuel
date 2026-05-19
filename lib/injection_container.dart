@@ -2,19 +2,29 @@ import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'data/datasources/remote/auth_remote_data_source.dart';
+import 'data/datasources/remote/chat_remote_data_source.dart';
+import 'data/datasources/remote/chat_remote_data_source_impl.dart';
+import 'data/datasources/remote/stats_remote_data_source.dart';
+import 'data/datasources/remote/stats_remote_data_source_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';
+import 'data/repositories/chat_repository_impl.dart';
 import 'data/repositories/profile_repository_impl.dart';
 import 'data/repositories/bank_profile_repository_impl.dart';
+import 'data/repositories/stats_repository_impl.dart';
 import 'data/repositories/vehicle_repository_impl.dart';
 import 'data/datasources/remote/vehicle_remote_data_source.dart';
 import 'data/datasources/remote/vehicle_remote_data_source_impl.dart';
 import 'data/datasources/remote/bank_profile_remote_data_source.dart';
 import 'data/datasources/remote/bank_profile_remote_data_source_impl.dart';
+import 'domain/repositories/chat_repository.dart';
+import 'domain/repositories/stats_repository.dart';
 import 'domain/repositories/vehicle_repository.dart';
 import 'domain/repositories/bank_profile_repository.dart';
 import 'domain/repositories/station_repository.dart';
 import 'data/repositories/station_repository_impl.dart';
 import 'data/datasources/remote/station_remote_data_source.dart';
+import 'domain/usecases/chat_usecases.dart';
+import 'domain/usecases/stats_usecases.dart';
 import 'domain/usecases/station_usecases.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/profile_repository.dart';
@@ -27,12 +37,21 @@ import 'core/network/network_info.dart';
 import 'core/network/auth_interceptor.dart';
 import 'core/network/dio_client.dart';
 import 'core/router/app_router.dart';
+import 'data/datasources/remote/transaction_remote_data_source.dart';
+import 'data/datasources/remote/transaction_remote_data_source_impl.dart';
+import 'data/repositories/transaction_repository_impl.dart';
+import 'domain/repositories/transaction_repository.dart';
+import 'domain/usecases/transaction_usecases.dart';
 import 'domain/usecases/auth_usecases.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
+import 'presentation/blocs/chat/chat_cubit.dart';
 import 'presentation/blocs/profile/profile_cubit.dart';
+import 'presentation/blocs/stats/stats_cubit.dart';
 import 'presentation/blocs/vehicle/vehicle_bloc.dart';
 import 'presentation/blocs/bank_profile/bank_profile_cubit.dart';
 import 'presentation/blocs/map/map_bloc.dart';
+import 'presentation/blocs/station_detail/station_detail_cubit.dart';
+import 'presentation/blocs/register_visit/register_visit_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -43,6 +62,7 @@ Future<void> init() async {
       signInUseCase: sl(),
       signUpUseCase: sl(),
       signInWithGoogleUseCase: sl(),
+      completeProfileUseCase: sl(),
       signOutUseCase: sl(),
       getCurrentUserUseCase: sl(),
     ),
@@ -55,49 +75,63 @@ Future<void> init() async {
   );
   sl.registerFactory(
     () => VehicleBloc(
+      getBrandsUseCase: sl(),
+      getModelsByBrandUseCase: sl(),
+      getFuelTypesUseCase: sl(),
       getVehiclesUseCase: sl(),
       addVehicleUseCase: sl(),
       deleteVehicleUseCase: sl(),
-      setActiveVehicleUseCase: sl(),
     ),
   );
 
   sl.registerFactory(() => BankProfileCubit(
-    getBankProfileUseCase: sl(),
-    updateBankProfileUseCase: sl(),
-    getBanksCatalogUseCase: sl(),
-    getCardTypesCatalogUseCase: sl(),
+    getCatalogUseCase: sl(),
+    getSelectedUseCase: sl(),
+    updateSelectedUseCase: sl(),
   ));
 
   sl.registerFactory(() => MapBloc(
     getNearbyStationsUseCase: sl(),
-    toggleFavoriteUseCase: sl(),
   ));
+
+  sl.registerFactory(() => StationDetailCubit(sl()));
+  sl.registerFactory(() => RegisterVisitCubit(createTransactionUseCase: sl()));
+  sl.registerFactory(() => ChatCubit(sendChatMessageUseCase: sl(), mapBloc: sl()));
+  sl.registerFactory(() => StatsCubit(
+        getSavingsSummaryUseCase: sl(),
+        getUserTransactionsUseCase: sl(),
+      ));
 
   // Use Cases
   sl.registerLazySingleton(() => SignInUseCase(sl()));
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
   sl.registerLazySingleton(() => SignInWithGoogleUseCase(sl()));
+  sl.registerLazySingleton(() => CompleteProfileUseCase(sl()));
   sl.registerLazySingleton(() => SignOutUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => GetUserProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateUserProfileUseCase(sl()));
+  sl.registerLazySingleton(() => GetVehicleBrandsUseCase(sl()));
+  sl.registerLazySingleton(() => GetVehicleModelsByBrandUseCase(sl()));
+  sl.registerLazySingleton(() => GetFuelTypesUseCase(sl()));
   sl.registerLazySingleton(() => GetVehiclesUseCase(sl()));
   sl.registerLazySingleton(() => AddVehicleUseCase(sl()));
   sl.registerLazySingleton(() => DeleteVehicleUseCase(sl()));
-  sl.registerLazySingleton(() => SetActiveVehicleUseCase(sl()));
-  sl.registerLazySingleton(() => GetBankProfileUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateBankProfileUseCase(sl()));
-  sl.registerLazySingleton(() => GetBanksCatalogUseCase(sl()));
-  sl.registerLazySingleton(() => GetCardTypesCatalogUseCase(sl()));
+  sl.registerLazySingleton(() => GetDiscountsCatalogUseCase(sl()));
+  sl.registerLazySingleton(() => GetSelectedDiscountsUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateSelectedDiscountsUseCase(sl()));
   sl.registerLazySingleton(() => GetNearbyStationsUseCase(sl()));
   sl.registerLazySingleton(() => GetStationDetailUseCase(sl()));
-  sl.registerLazySingleton(() => ToggleFavoriteUseCase(sl()));
+  sl.registerLazySingleton(() => SendChatMessageUseCase(sl()));
+  sl.registerLazySingleton(() => GetSavingsSummaryUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserTransactionsUseCase(sl()));
+  sl.registerLazySingleton(() => CreateTransactionUseCase(sl()));
+  sl.registerLazySingleton(() => CalculateDiscountUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(sl()),
+    () => AuthRepositoryImpl(sl(), sl()),
   );
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(sl()),
@@ -111,10 +145,19 @@ Future<void> init() async {
   sl.registerLazySingleton<StationRepository>(
     () => StationRepositoryImpl(remoteDataSource: sl()),
   );
+  sl.registerLazySingleton<ChatRepository>(
+    () => ChatRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<StatsRepository>(
+    () => StatsRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<TransactionRepository>(
+    () => TransactionRepositoryImpl(sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(sl(), sl()),
+    () => AuthRemoteDataSourceImpl(sl(), sl(), sl()),
   );
   sl.registerLazySingleton<VehicleRemoteDataSource>(
     () => VehicleRemoteDataSourceImpl(sl()),
@@ -124,6 +167,15 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<StationRemoteDataSource>(
     () => StationRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<ChatRemoteDataSource>(
+    () => ChatRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<StatsRemoteDataSource>(
+    () => StatsRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<TransactionRemoteDataSource>(
+    () => TransactionRemoteDataSourceImpl(sl()),
   );
 
   // Core & External

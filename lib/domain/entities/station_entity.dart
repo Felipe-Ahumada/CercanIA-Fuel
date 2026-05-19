@@ -2,44 +2,52 @@ import '../../domain/entities/vehicle_entity.dart';
 
 class StationEntity {
   final String id;
-  final String nombre;
-  final String marca;
+  final String name;
+  final int? brandId;
+  final String brand;
   final double lat;
   final double lng;
-  final Map<Fuel, double> precios;
-  final bool esFavorita;
-  final DateTime? ultimaSincronizacion;
+  final Map<Fuel, double> prices;
+  final bool inMaintenance;
+  final String? address;
+  final DateTime? lastSync;
 
   StationEntity({
     required this.id,
-    required this.nombre,
-    required this.marca,
+    required this.name,
+    this.brandId,
+    required this.brand,
     required this.lat,
     required this.lng,
-    required this.precios,
-    required this.esFavorita,
-    this.ultimaSincronizacion,
+    required this.prices,
+    this.inMaintenance = false,
+    this.address,
+    this.lastSync,
   });
 
   StationEntity copyWith({
     String? id,
-    String? nombre,
-    String? marca,
+    String? name,
+    int? brandId,
+    String? brand,
     double? lat,
     double? lng,
-    Map<Fuel, double>? precios,
-    bool? esFavorita,
-    DateTime? ultimaSincronizacion,
+    Map<Fuel, double>? prices,
+    bool? inMaintenance,
+    String? address,
+    DateTime? lastSync,
   }) {
     return StationEntity(
       id: id ?? this.id,
-      nombre: nombre ?? this.nombre,
-      marca: marca ?? this.marca,
+      name: name ?? this.name,
+      brandId: brandId ?? this.brandId,
+      brand: brand ?? this.brand,
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
-      precios: precios ?? this.precios,
-      esFavorita: esFavorita ?? this.esFavorita,
-      ultimaSincronizacion: ultimaSincronizacion ?? this.ultimaSincronizacion,
+      prices: prices ?? this.prices,
+      inMaintenance: inMaintenance ?? this.inMaintenance,
+      address: address ?? this.address,
+      lastSync: lastSync ?? this.lastSync,
     );
   }
 }

@@ -1,154 +1,344 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../core/theme/glass_tokens.dart';
+import '../../core/widgets/glass_card.dart';
+import '../../core/widgets/glass_loading_indicator.dart';
+import '../../core/widgets/glass_page_header.dart';
+import '../../core/widgets/glass_scaffold.dart';
+import '../../domain/entities/bank_profile_entity.dart';
 import '../blocs/bank_profile/bank_profile_cubit.dart';
 import '../blocs/bank_profile/bank_profile_state.dart';
-import '../../domain/entities/bank_profile_entity.dart';
 
-class BankProfilePage extends StatefulWidget {
+class BankProfilePage extends StatelessWidget {
   const BankProfilePage({super.key});
 
   @override
-  State<BankProfilePage> createState() => _BankProfilePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: context.read<BankProfileCubit>()..load(),
+      child: const _BankProfileView(),
+    );
+  }
 }
 
-class _BankProfilePageState extends State<BankProfilePage> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<BankProfileCubit>().fetchProfileAndCatalogs();
-  }
+class _BankProfileView extends StatelessWidget {
+  const _BankProfileView();
 
-  void _showAddConvenioDialog(BuildContext context, BankProfileLoaded state) {
-    String? selectedBanco;
-    String? selectedTarjeta;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Agregar Convenio/Tarjeta'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Banco'),
-                    initialValue: selectedBanco,
-                    items: state.banksCatalog.map((banco) {
-                      return DropdownMenuItem(value: banco, child: Text(banco));
-                    }).toList(),
-                    onChanged: (val) => setState(() => selectedBanco = val),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    decoration:
-                        const InputDecoration(labelText: 'Tipo de Tarjeta'),
-                    initialValue: selectedTarjeta,
-                    items: state.cardsCatalog.map((tarjeta) {
-                      return DropdownMenuItem(
-                          value: tarjeta, child: Text(tarjeta));
-                    }).toList(),
-                    onChanged: (val) => setState(() => selectedTarjeta = val),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancelar'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (selectedBanco != null && selectedTarjeta != null) {
-                      final convenio = BankConvenio(
-                          banco: selectedBanco!, tipoTarjeta: selectedTarjeta!);
-                      this
-                          .context
-                          .read<BankProfileCubit>()
-                          .addConvenio(convenio);
-                      Navigator.pop(dialogContext);
-                    }
-                  },
-                  child: const Text('Agregar'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+  // Builds: bankDisplayName → cardProductName → List<DiscountEntity>
+  Map<String, Map<String, List<DiscountEntity>>> _group(
+      List<DiscountEntity> discounts) {
+    final result = <String, Map<String, List<DiscountEntity>>>{};
+    for (final d in discounts) {
+      final bank = (d.bankName != null && d.bankName!.isNotEmpty)
+          ? d.bankName!
+          : 'Sin tarjeta';
+      final product = d.cardProductName.isNotEmpty
+          ? d.cardProductName
+          : 'Descuento directo';
+      result.putIfAbsent(bank, () => {});
+      result[bank]!.putIfAbsent(product, () => []).add(d);
+    }
+    // Put "Sin tarjeta" last
+    final sorted = <String, Map<String, List<DiscountEntity>>>{};
+    for (final k in result.keys.where((k) => k != 'Sin tarjeta')) {
+      sorted[k] = result[k]!;
+    }
+    if (result.containsKey('Sin tarjeta')) {
+      sorted['Sin tarjeta'] = result['Sin tarjeta']!;
+    }
+    return sorted;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Métodos de Pago'),
-      ),
-      body: BlocConsumer<BankProfileCubit, BankProfileState>(
-        listener: (context, state) {
-          if (state is BankProfileError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is BankProfileLoading || state is BankProfileInitial) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return GlassScaffold(
+      useSafeArea: false,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SafeArea(
+            bottom: false,
+            child: GlassPageHeader(
+              title: 'Mis Descuentos',
+              subtitle: 'Selecciona los descuentos que tienes',
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: BlocConsumer<BankProfileCubit, BankProfileState>(
+              listener: (context, state) {
+                if (state is BankProfileError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.message)),
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is BankProfileLoading || state is BankProfileInitial) {
+                  return const GlassLoadingIndicator();
+                }
+                if (state is! BankProfileLoaded) {
+                  return const Center(child: Text('Error al cargar descuentos'));
+                }
 
-          if (state is BankProfileLoaded) {
-            final convenios = state.profile.convenios;
+                final grouped = _group(state.allDiscounts);
 
-            return Column(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Agrega tus bancos para mostrarte descuentos automáticos en las estaciones de servicio cercanas. No guardamos información sensible.',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                Expanded(
-                  child: convenios.isEmpty
-                      ? const Center(
-                          child: Text('No tienes convenios agregados.'))
-                      : ListView.builder(
-                          itemCount: convenios.length,
-                          itemBuilder: (context, index) {
-                            final convenio = convenios[index];
-                            return ListTile(
-                              leading: const Icon(Icons.credit_card),
-                              title: Text(convenio.banco),
-                              subtitle: Text(convenio.tipoTarjeta),
-                              trailing: IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () {
-                                  context
-                                      .read<BankProfileCubit>()
-                                      .removeConvenio(convenio);
-                                },
+                if (grouped.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No hay descuentos disponibles',
+                      style: TextStyle(color: GlassTokens.text2),
+                    ),
+                  );
+                }
+
+                return Stack(
+                  children: [
+                    ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        for (final bankEntry in grouped.entries) ...[
+                          // ── Bank header ──────────────────────────────────
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: 20, bottom: 10, left: 4),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: GlassTokens.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  bankEntry.key.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.6,
+                                    color: GlassTokens.text1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // ── Card products within this bank ───────────────
+                          for (final productEntry
+                              in bankEntry.value.entries) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: 6, left: 2),
+                              child: Text(
+                                productEntry.key,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: GlassTokens.text2,
+                                ),
                               ),
-                            );
-                          },
+                            ),
+                            GlassCard(
+                              radius: GlassTokens.radiusLg,
+                              level: 1,
+                              padding: EdgeInsets.zero,
+                              child: Column(
+                                children: productEntry.value.map((d) {
+                                  return _DiscountTile(
+                                    discount: d,
+                                    isSelected: state.isSelected(d.id),
+                                    isLast: d == productEntry.value.last,
+                                    onTap: () => context
+                                        .read<BankProfileCubit>()
+                                        .toggleDiscount(d.id),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ],
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                    if (state.saving)
+                      const Positioned(
+                        top: 8,
+                        right: 16,
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: GlassTokens.borderAcc,
+                          ),
                         ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    onPressed: () => _showAddConvenioDialog(context, state),
-                    child: const Text('Agregar Tarjeta / Convenio'),
-                  ),
-                )
-              ],
-            );
-          }
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-          return const Center(child: Text('Error al cargar perfil bancario'));
-        },
+class _DiscountTile extends StatelessWidget {
+  final DiscountEntity discount;
+  final bool isSelected;
+  final bool isLast;
+  final VoidCallback onTap;
+
+  const _DiscountTile({
+    required this.discount,
+    required this.isSelected,
+    required this.isLast,
+    required this.onTap,
+  });
+
+  String get _dayLabel {
+    switch (discount.dayOfWeek) {
+      case 1: return 'Lunes';
+      case 2: return 'Martes';
+      case 3: return 'Miércoles';
+      case 4: return 'Jueves';
+      case 5: return 'Viernes';
+      case 6: return 'Sábado';
+      case 7: return 'Domingo';
+      default: return 'Todos los días';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          border: isLast
+              ? null
+              : const Border(
+                  bottom: BorderSide(
+                      color: GlassTokens.border1, width: 0.5),
+                ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Discount badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: GlassTokens.accentGradient,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                discount.valueLabel,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Brand name (station brand: COPEC / SHELL / etc.)
+                  Text(
+                    discount.brandName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: GlassTokens.text0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      _Chip(label: _dayLabel),
+                      if (discount.fuelTypeName != null) ...[
+                        const SizedBox(width: 6),
+                        _Chip(
+                          label: discount.fuelTypeName!,
+                          color: GlassTokens.cyan,
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (discount.description != null &&
+                      discount.description!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      discount.description!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: GlassTokens.text2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                gradient: isSelected ? GlassTokens.accentGradient : null,
+                color: isSelected ? null : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isSelected
+                      ? GlassTokens.borderAcc
+                      : GlassTokens.border2,
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _Chip({required this.label, this.color = GlassTokens.text2});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }

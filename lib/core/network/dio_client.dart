@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../config/app_config.dart';
@@ -20,17 +21,19 @@ class DioClient {
 
     dio.interceptors.add(authInterceptor);
 
-    dio.interceptors.add(
-      PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseBody: true,
-        responseHeader: false,
-        error: true,
-        compact: true,
-        maxWidth: 90,
-      ),
-    );
+    if (kDebugMode) {
+      dio.interceptors.add(
+        PrettyDioLogger(
+          requestHeader: true,
+          requestBody: true,
+          responseBody: true,
+          responseHeader: false,
+          error: true,
+          compact: true,
+          maxWidth: 90,
+        ),
+      );
+    }
   }
 
   Future<Response> get(String uri,
@@ -42,8 +45,12 @@ class DioClient {
     return await dio.post(uri, data: data);
   }
 
-  Future<Response> put(String uri, {dynamic data}) async {
-    return await dio.put(uri, data: data);
+  Future<Response> put(String uri, {dynamic data, Options? options}) async {
+    return await dio.put(uri, data: data, options: options);
+  }
+
+  Future<Response> patch(String uri, {dynamic data}) async {
+    return await dio.patch(uri, data: data);
   }
 
   Future<Response> delete(String uri, {dynamic data}) async {

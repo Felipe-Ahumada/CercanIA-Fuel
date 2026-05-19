@@ -4,43 +4,81 @@ import '../../../core/errors/failure.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/repositories/auth_repository.dart';
 import '../datasources/remote/auth_remote_data_source.dart';
+import '../datasources/remote/stats_remote_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
+  final StatsRemoteDataSource statsRemoteDataSource;
 
-  AuthRepositoryImpl(this.remoteDataSource);
+  AuthRepositoryImpl(this.remoteDataSource, this.statsRemoteDataSource);
 
   @override
-  Future<Either<Failure, UserEntity>> signIn(
-      String email, String password) async {
+  Future<Either<Failure, UserEntity>> signIn(String email, String password) async {
     try {
-      final user = await remoteDataSource.signIn(email, password);
-      return Right(user);
+      return Right(await remoteDataSource.signIn(email, password));
     } on ServerException {
-      return const Left(
-          ServerFailure('Error en el servidor al iniciar sesión.'));
+      return const Left(ServerFailure('Error al iniciar sesión.'));
     }
   }
 
   @override
-  Future<Either<Failure, UserEntity>> signUp(
-      String email, String password, String nombre) async {
+  Future<Either<Failure, UserEntity>> signUp({
+    required String email,
+    required String password,
+    required String firstName,
+    String? middleName,
+    required String lastName,
+    required String secondLastName,
+    required String rut,
+    required DateTime birthDate,
+  }) async {
     try {
-      final user = await remoteDataSource.signUp(email, password, nombre);
-      return Right(user);
-    } on ServerException {
-      return const Left(ServerFailure('Error en el servidor al registrar.'));
+      return Right(await remoteDataSource.signUp(
+        email: email,
+        password: password,
+        firstName: firstName,
+        middleName: middleName,
+        lastName: lastName,
+        secondLastName: secondLastName,
+        rut: rut,
+        birthDate: birthDate,
+      ));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Error al registrar.'));
     }
   }
 
   @override
   Future<Either<Failure, UserEntity>> signInWithGoogle() async {
     try {
-      final user = await remoteDataSource.signInWithGoogle();
-      return Right(user);
-    } on ServerException {
-      return const Left(
-          ServerFailure('Error o cancelación al iniciar sesión con Google.'));
+      return Right(await remoteDataSource.signInWithGoogle());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Error al iniciar sesión con Google.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> completeProfile({
+    required String email,
+    required String firstName,
+    String? middleName,
+    required String lastName,
+    required String secondLastName,
+    required String rut,
+    required DateTime birthDate,
+  }) async {
+    try {
+      return Right(await remoteDataSource.completeProfile(
+        email: email,
+        firstName: firstName,
+        middleName: middleName,
+        lastName: lastName,
+        secondLastName: secondLastName,
+        rut: rut,
+        birthDate: birthDate,
+      ));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Error al completar perfil.'));
     }
   }
 
@@ -48,6 +86,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, void>> signOut() async {
     try {
       await remoteDataSource.signOut();
+      statsRemoteDataSource.clearUserCache();
       return const Right(null);
     } on ServerException {
       return const Left(ServerFailure('Error al cerrar sesión.'));
@@ -60,16 +99,14 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.sendPasswordResetEmail(email);
       return const Right(null);
     } on ServerException {
-      return const Left(
-          ServerFailure('Error al enviar correo de recuperación.'));
+      return const Left(ServerFailure('Error al enviar correo de recuperación.'));
     }
   }
 
   @override
   Future<Either<Failure, UserEntity>> getCurrentUser() async {
     try {
-      final user = await remoteDataSource.getCurrentUser();
-      return Right(user);
+      return Right(await remoteDataSource.getCurrentUser());
     } on ServerException {
       return const Left(ServerFailure('Usuario no autenticado.'));
     }

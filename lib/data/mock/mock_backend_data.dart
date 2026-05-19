@@ -8,77 +8,77 @@ class MockBackendData {
   static final List<StationModel> stations = [
     StationModel(
       id: '99484d32-ab42-4798-9fb6-5fc3baf06135',
-      nombre: 'EMPRESAS COPEC S.A.',
-      marca: 'COPEC',
+      name: 'EMPRESAS COPEC S.A.',
+      brand: 'COPEC',
       lat: -33.4500,
       lng: -70.6700,
-      precios: {
-        Fuel.bencina93: 1289,
-        Fuel.bencina95: 1338,
-        Fuel.bencina97: 1392,
+      address: 'Av. Alameda 1234, Santiago',
+      prices: {
+        Fuel.gasoline93: 1289,
+        Fuel.gasoline95: 1338,
+        Fuel.gasoline97: 1392,
         Fuel.diesel: 1175,
       },
-      esFavorita: true,
-      ultimaSincronizacion: lastSync,
+      lastSync: lastSync,
     ),
     StationModel(
       id: '5d8f626c-5ef5-4b47-9181-95df5a1b32b1',
-      nombre: 'Shell Apoquindo',
-      marca: 'SHELL',
+      name: 'Shell Apoquindo',
+      brand: 'SHELL',
       lat: -33.4150,
       lng: -70.5700,
-      precios: {
-        Fuel.bencina93: 1295,
-        Fuel.bencina95: 1341,
-        Fuel.bencina97: 1401,
+      address: 'Av. Apoquindo 4500, Las Condes',
+      prices: {
+        Fuel.gasoline93: 1295,
+        Fuel.gasoline95: 1341,
+        Fuel.gasoline97: 1401,
         Fuel.diesel: 1189,
       },
-      esFavorita: false,
-      ultimaSincronizacion: lastSync,
+      lastSync: lastSync,
     ),
     StationModel(
       id: 'a8aa9d2b-f1d3-4e48-8f26-88a38e316212',
-      nombre: 'Petrobras Providencia',
-      marca: 'PETROBRAS',
+      name: 'Petrobras Providencia',
+      brand: 'PETROBRAS',
       lat: -33.4268,
       lng: -70.6166,
-      precios: {
-        Fuel.bencina93: 1278,
-        Fuel.bencina95: 1327,
-        Fuel.bencina97: 1385,
+      address: 'Av. Providencia 2340, Providencia',
+      prices: {
+        Fuel.gasoline93: 1278,
+        Fuel.gasoline95: 1327,
+        Fuel.gasoline97: 1385,
         Fuel.diesel: 1168,
       },
-      esFavorita: false,
-      ultimaSincronizacion: lastSync,
+      lastSync: lastSync,
     ),
     StationModel(
       id: 'cf476748-9212-4f43-bfdc-a8fe2e17440b',
-      nombre: 'Aramco Las Condes',
-      marca: 'ARAMCO',
+      name: 'Aramco Las Condes',
+      brand: 'ARAMCO',
       lat: -33.4076,
       lng: -70.5675,
-      precios: {
-        Fuel.bencina93: 1302,
-        Fuel.bencina95: 1350,
-        Fuel.bencina97: 1412,
+      address: 'Av. Las Condes 10500, Las Condes',
+      prices: {
+        Fuel.gasoline93: 1302,
+        Fuel.gasoline95: 1350,
+        Fuel.gasoline97: 1412,
         Fuel.diesel: 1197,
       },
-      esFavorita: false,
-      ultimaSincronizacion: lastSync,
+      lastSync: lastSync,
     ),
     StationModel(
       id: 'f59f6c47-d090-4701-ad07-f4eb1691096f',
-      nombre: 'JLC Nunoa',
-      marca: 'JLC',
+      name: 'JLC Nunoa',
+      brand: 'JLC',
       lat: -33.4569,
       lng: -70.5970,
-      precios: {
-        Fuel.bencina93: 1269,
-        Fuel.bencina95: 1318,
-        Fuel.bencina97: 1379,
+      address: 'Av. Irarrázaval 3201, Ñuñoa',
+      prices: {
+        Fuel.gasoline93: 1269,
+        Fuel.gasoline95: 1318,
+        Fuel.gasoline97: 1379,
       },
-      esFavorita: false,
-      ultimaSincronizacion: lastSync,
+      lastSync: lastSync,
     ),
   ];
 
@@ -111,7 +111,7 @@ class MockBackendData {
 
   static List<Map<String, dynamic>> preciosVigentes(String stationId) {
     final station = findStation(stationId);
-    return station.precios.entries
+    return station.prices.entries
         .map(
           (entry) => {
             'tipoCombustibleId': fuelBackendId(entry.key),
@@ -133,45 +133,46 @@ class MockBackendData {
   }
 
   static final List<VehicleEntity> vehicles = [
-    VehicleEntity(
+    const VehicleEntity(
       id: '660e8400-e29b-41d4-a716-446655440001',
-      marca: 'Toyota',
-      modelo: 'Yaris',
-      tipoCombustible: Fuel.bencina95,
-      activo: true,
+      vehicleModelId: 1,
+      brand: 'Toyota',
+      model: 'Yaris',
+      fuelTypeId: 2,
+      fuelType: Fuel.gasoline95,
+      licensePlate: 'ABCD12',
+      year: 2020,
+      active: true,
     ),
-    VehicleEntity(
+    const VehicleEntity(
       id: '660e8400-e29b-41d4-a716-446655440002',
-      marca: 'Hyundai',
-      modelo: 'Accent',
-      tipoCombustible: Fuel.bencina93,
+      vehicleModelId: 2,
+      brand: 'Hyundai',
+      model: 'Accent',
+      fuelTypeId: 1,
+      fuelType: Fuel.gasoline93,
+      licensePlate: 'EFGH34',
+      year: 2019,
     ),
   ];
 
   static final BankProfileEntity bankProfile = BankProfileEntity(
     userId: '3ee2b0ad-7985-4275-a902-ed00bdb34cc7',
-    convenios: [
-      BankConvenio(banco: 'Banco Scotiabank', tipoTarjeta: 'Visa Platinum'),
-      BankConvenio(banco: 'Banco Estado', tipoTarjeta: 'Debito'),
+    agreements: [
+      BankAgreement(cardProductId: 1, cardProductName: 'Visa Platinum', bankName: 'Scotiabank'),
+      BankAgreement(cardProductId: 4, cardProductName: 'Débito', bankName: 'Banco Estado'),
     ],
   );
 
-  static const List<String> banksCatalog = [
-    'Banco de Chile',
-    'Banco Santander',
-    'Banco Estado',
-    'Banco Scotiabank',
-    'BCI',
-    'Itau',
-    'Banco Falabella',
-  ];
-
-  static const List<String> cardTypesCatalog = [
-    'Credito',
-    'Debito',
-    'Prepago',
-    'Visa Platinum',
-    'Mastercard Black',
+  static final List<CardProductEntity> cardProductsCatalog = [
+    const CardProductEntity(id: 1, bankName: 'Scotiabank', productName: 'Visa Platinum', cardType: 'CREDIT'),
+    const CardProductEntity(id: 2, bankName: 'Scotiabank', productName: 'Mastercard Black', cardType: 'CREDIT'),
+    const CardProductEntity(id: 3, bankName: 'BCI', productName: 'Visa Signature', cardType: 'CREDIT'),
+    const CardProductEntity(id: 4, bankName: 'Banco Estado', productName: 'Débito', cardType: 'DEBIT'),
+    const CardProductEntity(id: 5, bankName: 'Banco de Chile', productName: 'Visa Classic', cardType: 'CREDIT'),
+    const CardProductEntity(id: 6, bankName: 'Itaú', productName: 'Mastercard Platinum', cardType: 'CREDIT'),
+    const CardProductEntity(id: 7, bankName: 'Banco Santander', productName: 'Select Visa', cardType: 'CREDIT'),
+    const CardProductEntity(id: 8, bankName: 'Falabella', productName: 'CMR Visa', cardType: 'PREPAID'),
   ];
 
   static final Map<String, dynamic> discountCalculation = {
@@ -217,14 +218,11 @@ class MockBackendData {
 
   static int fuelBackendId(Fuel fuel) {
     switch (fuel) {
-      case Fuel.bencina93:
-        return 1;
-      case Fuel.bencina95:
-        return 2;
-      case Fuel.bencina97:
-        return 3;
-      case Fuel.diesel:
-        return 4;
+      case Fuel.gasoline93: return 1;
+      case Fuel.gasoline95: return 2;
+      case Fuel.gasoline97: return 3;
+      case Fuel.diesel:    return 4;
+      case Fuel.naturalGas:       return 5;
     }
   }
 }

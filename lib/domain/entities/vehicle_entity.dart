@@ -1,69 +1,106 @@
-enum Fuel { bencina93, bencina95, bencina97, diesel }
+// ── Fuel type enum (local display names) ──────────────────────────────────────
+
+enum Fuel { gasoline93, gasoline95, gasoline97, diesel, naturalGas }
 
 extension FuelExtension on Fuel {
   String get displayName {
     switch (this) {
-      case Fuel.bencina93:
-        return 'Bencina 93';
-      case Fuel.bencina95:
-        return 'Bencina 95';
-      case Fuel.bencina97:
-        return 'Bencina 97';
-      case Fuel.diesel:
-        return 'Diésel';
+      case Fuel.gasoline93: return 'Gasolina 93';
+      case Fuel.gasoline95: return 'Gasolina 95';
+      case Fuel.gasoline97: return 'Gasolina 97';
+      case Fuel.diesel:    return 'Diésel';
+      case Fuel.naturalGas:       return 'Gas Natural';
     }
   }
 
-  static Fuel fromString(String fuel) {
-    switch (fuel.toLowerCase().replaceAll(' ', '')) {
-      case '93':
-      case 'gasolina93':
-      case 'bencina93':
-        return Fuel.bencina93;
-      case '95':
-      case 'gasolina95':
-      case 'bencina95':
-        return Fuel.bencina95;
-      case '97':
-      case 'gasolina97':
-      case 'bencina97':
-        return Fuel.bencina97;
-      case 'di':
-      case 'diesel':
-      default:
-        return Fuel.diesel;
-    }
+  static Fuel fromString(String s) {
+    final v = s.toLowerCase().replaceAll(' ', '');
+    if (v.contains('93')) return Fuel.gasoline93;
+    if (v.contains('95')) return Fuel.gasoline95;
+    if (v.contains('97')) return Fuel.gasoline97;
+    if (v.contains('gnv') || v.contains('gas')) return Fuel.naturalGas;
+    return Fuel.diesel;
   }
 }
 
+// ── Catalog entities ──────────────────────────────────────────────────────────
+
+class VehicleBrandEntity {
+  final int id;
+  final String name;
+  const VehicleBrandEntity({required this.id, required this.name});
+}
+
+class VehicleModelEntity {
+  final int id;
+  final int brandId;
+  final String brandName;
+  final String name;
+  final String vehicleType;
+  const VehicleModelEntity({
+    required this.id,
+    required this.brandId,
+    required this.brandName,
+    required this.name,
+    required this.vehicleType,
+  });
+}
+
+class FuelTypeEntity {
+  final int id;
+  final String name;
+  final String shortName;
+  const FuelTypeEntity({required this.id, required this.name, required this.shortName});
+
+  Fuel get fuel => FuelExtension.fromString(shortName);
+}
+
+// ── Vehicle entity ────────────────────────────────────────────────────────────
+
 class VehicleEntity {
   final String id;
-  final String marca;
-  final String modelo;
-  final Fuel tipoCombustible;
-  final bool activo;
+  final int vehicleModelId;
+  final String brand;
+  final String model;
+  final int fuelTypeId;
+  final Fuel fuelType;
+  final String licensePlate;
+  final int year;
+  final bool active;
 
-  VehicleEntity({
+  const VehicleEntity({
     required this.id,
-    required this.marca,
-    required this.modelo,
-    required this.tipoCombustible,
-    this.activo = false,
+    required this.vehicleModelId,
+    required this.brand,
+    required this.model,
+    required this.fuelTypeId,
+    required this.fuelType,
+    required this.licensePlate,
+    required this.year,
+    this.active = false,
   });
 
   VehicleEntity copyWith({
     String? id,
-    String? marca,
-    String? modelo,
-    Fuel? tipoCombustible,
-    bool? activo,
+    int? vehicleModelId,
+    String? brand,
+    String? model,
+    int? fuelTypeId,
+    Fuel? fuelType,
+    String? licensePlate,
+    int? year,
+    bool? active,
   }) {
     return VehicleEntity(
       id: id ?? this.id,
-      marca: marca ?? this.marca,
-      modelo: modelo ?? this.modelo,
-      tipoCombustible: tipoCombustible ?? this.tipoCombustible,
-      activo: activo ?? this.activo,
+      vehicleModelId: vehicleModelId ?? this.vehicleModelId,
+      brand: brand ?? this.brand,
+      model: model ?? this.model,
+      fuelTypeId: fuelTypeId ?? this.fuelTypeId,
+      fuelType: fuelType ?? this.fuelType,
+      licensePlate: licensePlate ?? this.licensePlate,
+      year: year ?? this.year,
+      active: active ?? this.active,
     );
   }
 }

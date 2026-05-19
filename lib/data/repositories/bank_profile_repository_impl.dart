@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
+import '../../core/errors/exceptions.dart';
 import '../../core/errors/failure.dart';
 import '../../domain/entities/bank_profile_entity.dart';
 import '../../domain/repositories/bank_profile_repository.dart';
 import '../datasources/remote/bank_profile_remote_data_source.dart';
-import '../../core/errors/exceptions.dart';
 
 class BankProfileRepositoryImpl implements BankProfileRepository {
   final BankProfileRemoteDataSource remoteDataSource;
@@ -13,44 +13,81 @@ class BankProfileRepositoryImpl implements BankProfileRepository {
   @override
   Future<Either<Failure, BankProfileEntity>> getBankProfile() async {
     try {
-      final profile = await remoteDataSource.getBankProfile();
-      return Right(profile);
+      return Right(await remoteDataSource.getBankProfile());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message ?? 'Error al obtener perfil bancario'));
-    } catch (e) {
+    } catch (_) {
       return const Left(ServerFailure('Error interno al obtener perfil bancario'));
     }
   }
 
   @override
-  Future<Either<Failure, BankProfileEntity>> updateBankProfile(List<BankConvenio> convenios) async {
+  Future<Either<Failure, BankProfileEntity>> updateBankProfile(
+      List<BankAgreement> agreements) async {
     try {
-      final profile = await remoteDataSource.updateBankProfile(convenios);
-      return Right(profile);
+      return Right(await remoteDataSource.updateBankProfile(agreements));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message ?? 'Error al actualizar perfil bancario'));
-    } catch (e) {
+    } catch (_) {
       return const Left(ServerFailure('Error interno al actualizar perfil bancario'));
     }
   }
 
   @override
-  Future<Either<Failure, List<String>>> getBanksCatalog() async {
+  Future<Either<Failure, List<CardProductEntity>>> getCardProducts() async {
     try {
-      final catalog = await remoteDataSource.getBanksCatalog();
-      return Right(catalog);
-    } catch (e) {
-      return const Left(ServerFailure('Error al cargar catálogo de bancos'));
+      return Right(await remoteDataSource.getCardProducts());
+    } catch (_) {
+      return const Left(ServerFailure('Error al cargar catálogo de tarjetas'));
     }
   }
 
   @override
-  Future<Either<Failure, List<String>>> getCardTypesCatalog() async {
+  Future<Either<Failure, List<DiscountEntity>>> getDiscountsByBrand(
+      int brandId) async {
     try {
-      final catalog = await remoteDataSource.getCardTypesCatalog();
-      return Right(catalog);
-    } catch (e) {
-      return const Left(ServerFailure('Error al cargar catálogo de tarjetas'));
+      return Right(await remoteDataSource.getDiscountsByBrand(brandId));
+    } catch (_) {
+      return const Left(ServerFailure('Error al cargar descuentos'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<DiscountEntity>>> getDiscountsByCardProducts(
+      List<int> cardProductIds) async {
+    try {
+      return Right(
+          await remoteDataSource.getDiscountsByCardProducts(cardProductIds));
+    } catch (_) {
+      return const Left(ServerFailure('Error al cargar descuentos'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<DiscountEntity>>> getDiscountsCatalog() async {
+    try {
+      return Right(await remoteDataSource.getDiscountsCatalog());
+    } catch (_) {
+      return const Left(ServerFailure('Error al cargar catálogo de descuentos'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<DiscountEntity>>> getSelectedDiscounts() async {
+    try {
+      return Right(await remoteDataSource.getSelectedDiscounts());
+    } catch (_) {
+      return const Left(ServerFailure('Error al cargar descuentos seleccionados'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<DiscountEntity>>> updateSelectedDiscounts(
+      List<int> discountIds) async {
+    try {
+      return Right(await remoteDataSource.updateSelectedDiscounts(discountIds));
+    } catch (_) {
+      return const Left(ServerFailure('Error al guardar descuentos'));
     }
   }
 }

@@ -22,13 +22,3 @@ class GetStationDetailUseCase {
     return repository.getStationDetail(stationId);
   }
 }
-
-class ToggleFavoriteUseCase {
-  final StationRepository repository;
-
-  ToggleFavoriteUseCase(this.repository);
-
-  Future<Either<Failure, StationEntity>> call(String stationId, bool isFavorite) {
-    return repository.toggleFavorite(stationId, isFavorite);
-  }
-}

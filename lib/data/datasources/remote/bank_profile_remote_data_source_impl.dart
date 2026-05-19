@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../../core/config/app_config.dart';
-import '../../../core/errors/exceptions.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../domain/entities/bank_profile_entity.dart';
 import '../../mock/mock_backend_data.dart';
@@ -9,122 +8,159 @@ import 'bank_profile_remote_data_source.dart';
 
 class BankProfileRemoteDataSourceImpl implements BankProfileRemoteDataSource {
   final DioClient dioClient;
-  BankProfileEntity _mockProfile = MockBackendData.bankProfile;
 
   BankProfileRemoteDataSourceImpl(this.dioClient);
 
+  // ── Profile (backend) ─────────────────────────────────────────────────────
+
   @override
   Future<BankProfileEntity> getBankProfile() async {
-    if (AppConfig.useMockData) {
-      return _mockProfile;
-    }
+    if (AppConfig.useMockData) return MockBackendData.bankProfile;
 
-    try {
-      final response = await dioClient.get('/bank-profile');
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final list = (data['convenios'] as List)
-            .map((e) => BankConvenio.fromJson(e))
-            .toList();
-        return BankProfileEntity(
-          userId: data['userId'] ?? '',
-          convenios: list,
-        );
-      } else if (response.statusCode == 404) {
-        return BankProfileEntity(userId: '', convenios: []);
-      } else {
-        throw ServerException(message: 'Error al obtener perfil bancario');
-      }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        return BankProfileEntity(userId: '', convenios: []);
-      }
-      throw ServerException(message: e.message);
-    } catch (e) {
-      throw ServerException(message: e.toString());
-    }
+    final response = await dioClient.get('/users/me/bank-profile');
+    final json = response.data as Map<String, dynamic>;
+    final convenios = (json['convenios'] as List? ?? []);
+    final agreements = convenios
+        .map((e) => BankAgreement(
+              cardProductId: (e['cardProductId'] as num?)?.toInt() ?? 0,
+              cardProductName: e['cardType'] as String? ?? '',
+              bankName: e['bank'] as String? ?? '',
+            ))
+        .where((a) => a.cardProductId > 0)
+        .toList();
+    return BankProfileEntity(
+      userId: json['userId']?.toString() ?? '',
+      agreements: agreements,
+    );
   }
 
   @override
-  Future<BankProfileEntity> updateBankProfile(
-      List<BankConvenio> convenios) async {
+  Future<BankProfileEntity> updateBankProfile(List<BankAgreement> agreements) async {
     if (AppConfig.useMockData) {
-      _mockProfile = BankProfileEntity(
-        userId: _mockProfile.userId,
-        convenios: List.unmodifiable(convenios),
+      return BankProfileEntity(userId: '', agreements: agreements);
+    }
+
+    final body = {
+      'convenios': agreements
+          .map((a) => {
+                'bank': a.bankName,
+                'cardType': a.cardProductName,
+                'cardProductId': a.cardProductId,
+              })
+          .toList(),
+    };
+    final response = await dioClient.post('/users/me/bank-profile', data: body);
+    final json = response.data as Map<String, dynamic>;
+    final convenios = (json['convenios'] as List? ?? []);
+    final saved = convenios
+        .map((e) => BankAgreement(
+              cardProductId: (e['cardProductId'] as num?)?.toInt() ?? 0,
+              cardProductName: e['cardType'] as String? ?? '',
+              bankName: e['bank'] as String? ?? '',
+            ))
+        .where((a) => a.cardProductId > 0)
+        .toList();
+    return BankProfileEntity(
+      userId: json['userId']?.toString() ?? '',
+      agreements: saved,
+    );
+  }
+
+  // ── Card products catalog ─────────────────────────────────────────────────
+
+  @override
+  Future<List<CardProductEntity>> getCardProducts() async {
+    if (AppConfig.useMockData) return MockBackendData.cardProductsCatalog;
+
+    final response = await dioClient.get('/tarjetas-producto');
+    final items = response.data as List<dynamic>? ?? [];
+    return items
+        .map((e) => _parseCardProduct(e as Map<String, dynamic>))
+        .where((c) => c.id > 0)
+        .toList();
+  }
+
+  CardProductEntity _parseCardProduct(Map<String, dynamic> json) => CardProductEntity(
+        id: (json['id'] as num).toInt(),
+        bankName: json['bankName'] as String? ?? '',
+        productName: json['name'] as String? ?? '',
+        cardType: json['cardType'] as String? ?? '',
       );
-      return _mockProfile;
-    }
 
-    try {
-      final response = await dioClient.post(
-        '/bank-profile',
-        data: {
-          'convenios': convenios.map((c) => c.toJson()).toList(),
-        },
+  // ── Discounts by brand ────────────────────────────────────────────────────
+
+  @override
+  Future<List<DiscountEntity>> getDiscountsByBrand(int brandId) async {
+    if (AppConfig.useMockData) return [];
+
+    final response = await dioClient.get(
+      '/descuentos',
+      queryParameters: {'brandId': brandId},
+    );
+    final items = response.data as List<dynamic>? ?? [];
+    return items
+        .map((e) => _parseDiscount(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<List<DiscountEntity>> getDiscountsCatalog() async {
+    if (AppConfig.useMockData) return [];
+    final response = await dioClient.get('/descuentos/catalogo');
+    final items = response.data as List<dynamic>? ?? [];
+    return items.map((e) => _parseDiscount(e as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<List<DiscountEntity>> getSelectedDiscounts() async {
+    if (AppConfig.useMockData) return [];
+    final response = await dioClient.get('/users/me/discounts');
+    final items = response.data as List<dynamic>? ?? [];
+    return items.map((e) => _parseDiscount(e as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<List<DiscountEntity>> updateSelectedDiscounts(List<int> discountIds) async {
+    if (AppConfig.useMockData) return [];
+    final response = await dioClient.put(
+      '/users/me/discounts',
+      data: discountIds,
+      options: Options(contentType: Headers.jsonContentType),
+    );
+    final items = response.data as List<dynamic>? ?? [];
+    return items.map((e) => _parseDiscount(e as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<List<DiscountEntity>> getDiscountsByCardProducts(
+      List<int> cardProductIds) async {
+    if (AppConfig.useMockData) return [];
+    if (cardProductIds.isEmpty) return [];
+
+    final response = await dioClient.get(
+      '/descuentos/por-tarjetas',
+      queryParameters: {'cardProductIds': cardProductIds.join(',')},
+    );
+    final items = response.data as List<dynamic>? ?? [];
+    return items
+        .map((e) => _parseDiscount(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  DiscountEntity _parseDiscount(Map<String, dynamic> json) => DiscountEntity(
+        id: (json['id'] as num).toInt(),
+        brandId: (json['brandId'] as num).toInt(),
+        brandName: json['brandName'] as String? ?? '',
+        cardProductId: json['cardProductId'] != null
+            ? (json['cardProductId'] as num).toInt()
+            : null,
+        cardProductName: json['cardProductName'] as String? ?? '',
+        bankName: json['bankName'] as String?,
+        fuelTypeName: json['fuelTypeName'] as String?,
+        dayOfWeek: json['dayOfWeek'] != null ? (json['dayOfWeek'] as num).toInt() : null,
+        discountType: json['discountType'] as String? ?? 'PERCENTAGE',
+        discountValue: (json['discountValue'] as num).toDouble(),
+        maxCap: json['maxCap'] != null ? (json['maxCap'] as num).toDouble() : null,
+        description: json['description'] as String?,
       );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        final list = (data['convenios'] as List)
-            .map((e) => BankConvenio.fromJson(e))
-            .toList();
-        return BankProfileEntity(
-          userId: data['userId'] ?? '',
-          convenios: list,
-        );
-      } else {
-        throw ServerException(message: 'Error al actualizar perfil bancario');
-      }
-    } on DioException catch (e) {
-      throw ServerException(message: e.message);
-    } catch (e) {
-      throw ServerException(message: e.toString());
-    }
-  }
-
-  @override
-  Future<List<String>> getBanksCatalog() async {
-    if (AppConfig.useMockData) {
-      return MockBackendData.banksCatalog;
-    }
-
-    // Mock catálogo local si el backend no lo provee inicialmente
-    try {
-      final response = await dioClient.get('/catalogs/banks');
-      if (response.statusCode == 200) {
-        return List<String>.from(response.data);
-      }
-      throw ServerException(message: 'Error al cargar bancos');
-    } catch (_) {
-      return [
-        'Banco de Chile',
-        'Banco Santander',
-        'Banco Estado',
-        'Scotiabank',
-        'BCI',
-        'Itaú',
-        'Banco Falabella'
-      ];
-    }
-  }
-
-  @override
-  Future<List<String>> getCardTypesCatalog() async {
-    if (AppConfig.useMockData) {
-      return MockBackendData.cardTypesCatalog;
-    }
-
-    // Mock catálogo
-    try {
-      final response = await dioClient.get('/catalogs/card-types');
-      if (response.statusCode == 200) {
-        return List<String>.from(response.data);
-      }
-      throw ServerException(message: 'Error al cargar tarjetas');
-    } catch (_) {
-      return ['Crédito', 'Débito', 'Prepago'];
-    }
-  }
 }
