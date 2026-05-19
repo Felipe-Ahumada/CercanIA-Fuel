@@ -82,3 +82,38 @@ class GetCurrentUserUseCase {
   GetCurrentUserUseCase(this.repository);
   Future<Either<Failure, UserEntity>> call() => repository.getCurrentUser();
 }
+
+class ChangePasswordUseCase {
+  final AuthRepository repository;
+  ChangePasswordUseCase(this.repository);
+  Future<Either<Failure, void>> call({
+    required String currentPassword,
+    required String newPassword,
+  }) =>
+      repository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+}
+
+class RequestLocalPasswordResetUseCase {
+  final AuthRepository repository;
+  RequestLocalPasswordResetUseCase(this.repository);
+  Future<Either<Failure, void>> call(String email) =>
+      repository.requestLocalPasswordReset(email);
+}
+
+class ConfirmLocalPasswordResetUseCase {
+  final AuthRepository repository;
+  ConfirmLocalPasswordResetUseCase(this.repository);
+  Future<Either<Failure, void>> call({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) =>
+      repository.confirmLocalPasswordReset(
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+      );
+}

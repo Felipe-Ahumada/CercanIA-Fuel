@@ -1,4 +1,3 @@
-import '../../../domain/entities/discount_calculation_entity.dart';
 import '../../../domain/entities/transaction_entity.dart';
 
 abstract class TransactionRemoteDataSource {
@@ -13,13 +12,5 @@ abstract class TransactionRemoteDataSource {
     int? discountId,
     double? discountAmount,
     String? notes,
-  });
-
-  Future<DiscountCalculationEntity> calculateDiscount({
-    required int brandId,
-    required int fuelTypeId,
-    required double grossAmount,
-    required List<int> userCardIds,
-    double? liters,
   });
 }

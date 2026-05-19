@@ -81,10 +81,17 @@ class AuthInterceptor extends Interceptor {
   @override
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401 && !_handlingLogout) {
-      _handlingLogout = true;
       final prefs = await SharedPreferences.getInstance();
-      await _clearSession(prefs);
-      _handlingLogout = false;
+      final provider = prefs.getString(_kAuthProvider);
+      // Only clear session for LOCAL auth — a 401 means the JWT truly expired
+      // on the backend. For FIREBASE users a 401 can mean "account not in
+      // backend yet" (new user going through completeProfile), so we must NOT
+      // sign out of Firebase; Firebase manages its own token lifecycle.
+      if (provider == 'LOCAL') {
+        _handlingLogout = true;
+        await _clearSession(prefs);
+        _handlingLogout = false;
+      }
     }
     handler.next(err);
   }

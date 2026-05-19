@@ -26,5 +26,15 @@ abstract class AuthRepository {
   });
   Future<Either<Failure, void>> signOut();
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
+  Future<Either<Failure, void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+  Future<Either<Failure, void>> requestLocalPasswordReset(String email);
+  Future<Either<Failure, void>> confirmLocalPasswordReset({
+    required String email,
+    required String otp,
+    required String newPassword,
+  });
   Future<Either<Failure, UserEntity>> getCurrentUser();
 }

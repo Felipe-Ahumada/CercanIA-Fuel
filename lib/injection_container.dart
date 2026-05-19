@@ -109,6 +109,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CompleteProfileUseCase(sl()));
   sl.registerLazySingleton(() => SignOutUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
+  sl.registerLazySingleton(() => RequestLocalPasswordResetUseCase(sl()));
+  sl.registerLazySingleton(() => ConfirmLocalPasswordResetUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => GetUserProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateUserProfileUseCase(sl()));
@@ -127,7 +130,6 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetSavingsSummaryUseCase(sl()));
   sl.registerLazySingleton(() => GetUserTransactionsUseCase(sl()));
   sl.registerLazySingleton(() => CreateTransactionUseCase(sl()));
-  sl.registerLazySingleton(() => CalculateDiscountUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(

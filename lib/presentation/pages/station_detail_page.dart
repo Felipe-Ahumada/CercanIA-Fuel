@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/glass_tokens.dart';
 import '../../core/utils/brand_colors.dart';
+import '../../core/widgets/brand_logo.dart';
 import '../../core/widgets/glass_button.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/glass_loading_indicator.dart';
@@ -38,7 +39,7 @@ class _StationDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: GlassTokens.pageBg,
       body: BlocBuilder<StationDetailCubit, StationDetailState>(
         builder: (context, state) {
           if (state is StationDetailLoading || state is StationDetailInitial) {
@@ -127,9 +128,6 @@ class _StationDetailContent extends StatelessWidget {
         : 'No disponible';
 
     final brandColor = BrandColors.of(station.brand);
-    final initials = station.brand.length >= 2
-        ? station.brand.substring(0, 2).toUpperCase()
-        : station.brand.toUpperCase();
 
     return Column(
       children: [
@@ -157,19 +155,14 @@ class _StationDetailContent extends StatelessWidget {
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: brandColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(14),
+                          shape: BoxShape.circle,
+                          color: brandColor.withValues(alpha: 0.08),
                           border: Border.all(
-                              color: brandColor.withValues(alpha: 0.25)),
+                              color: brandColor.withValues(alpha: 0.2),
+                              width: 1.5),
                         ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          initials,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: brandColor,
-                          ),
+                        child: ClipOval(
+                          child: BrandLogo(marca: station.brand, size: 52),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -233,7 +226,9 @@ class _StationDetailContent extends StatelessWidget {
                         children: station.prices.entries.map((entry) {
                           final color =
                               _fuelColors[entry.key] ?? GlassTokens.text1;
-                          final unitPrice = entry.value;
+                          final priceEntry = entry.value;
+                          // Full-service price drives discount calculation
+                          final unitPrice = priceEntry.displayPrice ?? 0;
 
                           // Mejor descuento aplicable a este combustible
                           DiscountEntity? bestDiscount;
@@ -299,6 +294,27 @@ class _StationDetailContent extends StatelessWidget {
                                             color: GlassTokens.text0,
                                           ),
                                         ),
+                                        // Self-service badge
+                                        if (priceEntry.hasSelfService) ...[
+                                          const SizedBox(height: 3),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.local_gas_station,
+                                                size: 11,
+                                                color: GlassTokens.text2,
+                                              ),
+                                              const SizedBox(width: 3),
+                                              Text(
+                                                'Autoservicio: ${priceFormatter.format(priceEntry.selfService!)}',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: GlassTokens.text2,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                         if (hasDiscount) ...[
                                           const SizedBox(height: 4),
                                           Row(
@@ -338,6 +354,15 @@ class _StationDetailContent extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.end,
                                     children: [
+                                      // Full-service label when both types exist
+                                      if (priceEntry.hasBoth)
+                                        const Text(
+                                          'Asistido',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: GlassTokens.text2,
+                                          ),
+                                        ),
                                       Text(
                                         priceFormatter.format(unitPrice),
                                         style: TextStyle(

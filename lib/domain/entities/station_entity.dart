@@ -1,5 +1,21 @@
 import '../../domain/entities/vehicle_entity.dart';
 
+/// Prices for a single fuel type at a station, split by attention type.
+class StationPriceEntry {
+  final double? fullService; // FULL / Asistido
+  final double? selfService; // SELF / Autoservicio
+
+  const StationPriceEntry({this.fullService, this.selfService});
+
+  bool get hasFullService => fullService != null;
+  bool get hasSelfService => selfService != null;
+  bool get hasBoth => fullService != null && selfService != null;
+
+  /// Reference price used in markers and discount calculations.
+  /// Prefers full-service when available.
+  double? get displayPrice => fullService ?? selfService;
+}
+
 class StationEntity {
   final String id;
   final String name;
@@ -7,7 +23,7 @@ class StationEntity {
   final String brand;
   final double lat;
   final double lng;
-  final Map<Fuel, double> prices;
+  final Map<Fuel, StationPriceEntry> prices;
   final bool inMaintenance;
   final String? address;
   final DateTime? lastSync;
@@ -32,7 +48,7 @@ class StationEntity {
     String? brand,
     double? lat,
     double? lng,
-    Map<Fuel, double>? prices,
+    Map<Fuel, StationPriceEntry>? prices,
     bool? inMaintenance,
     String? address,
     DateTime? lastSync,

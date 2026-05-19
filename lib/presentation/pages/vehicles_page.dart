@@ -30,8 +30,10 @@ class _VehiclesPageState extends State<VehiclesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
+      backgroundColor: GlassTokens.pageBg,
+      body: Container(
+        decoration: const BoxDecoration(gradient: GlassTokens.pageGradient),
+        child: Column(
         children: [
           const SafeArea(
             bottom: false,
@@ -82,19 +84,19 @@ class _VehiclesPageState extends State<VehiclesPage> {
                         onDelete: () async {
                           final confirmed = await showDialog<bool>(
                             context: context,
-                            builder: (_) => AlertDialog(
+                            builder: (dialogContext) => AlertDialog(
                               title: const Text('Eliminar vehículo'),
                               content: Text(
                                   '¿Eliminar ${vehicle.brand} ${vehicle.model}? Esta acción no se puede deshacer.'),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.of(context).pop(false),
+                                      Navigator.of(dialogContext).pop(false),
                                   child: const Text('Cancelar'),
                                 ),
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.of(context).pop(true),
+                                      Navigator.of(dialogContext).pop(true),
                                   child: const Text('Eliminar',
                                       style:
                                           TextStyle(color: GlassTokens.red)),
@@ -121,6 +123,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
             ),
           ),
         ],
+        ),
       ),
       floatingActionButton: GestureDetector(
         onTap: () => AddVehicleBottomSheet.show(context),

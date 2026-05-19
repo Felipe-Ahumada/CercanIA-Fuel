@@ -7,6 +7,8 @@ abstract class RegisterVisitState {}
 
 class RegisterVisitInitial extends RegisterVisitState {}
 
+class RegisterVisitNoVehicles extends RegisterVisitState {}
+
 class RegisterVisitReady extends RegisterVisitState {
   final StationEntity station;
 
@@ -99,8 +101,8 @@ class RegisterVisitReady extends RegisterVisitState {
   double get implicitUnitPrice =>
       liters > 0 && grossAmount > 0 ? grossAmount / liters : 0;
 
-  /// Precio oficial CNE para el combustible seleccionado en esta estación.
-  double get officialCnePrice => station.prices[selectedFuel] ?? 0;
+  /// Precio oficial CNE (full-service preferido si hay ambos tipos).
+  double get officialCnePrice => station.prices[selectedFuel]?.displayPrice ?? 0;
 
   /// Diferencia absoluta entre precio implícito y precio CNE oficial.
   double get priceDelta => (implicitUnitPrice - officialCnePrice).abs();

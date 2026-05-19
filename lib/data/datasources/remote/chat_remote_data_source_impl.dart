@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../core/network/dio_client.dart';
 import '../../../domain/entities/chat_message_entity.dart';
 import '../../models/chat_message_model.dart';
@@ -18,7 +20,12 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
     if (latitude != null) body['latitude'] = latitude;
     if (longitude != null) body['longitude'] = longitude;
 
-    final response = await dioClient.dio.post('/chat', data: body);
+    // Gemini cold-start can take >10s on first call; override the global 10s timeout.
+    final response = await dioClient.dio.post(
+      '/chat',
+      data: body,
+      options: Options(receiveTimeout: const Duration(seconds: 60)),
+    );
     return ChatMessageModel.fromJson(response.data as Map<String, dynamic>);
   }
 }

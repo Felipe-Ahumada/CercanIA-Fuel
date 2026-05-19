@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/glass_tokens.dart';
+import '../../core/utils/rut_formatter.dart';
 import '../../core/widgets/glass_button.dart';
 import '../../core/widgets/glass_card.dart';
 import '../blocs/auth/auth_bloc.dart';
@@ -20,6 +21,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
   final _secondLastNameCtrl = TextEditingController();
   DateTime? _birthDate;
   bool _submitted = false;
+  String? _rutServerError;
 
   static String? _validateRut(String? value) {
     if (value == null || value.trim().isEmpty) return 'Ingresa tu RUT';
@@ -62,7 +64,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
     if (!_formKey.currentState!.validate()) return;
     if (_birthDate == null) return;
     context.read<AuthBloc>().add(AuthCompleteProfileRequested(
-      rut: _rutCtrl.text.trim(),
+      rut: rutRaw(_rutCtrl.text),
       secondLastName: _secondLastNameCtrl.text.trim(),
       birthDate: _birthDate!,
     ));
@@ -101,16 +103,14 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: GlassTokens.pageBg,
       body: Container(
         decoration: const BoxDecoration(gradient: GlassTokens.pageGradient),
         child: SafeArea(
           child: BlocConsumer<AuthBloc, AuthState>(
             listener: (context, state) {
               if (state is AuthNeedsProfileCompletion && state.error != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.error!)),
-                );
+                setState(() => _rutServerError = state.error);
               }
             },
             builder: (context, state) {
@@ -175,10 +175,15 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                             TextFormField(
                               controller: _rutCtrl,
                               style: const TextStyle(color: GlassTokens.text0),
+                              keyboardType: TextInputType.text,
+                              inputFormatters: [RutInputFormatter()],
+                              onChanged: (_) =>
+                                  setState(() => _rutServerError = null),
                               decoration: _glassDecoration('RUT').copyWith(
-                                hintText: 'ej: 12345678-9',
+                                hintText: 'ej: 12.345.678-9',
                                 hintStyle: const TextStyle(
                                     color: GlassTokens.text2),
+                                errorText: _rutServerError,
                               ),
                               validator: _validateRut,
                             ),

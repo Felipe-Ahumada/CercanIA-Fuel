@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../blocs/auth/auth_bloc.dart';
 import '../../core/theme/glass_tokens.dart';
+import '../../core/utils/rut_formatter.dart';
 import '../../core/widgets/glass_button.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/glass_loading_indicator.dart';
@@ -30,6 +32,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword        = true;
   bool _obscureConfirmPassword = true;
   bool _submitted              = false;
+  String? _rutServerError;
+  String? _emailServerError;
 
   static final _emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
 
@@ -90,7 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
       middleName:     mid.isEmpty ? null : mid,
       lastName:       _lastNameCtrl.text.trim(),
       secondLastName: _secondLastNameCtrl.text.trim(),
-      rut:            _rutCtrl.text.trim(),
+      rut:            rutRaw(_rutCtrl.text),
       birthDate:      _birthDate!,
     ));
   }
@@ -98,16 +102,28 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: GlassTokens.pageBg,
       body: Container(
         decoration: const BoxDecoration(gradient: GlassTokens.pageGradient),
         child: SafeArea(
           child: BlocConsumer<AuthBloc, AuthState>(
             listener: (context, state) {
               if (state is AuthError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
-                );
+                if (state.message == 'rut_taken') {
+                  setState(() {
+                    _rutServerError = 'Este RUT ya está registrado.';
+                    _emailServerError = null;
+                  });
+                } else if (state.message == 'email_taken') {
+                  setState(() {
+                    _emailServerError = 'Este correo ya está registrado.';
+                    _rutServerError = null;
+                  });
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.message)),
+                  );
+                }
               }
             },
             builder: (context, state) {
@@ -191,9 +207,12 @@ class _RegisterPageState extends State<RegisterPage> {
                             const SizedBox(height: 12),
                             _GlassFormField(
                               controller: _rutCtrl,
-                              hintText: 'RUT (ej: 12345678-9)',
+                              hintText: 'RUT (ej: 12.345.678-9)',
                               prefixIcon: Icons.badge_outlined,
                               keyboardType: TextInputType.text,
+                              inputFormatters: [RutInputFormatter()],
+                              errorText: _rutServerError,
+                              onChanged: (_) => setState(() => _rutServerError = null),
                               validator: _validateRut,
                             ),
                             const SizedBox(height: 12),
@@ -276,6 +295,8 @@ class _RegisterPageState extends State<RegisterPage> {
                               hintText: 'Correo electrónico',
                               prefixIcon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
+                              errorText: _emailServerError,
+                              onChanged: (_) => setState(() => _emailServerError = null),
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
                                   return 'Ingresa tu correo';
@@ -391,6 +412,9 @@ class _GlassFormField extends StatelessWidget {
   final Widget? suffixIcon;
   final bool obscureText;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? errorText;
+  final ValueChanged<String>? onChanged;
   final String? Function(String?)? validator;
 
   const _GlassFormField({
@@ -400,6 +424,9 @@ class _GlassFormField extends StatelessWidget {
     this.suffixIcon,
     this.obscureText = false,
     this.keyboardType,
+    this.inputFormatters,
+    this.errorText,
+    this.onChanged,
     this.validator,
   });
 
@@ -409,10 +436,13 @@ class _GlassFormField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      onChanged: onChanged,
       validator: validator,
       style: const TextStyle(color: GlassTokens.text0),
       decoration: InputDecoration(
         hintText: hintText,
+        errorText: errorText,
         hintStyle: const TextStyle(color: GlassTokens.text2),
         filled: true,
         fillColor: GlassTokens.glassInput,

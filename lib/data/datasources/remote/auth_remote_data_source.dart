@@ -32,6 +32,16 @@ abstract class AuthRemoteDataSource {
   });
   Future<void> signOut();
   Future<void> sendPasswordResetEmail(String email);
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+  Future<void> requestLocalPasswordReset(String email);
+  Future<void> confirmLocalPasswordReset({
+    required String email,
+    required String otp,
+    required String newPassword,
+  });
   Future<UserModel> getCurrentUser();
   Future<UserModel> fetchFullProfile(String userId);
   Future<UserModel> updateProfile({
@@ -58,6 +68,44 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   AuthRemoteDataSourceImpl(this.firebaseAuth, this.googleSignIn, this.dioClient);
 
+  // ── Error sanitization ───────────────────────────────────────────────────────
+
+  static ServerException _toServerException(dynamic e) {
+    if (e is DioException) {
+      final status = e.response?.statusCode;
+      final body = e.response?.data;
+      // Only use the backend 'message' field — never 'error', which is just
+      // the HTTP status text (e.g. "Conflict", "Unauthorized") and is not
+      // user-friendly. The switch below provides the Spanish messages.
+      String? backendMsg;
+      if (body is Map) {
+        backendMsg = body['message']?.toString();
+      }
+      if (backendMsg != null && backendMsg.isNotEmpty) {
+        return ServerException(message: backendMsg);
+      }
+      return switch (e.type) {
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.sendTimeout ||
+        DioExceptionType.receiveTimeout =>
+          ServerException(message: 'Sin respuesta del servidor. Revisa tu conexión.'),
+        DioExceptionType.connectionError =>
+          ServerException(message: 'No se pudo conectar. Verifica tu internet.'),
+        DioExceptionType.cancel =>
+          ServerException(message: 'La solicitud fue cancelada.'),
+        _ => switch (status) {
+            401 => ServerException(message: 'Correo o contraseña incorrectos.'),
+            403 => ServerException(message: 'No tienes permiso para esta acción.'),
+            404 => ServerException(message: 'Recurso no encontrado.'),
+            409 => ServerException(message: 'Este correo o RUT ya está registrado.'),
+            500 => ServerException(message: 'Error interno del servidor. Intenta más tarde.'),
+            _ => ServerException(message: 'Error inesperado (${status ?? 'sin conexión'}). Intenta nuevamente.'),
+          },
+      };
+    }
+    return ServerException(message: e.toString());
+  }
+
   // ── Local auth ───────────────────────────────────────────────────────────────
 
   @override
@@ -71,7 +119,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _persistLocalSession(data);
       return UserModel.fromLocalAuth(data);
     } catch (e) {
-      throw ServerException(message: e.toString());
+      throw _toServerException(e);
     }
   }
 
@@ -100,8 +148,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final data = response.data as Map<String, dynamic>;
       await _persistLocalSession(data);
       return UserModel.fromLocalAuth(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 409) {
+        final detail = (e.response?.data is Map
+                ? e.response!.data['detail']?.toString()
+                : null) ??
+            '';
+        if (detail.toLowerCase().contains('rut')) {
+          throw ServerException(message: 'rut_taken');
+        }
+        throw ServerException(message: 'email_taken');
+      }
+      throw _toServerException(e);
     } catch (e) {
-      throw ServerException(message: e.toString());
+      throw _toServerException(e);
     }
   }
 
@@ -127,10 +187,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final isNew = userCredential.additionalUserInfo?.isNewUser ?? false;
-      final me = isNew ? (userId: null, role: null) : await _fetchBackendMe();
 
+      // Write FIREBASE provider BEFORE _fetchBackendMe() so that the
+      // AuthInterceptor doesn't see a stale 'LOCAL' value and accidentally
+      // call firebaseAuth.signOut() (via _clearSession) when the backend
+      // returns 401 for a user that doesn't have an account yet.
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_kAuthProvider, 'FIREBASE');
+
+      final me = isNew ? (userId: null, role: null) : await _fetchBackendMe();
 
       return UserModel.fromFirebaseUser(
         userCredential.user!,
@@ -173,13 +238,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await dioClient.post('/usuarios', data: payload);
     } catch (e) {
       if (e is DioException && e.response?.statusCode == 409) {
+        // Distinguish conflict type from the backend detail field.
+        final detail = (e.response?.data is Map
+                ? e.response!.data['detail']?.toString()
+                : null) ??
+            '';
+        if (detail.contains('RUT') || detail.contains('rut')) {
+          // RUT belongs to a different user — surface the error to the user.
+          throw ServerException(message: 'Este RUT ya está registrado por otro usuario.');
+        }
+        // Email conflict: the user previously registered a LOCAL account with
+        // this email. PATCH to merge the Google profile data into that account.
         try {
           await dioClient.patch('/usuarios/complete-profile', data: payload);
         } catch (patchErr) {
-          throw ServerException(message: patchErr.toString());
+          throw _toServerException(patchErr);
         }
       } else {
-        throw ServerException(message: e.toString());
+        throw _toServerException(e);
       }
     }
     final user = firebaseAuth.currentUser;
@@ -211,7 +287,48 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       await firebaseAuth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      throw ServerException(message: e.toString());
+      throw _toServerException(e);
+    }
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await dioClient.post('/auth/change-password', data: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      });
+    } catch (e) {
+      throw _toServerException(e);
+    }
+  }
+
+  @override
+  Future<void> requestLocalPasswordReset(String email) async {
+    try {
+      await dioClient.post('/auth/forgot-password', data: {'email': email});
+    } catch (e) {
+      throw _toServerException(e);
+    }
+  }
+
+  @override
+  Future<void> confirmLocalPasswordReset({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      await dioClient.post('/auth/reset-password', data: {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      });
+    } catch (e) {
+      throw _toServerException(e);
     }
   }
 
@@ -321,7 +438,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return UserModel.fromFirebaseUser(firebaseAuth.currentUser!,
           backendId: me.userId, role: me.role);
     } catch (e) {
-      throw ServerException(message: e.toString());
+      throw _toServerException(e);
     }
   }
 

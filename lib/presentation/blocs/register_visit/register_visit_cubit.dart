@@ -12,6 +12,8 @@ class RegisterVisitCubit extends Cubit<RegisterVisitState> {
   RegisterVisitCubit({required this.createTransactionUseCase})
       : super(RegisterVisitInitial());
 
+  void emitNoVehicles() => emit(RegisterVisitNoVehicles());
+
   /// Inicializa el formulario.
   ///
   /// [fuelTypeIds] mapea cada Fuel enum al id entero de la DB.

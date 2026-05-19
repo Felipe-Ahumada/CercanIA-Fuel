@@ -25,29 +25,14 @@ class BankProfilePage extends StatelessWidget {
 class _BankProfileView extends StatelessWidget {
   const _BankProfileView();
 
-  // Builds: bankDisplayName → cardProductName → List<DiscountEntity>
-  Map<String, Map<String, List<DiscountEntity>>> _group(
-      List<DiscountEntity> discounts) {
-    final result = <String, Map<String, List<DiscountEntity>>>{};
+  // Builds: brandName → List<DiscountEntity>, sorted alphabetically.
+  Map<String, List<DiscountEntity>> _group(List<DiscountEntity> discounts) {
+    final result = <String, List<DiscountEntity>>{};
     for (final d in discounts) {
-      final bank = (d.bankName != null && d.bankName!.isNotEmpty)
-          ? d.bankName!
-          : 'Sin tarjeta';
-      final product = d.cardProductName.isNotEmpty
-          ? d.cardProductName
-          : 'Descuento directo';
-      result.putIfAbsent(bank, () => {});
-      result[bank]!.putIfAbsent(product, () => []).add(d);
+      result.putIfAbsent(d.brandName, () => []).add(d);
     }
-    // Put "Sin tarjeta" last
-    final sorted = <String, Map<String, List<DiscountEntity>>>{};
-    for (final k in result.keys.where((k) => k != 'Sin tarjeta')) {
-      sorted[k] = result[k]!;
-    }
-    if (result.containsKey('Sin tarjeta')) {
-      sorted['Sin tarjeta'] = result['Sin tarjeta']!;
-    }
-    return sorted;
+    final keys = result.keys.toList()..sort();
+    return {for (final k in keys) k: result[k]!};
   }
 
   @override
@@ -98,8 +83,8 @@ class _BankProfileView extends StatelessWidget {
                     ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
-                        for (final bankEntry in grouped.entries) ...[
-                          // ── Bank header ──────────────────────────────────
+                        for (final brandEntry in grouped.entries) ...[
+                          // ── Brand (bencinera) header ──────────────────────
                           Padding(
                             padding: const EdgeInsets.only(
                                 top: 20, bottom: 10, left: 4),
@@ -108,14 +93,14 @@ class _BankProfileView extends StatelessWidget {
                                 Container(
                                   width: 6,
                                   height: 6,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: GlassTokens.green,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  bankEntry.key.toUpperCase(),
+                                  brandEntry.key.toUpperCase(),
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -123,43 +108,36 @@ class _BankProfileView extends StatelessWidget {
                                     color: GlassTokens.text1,
                                   ),
                                 ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${brandEntry.value.length}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: GlassTokens.text2,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          // ── Card products within this bank ───────────────
-                          for (final productEntry
-                              in bankEntry.value.entries) ...[
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  bottom: 6, left: 2),
-                              child: Text(
-                                productEntry.key,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: GlassTokens.text2,
-                                ),
-                              ),
+                          // ── Discounts for this brand ──────────────────────
+                          GlassCard(
+                            radius: GlassTokens.radiusLg,
+                            level: 1,
+                            padding: EdgeInsets.zero,
+                            child: Column(
+                              children: brandEntry.value.map((d) {
+                                return _DiscountTile(
+                                  discount: d,
+                                  isSelected: state.isSelected(d.id),
+                                  isLast: d == brandEntry.value.last,
+                                  onTap: () => context
+                                      .read<BankProfileCubit>()
+                                      .toggleDiscount(d.id),
+                                );
+                              }).toList(),
                             ),
-                            GlassCard(
-                              radius: GlassTokens.radiusLg,
-                              level: 1,
-                              padding: EdgeInsets.zero,
-                              child: Column(
-                                children: productEntry.value.map((d) {
-                                  return _DiscountTile(
-                                    discount: d,
-                                    isSelected: state.isSelected(d.id),
-                                    isLast: d == productEntry.value.last,
-                                    onTap: () => context
-                                        .read<BankProfileCubit>()
-                                        .toggleDiscount(d.id),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                          ],
+                          ),
+                          const SizedBox(height: 8),
                         ],
                         const SizedBox(height: 32),
                       ],
@@ -200,6 +178,14 @@ class _DiscountTile extends StatelessWidget {
     required this.isLast,
     required this.onTap,
   });
+
+  String get _cardLabel {
+    if (discount.cardProductId == null) return 'Sin tarjeta requerida';
+    final bank = discount.bankName ?? '';
+    final product = discount.cardProductName;
+    if (bank.isNotEmpty) return '$bank – $product';
+    return product;
+  }
 
   String get _dayLabel {
     switch (discount.dayOfWeek) {
@@ -252,9 +238,9 @@ class _DiscountTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Brand name (station brand: COPEC / SHELL / etc.)
+                  // Card product / bank name (brand is now the section header)
                   Text(
-                    discount.brandName,
+                    _cardLabel,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

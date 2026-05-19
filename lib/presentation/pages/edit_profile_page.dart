@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/glass_tokens.dart';
 import '../../core/widgets/glass_button.dart';
+import '../../core/widgets/glass_button.dart' show GlassButtonSecondary;
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/glass_input.dart';
 import '../../core/widgets/glass_loading_indicator.dart';
@@ -213,6 +214,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         width: double.infinity,
                         onPressed: () => _save(context),
                       ),
+                      if (user?.authProvider == 'LOCAL') ...[
+                        const SizedBox(height: 12),
+                        GlassButtonSecondary(
+                          label: 'Cambiar contraseña',
+                          width: double.infinity,
+                          icon: Icons.lock_outline,
+                          onPressed: () => context.push('/change_password'),
+                        ),
+                      ],
                     ],
                   ),
                 );

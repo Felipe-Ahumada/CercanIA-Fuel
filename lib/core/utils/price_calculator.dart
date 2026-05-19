@@ -8,7 +8,10 @@ class PriceCalculator {
   /// price in the station. Returns null if the station has no prices at all.
   static double? resolve(StationEntity station, Fuel? activeFuel) {
     if (station.prices.isEmpty) return null;
-    if (activeFuel != null) return station.prices[activeFuel];
-    return station.prices.values.reduce((a, b) => a < b ? a : b);
+    if (activeFuel != null) return station.prices[activeFuel]?.displayPrice;
+    return station.prices.values
+        .map((e) => e.displayPrice)
+        .whereType<double>()
+        .reduce((a, b) => a < b ? a : b);
   }
 }

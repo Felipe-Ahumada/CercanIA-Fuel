@@ -18,6 +18,7 @@ import '../../presentation/pages/vehicles_page.dart';
 import '../../presentation/pages/bank_profile_page.dart';
 import '../../presentation/pages/station_detail_page.dart';
 import '../../presentation/pages/edit_profile_page.dart';
+import '../../presentation/pages/change_password_page.dart';
 
 class AppRouter {
   final FirebaseAuth firebaseAuth;
@@ -37,14 +38,32 @@ class AppRouter {
       final provider = prefs.getString('auth_provider');
       final bool isLocalAuth =
           provider == 'LOCAL' && prefs.getString('local_jwt') != null;
-      final bool isAuthenticated =
-          firebaseAuth.currentUser != null || isLocalAuth;
+      final firebaseUser = firebaseAuth.currentUser;
+      final bool isAuthenticated = firebaseUser != null || isLocalAuth;
 
-      final bool isAuthRoute = const {'/login', '/register', '/forgot_password'}
-          .contains(state.matchedLocation);
+      final bool isAuthRoute = const {
+        '/login', '/register', '/forgot_password', '/complete_profile'
+      }.contains(state.matchedLocation);
 
       if (!isAuthenticated && !isAuthRoute) return '/login';
-      if (isAuthenticated && isAuthRoute) return '/home/map';
+
+      if (isAuthenticated) {
+        // FIREBASE users: gate on profile_complete flag to prevent sending
+        // a user without a backend account straight to /home/map.
+        if (firebaseUser != null) {
+          final complete =
+              prefs.getBool('profile_complete_${firebaseUser.uid}') ?? false;
+          if (!complete) {
+            // Needs profile completion — go there (or stay if already there).
+            return state.matchedLocation == '/complete_profile'
+                ? null
+                : '/complete_profile';
+          }
+        }
+        // Profile complete (or LOCAL auth) + on an auth route → go home.
+        if (isAuthRoute) return '/home/map';
+      }
+
       return null;
     },
     routes: [
@@ -77,6 +96,7 @@ class AppRouter {
       GoRoute(path: '/vehicles',    builder: (_, __) => const VehiclesPage()),
       GoRoute(path: '/bank_profile',builder: (_, __) => const BankProfilePage()),
       GoRoute(path: '/edit_profile', builder: (_, __) => const EditProfilePage()),
+      GoRoute(path: '/change_password', builder: (_, __) => const ChangePasswordPage()),
       GoRoute(
         path: '/station_detail',
         redirect: (_, state) => state.extra == null ? '/home/map' : null,

@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../data/models/user_model.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/auth_usecases.dart';
 
@@ -165,18 +164,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await result.fold(
       (_) async => emit(AuthUnauthenticated()),
       (user) async {
-        // Google user without a backend account → must complete profile.
         if (user.authProvider == 'FIREBASE' && user.backendId == null) {
+          // Clear any stale profile_complete flag so the router also stays on
+          // /complete_profile (handles the case where flag exists from a prior
+          // session but the backend user was deleted).
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove(_prefKey(user.uid));
           emit(_needsCompletionFromUser(user));
           return;
         }
-        final prefs = await SharedPreferences.getInstance();
-        final complete = prefs.getBool(_prefKey(user.uid)) ?? false;
-        if (!complete) {
-          emit(_needsCompletionFromUser(user));
-        } else {
-          emit(AuthAuthenticated(user));
+        // FIREBASE user with valid backend account: ensure the flag is set
+        // (handles new-device installs where SharedPreferences was wiped).
+        if (user.authProvider == 'FIREBASE') {
+          await _markProfileComplete(user.uid);
         }
+        emit(AuthAuthenticated(user));
       },
     );
   }
@@ -224,16 +226,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await result.fold(
       (failure) async => emit(AuthError(failure.message)),
       (user) async {
-        // New Google user OR user exists in Firebase but not in backend DB.
-        if (user is UserModel && (user.isNewGoogleUser || user.backendId == null)) {
-          emit(_needsCompletionFromUser(user));
-          return;
-        }
-        final prefs = await SharedPreferences.getInstance();
-        final complete = prefs.getBool(_prefKey(user.uid)) ?? false;
-        if (!complete) {
+        if (user.backendId == null) {
+          // No backend account (new user, or stale flag from a deleted account).
+          // Clear any stale profile_complete flag so the router stays on
+          // /complete_profile instead of bouncing back to /home/map.
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove(_prefKey(user.uid));
           emit(_needsCompletionFromUser(user));
         } else {
+          // Backend account exists — mark complete and authenticate.
+          // This also covers new-device installs where the flag was wiped.
+          await _markProfileComplete(user.uid);
           emit(AuthAuthenticated(user));
         }
       },

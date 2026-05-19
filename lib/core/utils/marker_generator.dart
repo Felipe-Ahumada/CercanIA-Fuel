@@ -6,169 +6,127 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../theme/glass_tokens.dart';
 import 'brand_colors.dart';
 
-/// Renders custom map markers via [dart:ui] Canvas (no widget tree) and caches
-/// the resulting [BitmapDescriptor] keyed by brand+price to avoid re-drawing
-/// identical markers on every camera move.
+/// Renders compact, minimalist map markers via [dart:ui] Canvas and caches
+/// the resulting [BitmapDescriptor] keyed by brand+price.
 ///
+/// Design: white pill — small brand-color dot on the left — price in dark text.
 /// Call [clearCache] in the owning widget's [dispose] to free memory.
 class MarkerGenerator {
   MarkerGenerator._();
 
-  // ── Cache ──────────────────────────────────────────────────────────────────
   static final Map<String, BitmapDescriptor> _cache = {};
 
   static void clearCache() => _cache.clear();
-
-  // ── Public API ─────────────────────────────────────────────────────────────
 
   static Future<BitmapDescriptor> createCustomMarker({
     required String brand,
     required double? price,
   }) async {
-    final key = _cacheKey(brand, price);
-    final cached = _cache[key];
-    if (cached != null) return cached;
-
-    final descriptor = await _draw(brand, price);
-    _cache[key] = descriptor;
-    return descriptor;
+    final key = '${brand.toLowerCase().trim()}|${price?.toStringAsFixed(0) ?? '--'}';
+    return _cache[key] ??= await _draw(brand, price);
   }
-
-  // ── Internals ──────────────────────────────────────────────────────────────
-
-  static String _cacheKey(String brand, double? price) =>
-      '${brand.toLowerCase().trim()}|${price?.toStringAsFixed(0) ?? '--'}';
-
-
 
   static String _formatPrice(double price) {
     final p = price.round();
     if (p >= 1000) {
-      final thousands = p ~/ 1000;
-      final remainder = (p % 1000).toString().padLeft(3, '0');
-      return '\$$thousands.$remainder';
+      final t = p ~/ 1000;
+      final r = (p % 1000).toString().padLeft(3, '0');
+      return '\$$t.$r';
     }
     return '\$$p';
   }
 
-  // ── Canvas drawing ─────────────────────────────────────────────────────────
-  // Logical dimensions (dp):  pill 104×48 + 8 tail = 104×56 total
-  // Rendered at dpr 2.5     → physical 260×140
-  static const double _dpr = 2.5;
-  static const double _lw = 104; // logical width
-  static const double _lh = 48;  // logical pill height
-  static const double _tailH = 8; // logical tail height
-  static const double _r = 11;   // corner radius (logical)
+  // Logical dimensions (dp): pill 76×32 + 6 tail = 76×38 total
+  static const double _dpr  = 2.5;
+  static const double _lw   = 76;   // logical width
+  static const double _lh   = 32;   // logical pill height
+  static const double _tailH = 6;   // logical tail height
+  static const double _r    = 8;    // corner radius
 
   static Future<BitmapDescriptor> _draw(String brand, double? price) async {
     final brandColor = BrandColors.of(brand);
-    final brandLabel = brand.trim();
     final priceStr = price != null ? _formatPrice(price) : '--';
 
-    const pw = _lw * _dpr;
-    const ph = _lh * _dpr;
+    const pw    = _lw * _dpr;
+    const ph    = _lh * _dpr;
     const tailH = _tailH * _dpr;
-    const r = _r * _dpr;
+    const r     = _r * _dpr;
 
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(
-      recorder,
-      const Rect.fromLTWH(0, 0, pw, ph + tailH),
-    );
+    final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, pw, ph + tailH));
 
-    // ── Drop shadow ──────────────────────────────────────────────────────────
-    final shadowPaint = Paint()
-      ..color = const Color(0x303C50B4)
-      ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 5 * _dpr);
+    // Drop shadow
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        const Rect.fromLTWH(2 * _dpr, 3 * _dpr, pw - 4 * _dpr, ph),
+        Rect.fromLTWH(1.5 * _dpr, 2 * _dpr, pw - 3 * _dpr, ph),
         const Radius.circular(r),
       ),
-      shadowPaint,
+      Paint()
+        ..color = const Color(0x28000000)
+        ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.normal, 3 * _dpr),
     );
 
-    // ── Pill background ──────────────────────────────────────────────────────
-    const pillRect = Rect.fromLTWH(0, 0, pw, ph);
+    // Pill background
+    final pillRect  = const Rect.fromLTWH(0, 0, pw, ph);
     final pillRRect = RRect.fromRectAndRadius(pillRect, const Radius.circular(r));
+    canvas.drawRRect(pillRRect, Paint()..color = const Color(0xFFFAFAFA));
 
+    // Pill border
     canvas.drawRRect(
       pillRRect,
-      Paint()..color = const Color(0xF0FFFFFF),
+      Paint()
+        ..color = const Color(0x1A000000)
+        ..style  = PaintingStyle.stroke
+        ..strokeWidth = 0.6 * _dpr,
     );
 
-    // ── Left accent bar ──────────────────────────────────────────────────────
-    const barW = 5.0 * _dpr;
-    canvas.drawRRect(
-      RRect.fromRectAndCorners(
-        const Rect.fromLTWH(0, 0, barW, ph),
-        topLeft: const Radius.circular(r),
-        bottomLeft: const Radius.circular(r),
-      ),
+    // Brand-color dot (left side, vertically centered)
+    const dotR  = 3.5 * _dpr;
+    const dotCx = 10 * _dpr;
+    const dotCy = ph / 2;
+    canvas.drawCircle(
+      const Offset(dotCx, dotCy),
+      dotR,
       Paint()..color = brandColor,
     );
 
-    // ── Pill border ──────────────────────────────────────────────────────────
-    canvas.drawRRect(
-      pillRRect,
-      Paint()
-        ..color = GlassTokens.border1
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8 * _dpr,
-    );
-
-    // ── Tail / pointer ───────────────────────────────────────────────────────
+    // Tail / pointer
     const cx = pw / 2;
-    final tailPath = Path()
-      ..moveTo(cx - 6 * _dpr, ph)
-      ..lineTo(cx + 6 * _dpr, ph)
+    final tail = Path()
+      ..moveTo(cx - 5 * _dpr, ph)
+      ..lineTo(cx + 5 * _dpr, ph)
       ..lineTo(cx, ph + tailH)
       ..close();
-
-    canvas.drawPath(tailPath, Paint()..color = const Color(0xF0FFFFFF));
+    canvas.drawPath(tail, Paint()..color = const Color(0xFFFAFAFA));
     canvas.drawPath(
-      tailPath,
+      tail,
       Paint()
-        ..color = GlassTokens.border1
+        ..color = const Color(0x1A000000)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8 * _dpr,
+        ..strokeWidth = 0.6 * _dpr,
     );
 
-    // ── Brand name ───────────────────────────────────────────────────────────
-    final brandPara = _buildParagraph(
-      text: brandLabel,
-      color: GlassTokens.text1,
-      fontSize: 11 * _dpr,
-      fontWeight: ui.FontWeight.w700,
-      maxWidth: pw - barW - 8 * _dpr,
-    );
-    canvas.drawParagraph(
-      brandPara,
-      Offset(barW + 5 * _dpr, 7 * _dpr),
-    );
-
-    // ── Price ────────────────────────────────────────────────────────────────
+    // Price text — dark slate, not green
     final pricePara = _buildParagraph(
       text: priceStr,
-      color: GlassTokens.green,
-      fontSize: 14 * _dpr,
-      fontWeight: ui.FontWeight.w800,
-      maxWidth: pw - barW - 8 * _dpr,
+      color: GlassTokens.text0,
+      fontSize: 11.5 * _dpr,
+      fontWeight: ui.FontWeight.w700,
+      maxWidth: pw - dotCx - dotR - 6 * _dpr,
     );
     canvas.drawParagraph(
       pricePara,
-      Offset(barW + 5 * _dpr, 24 * _dpr),
+      Offset(dotCx + dotR + 4 * _dpr, (ph - 11.5 * _dpr * 1.2) / 2),
     );
 
-    // ── Convert to BitmapDescriptor ──────────────────────────────────────────
     final picture = recorder.endRecording();
-    final image = await picture.toImage(pw.toInt(), (ph + tailH).toInt());
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final image   = await picture.toImage(pw.toInt(), (ph + tailH).toInt());
+    final bytes   = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
 
     return BitmapDescriptor.bytes(
-      byteData!.buffer.asUint8List(),
-      width: _lw,
+      bytes!.buffer.asUint8List(),
+      width:  _lw,
       height: _lh + _tailH,
     );
   }
@@ -180,21 +138,17 @@ class MarkerGenerator {
     required ui.FontWeight fontWeight,
     required double maxWidth,
   }) {
-    final builder = ui.ParagraphBuilder(
+    return (ui.ParagraphBuilder(
       ui.ParagraphStyle(
-        textAlign: TextAlign.left,
-        fontSize: fontSize,
+        fontSize:   fontSize,
         fontWeight: fontWeight,
-        maxLines: 1,
-        ellipsis: '..',
+        maxLines:   1,
+        ellipsis:   '..',
       ),
     )
-      ..pushStyle(ui.TextStyle(
-        color: color,
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-      ))
-      ..addText(text);
-    return builder.build()..layout(ui.ParagraphConstraints(width: maxWidth));
+      ..pushStyle(ui.TextStyle(color: color, fontSize: fontSize, fontWeight: fontWeight))
+      ..addText(text))
+        .build()
+      ..layout(ui.ParagraphConstraints(width: maxWidth));
   }
 }

@@ -1,4 +1,5 @@
 import '../../domain/entities/bank_profile_entity.dart';
+import '../../domain/entities/station_entity.dart';
 import '../../domain/entities/vehicle_entity.dart';
 import '../models/station_model.dart';
 
@@ -14,10 +15,10 @@ class MockBackendData {
       lng: -70.6700,
       address: 'Av. Alameda 1234, Santiago',
       prices: {
-        Fuel.gasoline93: 1289,
-        Fuel.gasoline95: 1338,
-        Fuel.gasoline97: 1392,
-        Fuel.diesel: 1175,
+        Fuel.gasoline93: const StationPriceEntry(fullService: 1289, selfService: 1265),
+        Fuel.gasoline95: const StationPriceEntry(fullService: 1338, selfService: 1312),
+        Fuel.gasoline97: const StationPriceEntry(fullService: 1392),
+        Fuel.diesel:     const StationPriceEntry(fullService: 1175, selfService: 1151),
       },
       lastSync: lastSync,
     ),
@@ -29,10 +30,10 @@ class MockBackendData {
       lng: -70.5700,
       address: 'Av. Apoquindo 4500, Las Condes',
       prices: {
-        Fuel.gasoline93: 1295,
-        Fuel.gasoline95: 1341,
-        Fuel.gasoline97: 1401,
-        Fuel.diesel: 1189,
+        Fuel.gasoline93: const StationPriceEntry(fullService: 1295, selfService: 1271),
+        Fuel.gasoline95: const StationPriceEntry(fullService: 1341, selfService: 1315),
+        Fuel.gasoline97: const StationPriceEntry(fullService: 1401),
+        Fuel.diesel:     const StationPriceEntry(fullService: 1189),
       },
       lastSync: lastSync,
     ),
@@ -44,10 +45,10 @@ class MockBackendData {
       lng: -70.6166,
       address: 'Av. Providencia 2340, Providencia',
       prices: {
-        Fuel.gasoline93: 1278,
-        Fuel.gasoline95: 1327,
-        Fuel.gasoline97: 1385,
-        Fuel.diesel: 1168,
+        Fuel.gasoline93: const StationPriceEntry(fullService: 1278),
+        Fuel.gasoline95: const StationPriceEntry(fullService: 1327),
+        Fuel.gasoline97: const StationPriceEntry(fullService: 1385),
+        Fuel.diesel:     const StationPriceEntry(fullService: 1168),
       },
       lastSync: lastSync,
     ),
@@ -59,10 +60,10 @@ class MockBackendData {
       lng: -70.5675,
       address: 'Av. Las Condes 10500, Las Condes',
       prices: {
-        Fuel.gasoline93: 1302,
-        Fuel.gasoline95: 1350,
-        Fuel.gasoline97: 1412,
-        Fuel.diesel: 1197,
+        Fuel.gasoline93: const StationPriceEntry(fullService: 1302, selfService: 1278),
+        Fuel.gasoline95: const StationPriceEntry(fullService: 1350, selfService: 1324),
+        Fuel.gasoline97: const StationPriceEntry(fullService: 1412),
+        Fuel.diesel:     const StationPriceEntry(fullService: 1197, selfService: 1173),
       },
       lastSync: lastSync,
     ),
@@ -74,9 +75,9 @@ class MockBackendData {
       lng: -70.5970,
       address: 'Av. Irarrázaval 3201, Ñuñoa',
       prices: {
-        Fuel.gasoline93: 1269,
-        Fuel.gasoline95: 1318,
-        Fuel.gasoline97: 1379,
+        Fuel.gasoline93: const StationPriceEntry(fullService: 1269),
+        Fuel.gasoline95: const StationPriceEntry(fullService: 1318),
+        Fuel.gasoline97: const StationPriceEntry(fullService: 1379),
       },
       lastSync: lastSync,
     ),
@@ -116,7 +117,7 @@ class MockBackendData {
           (entry) => {
             'tipoCombustibleId': fuelBackendId(entry.key),
             'tipoCombustibleNombre': entry.key.displayName,
-            'precio': entry.value,
+            'precio': entry.value.displayPrice,
             'unidadCobro': 'LT',
             'tipoAtencion': 'FULL',
             'apiTimestamp': lastSync.toIso8601String(),

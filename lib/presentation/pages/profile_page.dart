@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/glass_tokens.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/glass_loading_indicator.dart';
-import '../../core/widgets/glass_kpi_card.dart';
 import '../blocs/profile/profile_cubit.dart';
 import '../blocs/profile/profile_state.dart';
 import '../blocs/auth/auth_bloc.dart';
@@ -124,16 +123,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // KPI
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: GlassKpiCard(
-                      label: 'Transacciones',
-                      value: '—',
-                      color: GlassTokens.green,
                     ),
                   ),
                   const SizedBox(height: 20),

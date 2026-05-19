@@ -60,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: GlassTokens.pageBg,
       body: Container(
         decoration: const BoxDecoration(gradient: GlassTokens.pageGradient),
         child: SafeArea(

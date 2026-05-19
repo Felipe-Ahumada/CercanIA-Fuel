@@ -17,7 +17,6 @@ class SavingsSummaryEntity {
   final int transactionCount;
   final DateTime? from;
   final DateTime? to;
-  // NOTE: byMonth is not returned by the backend — populated only with mock data.
   final List<MonthlyStatEntity> byMonth;
 
   const SavingsSummaryEntity({

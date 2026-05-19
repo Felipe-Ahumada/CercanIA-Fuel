@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import '../entities/discount_calculation_entity.dart';
 import '../entities/transaction_entity.dart';
 import '../repositories/transaction_repository.dart';
 import '../../core/errors/failure.dart';
@@ -31,25 +30,5 @@ class CreateTransactionUseCase {
         discountId: discountId,
         discountAmount: discountAmount,
         notes: notes,
-      );
-}
-
-class CalculateDiscountUseCase {
-  final TransactionRepository repository;
-  CalculateDiscountUseCase(this.repository);
-
-  Future<Either<Failure, DiscountCalculationEntity>> call({
-    required int brandId,
-    required int fuelTypeId,
-    required double grossAmount,
-    required List<int> userCardIds,
-    double? liters,
-  }) =>
-      repository.calculateDiscount(
-        brandId: brandId,
-        fuelTypeId: fuelTypeId,
-        grossAmount: grossAmount,
-        userCardIds: userCardIds,
-        liters: liters,
       );
 }

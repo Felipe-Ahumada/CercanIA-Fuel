@@ -498,8 +498,8 @@ class _StationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final price = selectedFuel != null
-        ? station.prices[selectedFuel]
-        : (station.prices.isEmpty ? null : station.prices.values.first);
+        ? station.prices[selectedFuel]?.displayPrice
+        : (station.prices.isEmpty ? null : station.prices.values.first.displayPrice);
     final distStr = distKm != null
         ? '${distKm!.toStringAsFixed(1)} km'
         : '';

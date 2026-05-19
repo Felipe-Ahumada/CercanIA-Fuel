@@ -28,7 +28,7 @@ class StationModel extends StationEntity {
     //   { fuelTypeId, fuelTypeName, price, chargeUnit, attentionType, apiTimestamp }
     // Legacy / mock fallbacks: "precios" (map) | "preciosActuales" (list)
     final dynamic rawPrices = json['prices'] ?? json['precios'] ?? json['preciosActuales'];
-    final Map<Fuel, double> prices = _parsePrices(rawPrices, json);
+    final Map<Fuel, StationPriceEntry> prices = _parsePrices(rawPrices, json);
 
     // ── Sync timestamp ───────────────────────────────────────────────────────
     // Backend StationResponse: "syncAt" | mock: "ultima_sincronizacion"
@@ -50,33 +50,51 @@ class StationModel extends StationEntity {
     );
   }
 
-  static Map<Fuel, double> _parsePrices(dynamic rawPrices, Map<String, dynamic> json) {
+  static Map<Fuel, StationPriceEntry> _parsePrices(
+      dynamic rawPrices, Map<String, dynamic> json) {
     if (rawPrices == null) return {};
 
-    // List format: backend CurrentPriceResponse or legacy mock list
+    // List format: backend CurrentPriceResponse
+    //   { fuelTypeName, price, attentionType, apiTimestamp, ... }
     if (rawPrices is List) {
-      final map = <Fuel, double>{};
+      final fullMap = <Fuel, double>{};
+      final selfMap = <Fuel, double>{};
+
       for (final item in rawPrices) {
         if (item is! Map<String, dynamic>) continue;
         final fuelValue = item['fuelTypeName'] ?? item['tipoCombustible'] ?? item['tipoCombustibleNombre'];
         final priceValue = item['price'] ?? item['precio'];
-        if (fuelValue != null && priceValue != null) {
-          map[FuelExtension.fromString(fuelValue.toString())] = (priceValue as num).toDouble();
+        if (fuelValue == null || priceValue == null) continue;
+
+        final fuel  = FuelExtension.fromString(fuelValue.toString());
+        final price = (priceValue as num).toDouble();
+        final type  = item['attentionType']?.toString();
+
+        if (type == 'SELF') {
+          selfMap[fuel] = price;
+        } else {
+          fullMap[fuel] = price; // FULL or unknown → treat as full-service
         }
-        // Capture sync timestamp if embedded
+
         final ts = item['apiTimestamp'];
         if (ts != null) json['ultima_sincronizacion'] ??= ts.toString();
       }
-      return map;
+
+      final fuels = {...fullMap.keys, ...selfMap.keys};
+      return {
+        for (final f in fuels)
+          f: StationPriceEntry(fullService: fullMap[f], selfService: selfMap[f]),
+      };
     }
 
-    // Map format: { "fuelTypeName": price } (legacy mock)
+    // Map format: { "fuelTypeName": price } (legacy mock — no attention type info)
     if (rawPrices is Map<String, dynamic>) {
-      final map = <Fuel, double>{};
-      rawPrices.forEach((key, value) {
-        if (value != null) map[FuelExtension.fromString(key)] = (value as num).toDouble();
-      });
-      return map;
+      return {
+        for (final e in rawPrices.entries)
+          if (e.value != null)
+            FuelExtension.fromString(e.key):
+                StationPriceEntry(fullService: (e.value as num).toDouble()),
+      };
     }
 
     return {};

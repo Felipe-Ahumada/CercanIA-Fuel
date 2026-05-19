@@ -16,8 +16,8 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity>> signIn(String email, String password) async {
     try {
       return Right(await remoteDataSource.signIn(email, password));
-    } on ServerException {
-      return const Left(ServerFailure('Error al iniciar sesión.'));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Error al iniciar sesión.'));
     }
   }
 
@@ -100,6 +100,50 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(null);
     } on ServerException {
       return const Left(ServerFailure('Error al enviar correo de recuperación.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await remoteDataSource.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Error al cambiar contraseña.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> requestLocalPasswordReset(String email) async {
+    try {
+      await remoteDataSource.requestLocalPasswordReset(email);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Error al solicitar recuperación.'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> confirmLocalPasswordReset({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      await remoteDataSource.confirmLocalPasswordReset(
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Código inválido o expirado.'));
     }
   }
 

@@ -9,6 +9,9 @@ class GlassTokens {
     end: Alignment.bottomRight,
     colors: [Color(0xFFF0F4FA), Color(0xFFECF0F8)],
   );
+  // Scaffold backgroundColor for standalone pages — matches gradient end color
+  // so the system navigation bar area never shows black.
+  static const pageBg = Color(0xFFECF0F8);
   static const headerBg = Color(0xCCFFFFFF); // rgba(255,255,255,0.80)
   static const navBg    = Color(0xF0F8FAFF); // rgba(248,250,255,0.94)
 

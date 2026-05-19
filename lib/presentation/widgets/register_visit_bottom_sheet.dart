@@ -75,7 +75,10 @@ class _RegisterVisitContentState extends State<_RegisterVisitContent> {
     final vehicleState = context.read<VehicleBloc>().state;
     final bankState    = context.read<BankProfileCubit>().state;
 
-    if (vehicleState is! VehicleLoaded || vehicleState.vehicles.isEmpty) return;
+    if (vehicleState is! VehicleLoaded || vehicleState.vehicles.isEmpty) {
+      context.read<RegisterVisitCubit>().emitNoVehicles();
+      return;
+    }
 
     // Construir mapeo Fuel → fuelTypeId desde el catálogo
     final fuelTypeIds = <Fuel, int>{};
@@ -153,6 +156,36 @@ class _RegisterVisitContentState extends State<_RegisterVisitContent> {
               }
             },
             builder: (context, state) {
+              if (state is RegisterVisitNoVehicles) {
+                return Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.directions_car_outlined,
+                          size: 48, color: GlassTokens.text2),
+                      const SizedBox(height: 16),
+                      const Text('Sin vehículos registrados',
+                          style: TextStyle(fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: GlassTokens.text0),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      const Text(
+                          'Agrega un vehículo en Mis Vehículos antes de registrar una carga.',
+                          style: TextStyle(
+                              fontSize: 13, color: GlassTokens.text2),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(context, rootNavigator: true).pop(),
+                        child: const Text('Cerrar'),
+                      ),
+                    ],
+                  ),
+                );
+              }
               if (state is RegisterVisitInitial ||
                   state is RegisterVisitSubmitting) {
                 return const Padding(

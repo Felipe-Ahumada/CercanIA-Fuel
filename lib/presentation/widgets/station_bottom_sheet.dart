@@ -200,7 +200,7 @@ class _PriceCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _fuelColors[fuel]!;
-    final price = station.prices[fuel]!;
+    final price = station.prices[fuel]?.displayPrice ?? 0;
     return GlassCard(
       radius: GlassTokens.radiusMd,
       level: isActive ? 2 : 0,

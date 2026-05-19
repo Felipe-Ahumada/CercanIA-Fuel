@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import '../entities/discount_calculation_entity.dart';
 import '../entities/transaction_entity.dart';
 import '../../core/errors/failure.dart';
 
@@ -15,13 +14,5 @@ abstract class TransactionRepository {
     int? discountId,
     double? discountAmount,
     String? notes,
-  });
-
-  Future<Either<Failure, DiscountCalculationEntity>> calculateDiscount({
-    required int brandId,
-    required int fuelTypeId,
-    required double grossAmount,
-    required List<int> userCardIds,
-    double? liters,
   });
 }

@@ -29,8 +29,12 @@ class StatsCubit extends Cubit<StatsState> {
     final summary = summaryResult.getOrElse(() => throw StateError(''));
     final transactions = txResult.getOrElse(() => <TransactionEntity>[]);
 
-    // byMonth is not returned by the backend summary endpoint — compute it
-    // here from the transaction list so the bar chart always has data.
+    // Prefer server-side byMonth (full history); fall back to local computation
+    // from the 50-transaction page only if the backend returns nothing.
+    final byMonth = summary.byMonth.isNotEmpty
+        ? summary.byMonth
+        : _buildByMonth(transactions);
+
     final summaryWithMonths = SavingsSummaryModel(
       totalSaved: summary.totalSaved,
       totalSpent: summary.totalSpent,
@@ -38,7 +42,7 @@ class StatsCubit extends Cubit<StatsState> {
       transactionCount: summary.transactionCount,
       from: summary.from,
       to: summary.to,
-      byMonth: _buildByMonth(transactions),
+      byMonth: byMonth,
     );
 
     emit(StatsLoaded(summary: summaryWithMonths, transactions: transactions));
