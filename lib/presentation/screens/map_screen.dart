@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/services.dart'; // Importante para cargar los assets (rootBundle)
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -189,10 +190,9 @@ class _MapScreenState extends State<MapScreen> {
 
     for (final station in limited) {
       final price = PriceCalculator.resolve(station, preferredFuel);
-      final icon = await MarkerGenerator.createCustomMarker(
-        brand: station.brand,
-        price: price,
-      );
+      
+      // Llamada al nuevo creador de marcadores
+      final icon = await _createCustomMarker(station.brand, price);
 
       if (generation != _markerGeneration) return;
 
@@ -208,6 +208,83 @@ class _MapScreenState extends State<MapScreen> {
       setState(() => _customMarkers = newMarkers);
     }
   }
+
+  // --- NUEVA LÓGICA DE DIBUJO DE MARCADORES ---
+  Future<BitmapDescriptor> _createCustomMarker(String brand, double? price) async {
+    final pictureRecorder = PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+
+    // Factor de escala para que se vea nítido en pantallas de alta resolución
+    const double scale = 2.5;
+    const double height = 45 * scale;
+    const double width = 135 * scale;
+    const double imageSize = 35 * scale;
+    const double padding = 5 * scale;
+    const double radius = height / 2;
+
+    // 1. Dibujar sombra del contenedor
+    final shadowPaint = Paint()
+      ..color = const Color(0x33000000)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4 * scale);
+    final rrect = RRect.fromLTRBR(0, 0, width, height, Radius.circular(radius));
+    canvas.drawRRect(rrect.shift(Offset(0, 4 * scale)), shadowPaint);
+
+    // 2. Dibujar fondo (píldora blanca)
+    final bgPaint = Paint()..color = const Color(0xFFFFFFFF);
+    canvas.drawRRect(rrect, bgPaint);
+
+    // 3. Dibujar la imagen de la marca en un círculo a la izquierda
+    // Formatear la marca para buscar el asset (ej: "Aramco" -> "aramco")
+    final String safeBrand = brand.toLowerCase().replaceAll(' ', '');
+    final String assetPath = 'assets/brands/$safeBrand.png';
+
+    try {
+      final ByteData data = await rootBundle.load(assetPath);
+      final Codec codec = await instantiateImageCodec(
+        data.buffer.asUint8List(),
+        targetWidth: imageSize.toInt(),
+        targetHeight: imageSize.toInt(),
+      );
+      final FrameInfo frameInfo = await codec.getNextFrame();
+
+      canvas.save();
+      // Recorte circular para la imagen
+      final clipPath = Path()..addOval(Rect.fromLTWH(padding, padding, imageSize, imageSize));
+      canvas.clipPath(clipPath);
+      canvas.drawImage(frameInfo.image, Offset(padding, padding), Paint());
+      canvas.restore();
+    } catch (e) {
+      // Fallback si no encuentra la imagen
+      final fallbackPaint = Paint()..color = const Color(0xFFE0E0E0);
+      canvas.drawCircle(Offset(padding + imageSize / 2, padding + imageSize / 2), imageSize / 2, fallbackPaint);
+    }
+
+    // 4. Dibujar el precio a la derecha
+    if (price != null) {
+      final textPainter = TextPainter(textDirection: TextDirection.ltr);
+      textPainter.text = TextSpan(
+        text: '\$${price.toStringAsFixed(0)}',
+        style: TextStyle(
+          fontSize: 18 * scale,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xFF1F2937), // Texto oscuro
+        ),
+      );
+      textPainter.layout();
+
+      // Centrar el texto en el espacio sobrante a la derecha
+      final double textY = (height - textPainter.height) / 2;
+      final double textX = padding + imageSize + ((width - (padding + imageSize) - textPainter.width) / 2);
+      
+      textPainter.paint(canvas, Offset(textX, textY));
+    }
+
+    // Convertir el canvas a imagen y luego a BitmapDescriptor
+    final img = await pictureRecorder.endRecording().toImage(width.toInt(), (height + 5 * scale).toInt());
+    final byteData = await img.toByteData(format: ImageByteFormat.png);
+    return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  }
+  // ---------------------------------------------
 
   void _showStationBottomSheet(StationEntity station) {
     // Use the same fuel resolution logic as the marker so both show the same price.
