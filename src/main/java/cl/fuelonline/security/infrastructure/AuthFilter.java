@@ -97,8 +97,18 @@ public class AuthFilter extends OncePerRequestFilter {
         }
         try {
             FirebaseToken firebaseToken = firebaseTokenService.verify(token);
-            return authenticationService.resolveFromFirebase(
-                    firebaseToken.getUid(), firebaseToken.getEmail());
+            try {
+                return authenticationService.resolveFromFirebase(
+                        firebaseToken.getUid(), firebaseToken.getEmail());
+            } catch (AuthenticationFailedException ex) {
+                // The Firebase token is cryptographically valid, but no backend
+                // user exists yet (new Google Sign-In before completing profile).
+                // Return null so the request proceeds as anonymous — permitAll()
+                // endpoints like POST /api/v1/usuarios will accept it; protected
+                // endpoints will get the standard Spring Security 401.
+                log.debug("Firebase user not in backend yet: {}", ex.getMessage());
+                return null;
+            }
         } catch (FirebaseAuthException ex) {
             throw new AuthenticationFailedException("Token Firebase inválido o expirado", ex);
         }

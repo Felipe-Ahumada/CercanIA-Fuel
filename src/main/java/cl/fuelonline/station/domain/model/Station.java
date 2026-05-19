@@ -37,7 +37,7 @@ public class Station extends BaseAuditEntity {
     @Column(columnDefinition = "VARCHAR(36)", length = 36, updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "api_code", nullable = false, length = 30)
+    @Column(name = "api_code", nullable = false, length = 20)
     private String apiCode;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -65,7 +65,7 @@ public class Station extends BaseAuditEntity {
     @Column(length = 20)
     private String phone;
 
-    @Column(length = 120)
+    @Column(length = 254)
     private String email;
 
     @Column(name = "in_maintenance", nullable = false)

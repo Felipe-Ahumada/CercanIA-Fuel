@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -76,14 +75,4 @@ public class UserController {
         return userService.update(id, req);
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Soft delete: marks the user as inactive")
-    public void delete(@PathVariable UUID id,
-                       @AuthenticationPrincipal AuthenticatedUser principal) {
-        if (!principal.userId().equals(id) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
-            throw new AccessDeniedException("No autorizado para eliminar este usuario");
-        }
-        userService.delete(id);
-    }
 }

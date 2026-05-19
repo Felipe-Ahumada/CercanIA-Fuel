@@ -72,8 +72,6 @@ public class CneStationUpserter {
             created = true;
         }
 
-        b.setSyncAt(LocalDateTime.now());
-
         // Prices
         int insertados = 0, omitidos = 0;
         if (dto.prices() != null) {
@@ -84,6 +82,14 @@ public class CneStationUpserter {
                     omitidos++;
                 }
             }
+        }
+
+        // Only advance syncAt when at least one price was actually newer than what
+        // we already had. If the CNE returns the same old timestamps (e.g. defunct
+        // brands like Petrobras), syncAt stays unchanged and the station ages out of
+        // the 30-day bounding-box filter naturally.
+        if (insertados > 0) {
+            b.setSyncAt(LocalDateTime.now());
         }
 
         return new StationResult(created, insertados, omitidos);

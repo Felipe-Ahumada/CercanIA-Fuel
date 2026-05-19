@@ -1,9 +1,13 @@
 package cl.fuelonline.chat.infrastructure;
 
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -27,9 +31,21 @@ public class GeminiClient {
 
     public GeminiClient(
             RestClient.Builder builder,
-            @Value("${app.gemini.api-key}") String apiKey) {
-        this.restClient = builder.build();
+            @Value("${app.gemini.api-key}") String apiKey,
+            @Value("${app.gemini.connect-timeout-ms:10000}") int connectTimeoutMs,
+            @Value("${app.gemini.read-timeout-ms:30000}") int readTimeoutMs) {
         this.apiKey = apiKey;
+
+        var requestConfig = RequestConfig.custom()
+                .setConnectTimeout(Timeout.ofMilliseconds(connectTimeoutMs))
+                .setResponseTimeout(Timeout.ofMilliseconds(readTimeoutMs))
+                .build();
+        var httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+        this.restClient = builder
+                .requestFactory(new HttpComponentsClientHttpRequestFactory(httpClient))
+                .build();
     }
 
     /**

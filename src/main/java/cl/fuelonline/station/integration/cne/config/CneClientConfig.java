@@ -35,7 +35,8 @@ public class CneClientConfig {
                 .baseUrl(props.apiUrl())
                 .requestFactory(factory)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + props.token())
+                // Authorization header is set per-request by CneApiClient using
+                // CneTokenProvider, which refreshes the short-lived CNE token automatically.
                 .messageConverters(converters -> converters.stream()
                         .filter(c -> c instanceof MappingJackson2HttpMessageConverter)
                         .map(c -> (MappingJackson2HttpMessageConverter) c)

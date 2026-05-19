@@ -79,7 +79,11 @@ public class TransactionController {
     @Operation(summary = "Register a new transaction (fuel fill)")
     public ResponseEntity<TransactionResponse> register(
             @Valid @RequestBody TransactionCreateRequest req,
-            UriComponentsBuilder uriBuilder) {
+            UriComponentsBuilder uriBuilder,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        if (!principal.userId().equals(req.userId()) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("No autorizado para registrar transacciones de otro usuario");
+        }
         TransactionResponse created = transactionService.register(req);
         URI location = uriBuilder.path("/api/v1/transacciones/{id}")
                 .buildAndExpand(created.id())
@@ -90,7 +94,12 @@ public class TransactionController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Eliminar una transaction")
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable UUID id,
+                       @AuthenticationPrincipal AuthenticatedUser principal) {
+        TransactionResponse tx = transactionService.findById(id);
+        if (!tx.userId().equals(principal.userId()) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("No autorizado para eliminar esta transacción");
+        }
         transactionService.delete(id);
     }
 }

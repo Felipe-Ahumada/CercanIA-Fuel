@@ -31,30 +31,44 @@ public class CneApiClient {
 
     private final RestClient restClient;
     private final CneProperties props;
+    private final CneTokenProvider tokenProvider;
     private final ObjectMapper mapper;
 
     public CneApiClient(@Qualifier("cneRestClient") RestClient restClient,
                         CneProperties props,
+                        CneTokenProvider tokenProvider,
                         ObjectMapper mapper) {
         this.restClient = restClient;
         this.props = props;
+        this.tokenProvider = tokenProvider;
         this.mapper = mapper;
     }
 
     /**
-     * GET /api/v4/stations — devuelve todas las stations con sus prices actuales.
+     * GET /api/v4/estaciones — returns all stations with current prices.
+     * Obtains a fresh token automatically via CneTokenProvider before the request.
      */
     public List<CneStationDto> getStations() {
-        if (!props.tokenConfigured()) {
-            log.warn("CNE: token not configured (app.cne.token empty). Sync aborted.");
+        if (!props.credentialsConfigured() && !props.tokenConfigured()) {
+            log.warn("CNE: no credentials or token configured. Sync aborted.");
             return Collections.emptyList();
         }
+
+        String token;
+        try {
+            token = tokenProvider.getToken();
+        } catch (Exception ex) {
+            log.error("CNE: could not obtain auth token: {}", ex.getMessage());
+            return Collections.emptyList();
+        }
+
         log.info("CNE: requesting stations from {}{}", props.apiUrl(), props.stationsPath());
 
         String body;
         try {
             body = restClient.get()
                     .uri(props.stationsPath())
+                    .header("Authorization", "Bearer " + token)
                     .retrieve()
                     .body(String.class);
         } catch (RestClientException ex) {

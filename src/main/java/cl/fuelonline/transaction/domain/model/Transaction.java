@@ -9,6 +9,7 @@ import cl.fuelonline.user.domain.model.User;
 import cl.fuelonline.user.domain.model.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -16,10 +17,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@SQLRestriction("deleted_at IS NULL")
 @Entity
 @Table(
     name = "transaction",
     indexes = {
+        @Index(name = "idx_tx_deleted", columnList = "deleted_at"),
         @Index(name = "idx_tx_user",     columnList = "user_id"),
         @Index(name = "idx_tx_vehicle",    columnList = "vehicle_id"),
         @Index(name = "idx_tx_station",   columnList = "station_id"),
@@ -45,8 +48,8 @@ public class Transaction extends BaseAuditEntity {
                 foreignKey = @ForeignKey(name = "fk_tx_user"))
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "vehicle_id", nullable = false,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id",
                 foreignKey = @ForeignKey(name = "fk_tx_vehicle"))
     private Vehicle vehicle;
 
@@ -93,4 +96,7 @@ public class Transaction extends BaseAuditEntity {
 
     @Column(length = 255)
     private String notes;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

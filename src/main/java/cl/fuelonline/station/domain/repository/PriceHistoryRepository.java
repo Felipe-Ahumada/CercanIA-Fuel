@@ -31,10 +31,11 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long
            WHERE p.station.id = :stationId
              AND p.apiTimestamp = (
                  SELECT MAX(p2.apiTimestamp) FROM PriceHistory p2
-                 WHERE p2.station.id = p.station.id
-                   AND p2.fuelType.id = p.fuelType.id
+                 WHERE p2.station.id    = p.station.id
+                   AND p2.fuelType.id   = p.fuelType.id
+                   AND p2.attentionType = p.attentionType
              )
-           ORDER BY p.fuelType.id ASC
+           ORDER BY p.fuelType.id ASC, p.attentionType ASC
            """)
     List<PriceHistory> findCurrentPricesByFuel(UUID stationId);
 
@@ -45,10 +46,11 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long
            WHERE p.station.id IN :stationIds
              AND p.apiTimestamp = (
                  SELECT MAX(p2.apiTimestamp) FROM PriceHistory p2
-                 WHERE p2.station.id = p.station.id
-                   AND p2.fuelType.id = p.fuelType.id
+                 WHERE p2.station.id    = p.station.id
+                   AND p2.fuelType.id   = p.fuelType.id
+                   AND p2.attentionType = p.attentionType
              )
-           ORDER BY p.station.id ASC, p.fuelType.id ASC
+           ORDER BY p.station.id ASC, p.fuelType.id ASC, p.attentionType ASC
            """)
     List<PriceHistory> findCurrentPricesByFuelForStations(Collection<UUID> stationIds);
 }

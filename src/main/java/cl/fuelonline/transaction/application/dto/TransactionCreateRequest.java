@@ -11,7 +11,8 @@ public record TransactionCreateRequest(
 
         @NotNull UUID userId,
 
-        @NotNull UUID vehicleId,
+        @Schema(description = "Null if no vehicle registered (rental, anonymous fill).")
+        UUID vehicleId,
 
         @NotNull UUID stationId,
 

@@ -38,15 +38,22 @@ public class CneCatalogResolver {
     private final CommuneRepository communeRepository;
     private final FuelTypeRepository fuelTypeRepository;
 
-    /** Mapeo de la llave del JSON CNE a (shortName, nombreLargo). */
-    private static final Map<String, String[]> COMBUSTIBLE_NOMBRES = Map.of(
-            "93",  new String[]{"93",  "Gasolina 93"},
-            "95",  new String[]{"95",  "Gasolina 95"},
-            "97",  new String[]{"97",  "Gasolina 97"},
-            "DI",  new String[]{"DI",  "Petroleo Diesel"},
-            "GLP", new String[]{"GLP", "Gas Licuado de Petroleo"},
-            "KE",  new String[]{"KE",  "Kerosene"},
-            "GNC", new String[]{"GNC", "Gas Natural Comprimido"}
+    /** Mapeo de la llave del JSON CNE a (shortName, nombreLargo canónico). */
+    private static final Map<String, String[]> COMBUSTIBLE_NOMBRES = Map.ofEntries(
+            Map.entry("93",  new String[]{"93", "Gasolina 93"}),
+            Map.entry("95",  new String[]{"95", "Gasolina 95"}),
+            Map.entry("97",  new String[]{"97", "Gasolina 97"}),
+            Map.entry("DI",  new String[]{"DI", "Diésel"}),
+            Map.entry("GLP", new String[]{"GLP", "Gas Licuado de Petróleo"}),
+            Map.entry("KE",  new String[]{"KE",  "Kerosene"}),
+            Map.entry("GNC", new String[]{"GNC", "Gas Natural Comprimido"}),
+            Map.entry("GNV", new String[]{"GNV", "Gas Natural Vehicular"}),
+            // CNE alias codes — map to the same canonical short_name as the base type
+            Map.entry("A93", new String[]{"93", "Gasolina 93"}),
+            Map.entry("A95", new String[]{"95", "Gasolina 95"}),
+            Map.entry("A97", new String[]{"97", "Gasolina 97"}),
+            Map.entry("ADI", new String[]{"DI", "Diésel"}),
+            Map.entry("AKE", new String[]{"KE", "Kerosene"})
     );
 
     /** Resolves brand by api code. Auto-creates if missing. Each call is its own transaction. */
@@ -120,7 +127,7 @@ public class CneCatalogResolver {
         String shortName = nombres[0];
         String nombreLargo = nombres[1];
 
-        return fuelTypeRepository.findByShortNameIgnoreCase(shortName).orElseGet(() -> {
+        return fuelTypeRepository.findFirstByShortNameIgnoreCase(shortName).orElseGet(() -> {
             try {
                 log.info("CNE: auto-creating fuel_type {} ({})", shortName, chargeUnit);
                 return fuelTypeRepository.saveAndFlush(FuelType.builder()
@@ -128,7 +135,7 @@ public class CneCatalogResolver {
                         .chargeUnit(chargeUnit != null ? chargeUnit : ChargeUnit.LT)
                         .active(Boolean.TRUE).build());
             } catch (DataIntegrityViolationException e) {
-                return fuelTypeRepository.findByShortNameIgnoreCase(shortName)
+                return fuelTypeRepository.findFirstByShortNameIgnoreCase(shortName)
                         .orElseThrow(() -> new IllegalStateException("FuelType not found after conflict: " + shortName));
             }
         });

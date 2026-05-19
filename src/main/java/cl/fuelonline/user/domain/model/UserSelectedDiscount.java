@@ -3,18 +3,9 @@ package cl.fuelonline.user.domain.model;
 import cl.fuelonline.finance.domain.model.Discount;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
-import java.util.UUID;
 
 @Entity
-@Table(
-    name = "user_selected_discount",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uq_user_discount",
-        columnNames = {"user_id", "discount_id"})
-)
+@Table(name = "user_selected_discount")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,16 +13,19 @@ import java.util.UUID;
 @Builder
 public class UserSelectedDiscount {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private UserSelectedDiscountId id;
 
-    @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(name = "user_id", columnDefinition = "VARCHAR(36)", nullable = false, updatable = false)
-    private UUID userId;
-
+    @MapsId("discountId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "discount_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_usd_discount"))
     private Discount discount;
+
+    public static UserSelectedDiscount of(java.util.UUID userId, Discount discount) {
+        return UserSelectedDiscount.builder()
+                .id(new UserSelectedDiscountId(userId, discount.getId()))
+                .discount(discount)
+                .build();
+    }
 }

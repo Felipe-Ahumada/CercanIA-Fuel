@@ -6,7 +6,13 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "fuel_type")
+@Table(
+    name = "fuel_type",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_fuel_type_name",       columnNames = "name"),
+        @UniqueConstraint(name = "uq_fuel_type_short_name", columnNames = "short_name")
+    }
+)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @BatchSize(size = 50)
 @SQLRestriction("active = true")

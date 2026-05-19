@@ -62,6 +62,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST,
                         "/api/v1/auth/register",
                         "/api/v1/auth/login",
+                        "/api/v1/auth/forgot-password",
+                        "/api/v1/auth/reset-password",
                         "/api/v1/usuarios").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/usuarios/complete-profile").permitAll()
 
@@ -83,13 +85,16 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.POST,   "/api/v1/bancos/**",
                                                    "/api/v1/tarjetas-producto/**",
-                                                   "/api/v1/descuentos/**").hasRole("ADMIN")
+                                                   "/api/v1/descuentos/**",
+                                                   "/api/v1/bencineras/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/v1/bancos/**",
                                                    "/api/v1/tarjetas-producto/**",
-                                                   "/api/v1/descuentos/**").hasRole("ADMIN")
+                                                   "/api/v1/descuentos/**",
+                                                   "/api/v1/bencineras/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/bancos/**",
                                                    "/api/v1/tarjetas-producto/**",
-                                                   "/api/v1/descuentos/**").hasRole("ADMIN")
+                                                   "/api/v1/descuentos/**",
+                                                   "/api/v1/bencineras/**").hasRole("ADMIN")
 
                 .anyRequest().authenticated())
             .headers(h -> h.frameOptions(f -> f.sameOrigin()))

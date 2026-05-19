@@ -22,7 +22,7 @@ public class UserDiscountProfileService {
     @Transactional(readOnly = true)
     public List<DiscountResponse> getSelected(UUID userId) {
         return repository
-                .findByUserIdOrderByDiscount_Brand_NameAscDiscount_DiscountValueDesc(userId)
+                .findById_UserIdOrderByDiscount_Brand_NameAscDiscount_DiscountValueDesc(userId)
                 .stream()
                 .map(usd -> toDiscountResponse(usd.getDiscount()))
                 .toList();
@@ -36,10 +36,7 @@ public class UserDiscountProfileService {
 
         List<Discount> discounts = discountRepository.findAllById(discountIds);
         List<UserSelectedDiscount> entities = discounts.stream()
-                .map(d -> UserSelectedDiscount.builder()
-                        .userId(userId)
-                        .discount(d)
-                        .build())
+                .map(d -> UserSelectedDiscount.of(userId, d))
                 .toList();
         repository.saveAll(entities);
 

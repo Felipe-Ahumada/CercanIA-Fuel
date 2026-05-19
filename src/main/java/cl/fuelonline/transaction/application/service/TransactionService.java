@@ -88,10 +88,13 @@ public class TransactionService {
     public TransactionResponse register(TransactionCreateRequest req) {
         User user = userRepository.findById(req.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.userId()));
-        Vehicle vehicle = vehicleRepository.findById(req.vehicleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + req.vehicleId()));
-        if (!vehicle.getUser().getId().equals(user.getId())) {
-            throw new InvalidTransactionException("The vehicle does not belong to the specified user");
+        Vehicle vehicle = null;
+        if (req.vehicleId() != null) {
+            vehicle = vehicleRepository.findById(req.vehicleId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + req.vehicleId()));
+            if (!vehicle.getUser().getId().equals(user.getId())) {
+                throw new InvalidTransactionException("The vehicle does not belong to the specified user");
+            }
         }
         Station station = stationRepository.findById(req.stationId())
                 .orElseThrow(() -> new ResourceNotFoundException("Station not found: " + req.stationId()));
@@ -134,7 +137,7 @@ public class TransactionService {
 
     @Transactional
     public void delete(UUID id) {
-        transactionRepository.delete(get(id));
+        get(id).setDeletedAt(LocalDateTime.now());
     }
 
     private Transaction get(UUID id) {

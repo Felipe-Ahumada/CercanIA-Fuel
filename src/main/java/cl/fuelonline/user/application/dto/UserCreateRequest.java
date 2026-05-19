@@ -9,10 +9,10 @@ import java.time.LocalDate;
 public record UserCreateRequest(
 
         @Schema(example = "rolando.lopez@correo.cl")
-        @NotBlank @Email @Size(max = 180) String email,
+        @NotBlank @Email @Size(max = 254) String email,
 
         @Schema(example = "12.345.678-9", description = "Chilean RUT")
-        @NotBlank @Size(max = 12) String rut,
+        @NotBlank @Size(max = 10) String rut,
 
         @NotBlank @Size(max = 80) String firstName,
         @Size(max = 80)           String middleName,

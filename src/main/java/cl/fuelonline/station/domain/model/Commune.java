@@ -24,7 +24,7 @@ public class Commune {
     private Region region;
 
     /** Chilean territorial code (5 digits). E.g. "13101" for Santiago. */
-    @Column(length = 8)
+    @Column(nullable = false, length = 5)
     private String code;
 
     @Column(nullable = false, length = 80)

@@ -1,6 +1,7 @@
 package cl.fuelonline.user.application.service;
 
 import cl.fuelonline.shared.exception.ResourceNotFoundException;
+import cl.fuelonline.shared.util.RutUtils;
 import cl.fuelonline.user.application.dto.CompleteProfileRequest;
 import cl.fuelonline.user.application.dto.UserCreateRequest;
 import cl.fuelonline.user.application.dto.UserResponse;
@@ -42,8 +43,9 @@ public class UserService {
         if (userRepository.existsByEmailIgnoreCase(req.email())) {
             throw new UserAlreadyExistsException("Email already registered: " + req.email());
         }
-        if (userRepository.existsByRut(req.rut())) {
-            throw new UserAlreadyExistsException("RUT already registered: " + req.rut());
+        final String normalizedRut = RutUtils.normalize(req.rut());
+        if (userRepository.existsByRut(normalizedRut)) {
+            throw new UserAlreadyExistsException("RUT already registered: " + normalizedRut);
         }
 
         Role role = roleRepository.findById(req.roleId())
@@ -51,6 +53,7 @@ public class UserService {
 
         User nuevo = mapper.toEntity(req);
         nuevo.setRole(role);
+        nuevo.setRut(normalizedRut);
         nuevo.setAuthProvider(AuthProvider.GOOGLE);
 
         return mapper.toResponse(userRepository.save(nuevo));
@@ -83,15 +86,9 @@ public class UserService {
         user.setFirstName(req.firstName());
         user.setLastName(req.lastName());
         user.setSecondLastName(req.secondLastName());
-        user.setRut(req.rut());
+        user.setRut(RutUtils.normalize(req.rut()));
         user.setBirthDate(req.birthDate());
         return mapper.toResponse(user);
-    }
-
-    @Transactional
-    public void delete(UUID id) {
-        User user = get(id);
-        user.deactivate();
     }
 
     private User get(UUID id) {

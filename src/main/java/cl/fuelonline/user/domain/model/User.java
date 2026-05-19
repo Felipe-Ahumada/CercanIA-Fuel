@@ -44,11 +44,11 @@ public class User extends BaseAuditEntity {
                 foreignKey = @ForeignKey(name = "fk_user_role"))
     private Role role;
 
-    @Column(nullable = false, length = 180)
+    @Column(nullable = false, length = 254)
     private String email;
 
-    /** Firebase Authentication UID. Null if the user has not authenticated yet. */
-    @Column(name = "firebase_uid", length = 128)
+    /** Firebase Authentication UID (exactly 28 chars). Null if not yet authenticated via Google. */
+    @Column(name = "firebase_uid", length = 28)
     private String firebaseUid;
 
     @Column(name = "auth_provider", nullable = false, length = 10)
@@ -56,22 +56,28 @@ public class User extends BaseAuditEntity {
     @Builder.Default
     private AuthProvider authProvider = AuthProvider.LOCAL;
 
-    @Column(name = "password_hash", length = 255)
+    @Column(name = "status", nullable = false, length = 25)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(name = "password_hash", length = 72)
     private String passwordHash;
 
-    @Column(length = 12)
+    /** Normalized RUT without dots/dash (e.g. "123456789K"). Max 9 chars. */
+    @Column(length = 10)
     private String rut;
 
-    @Column(name = "first_name", nullable = false, length = 80)
+    @Column(name = "first_name", nullable = false, length = 60)
     private String firstName;
 
-    @Column(name = "middle_name", length = 80)
+    @Column(name = "middle_name", length = 60)
     private String middleName;
 
-    @Column(name = "last_name", nullable = false, length = 80)
+    @Column(name = "last_name", nullable = false, length = 60)
     private String lastName;
 
-    @Column(name = "second_last_name", length = 80)
+    @Column(name = "second_last_name", length = 60)
     private String secondLastName;
 
     @Column(name = "birth_date")
