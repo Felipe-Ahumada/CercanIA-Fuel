@@ -6,10 +6,10 @@ import cl.fuelonline.station.application.dto.PriceRegisterRequest;
 import cl.fuelonline.station.application.mapper.PriceMapper;
 import cl.fuelonline.station.domain.model.Station;
 import cl.fuelonline.station.domain.model.PriceHistory;
-import cl.fuelonline.station.domain.model.FuelType;
+import cl.fuelonline.catalog.domain.model.FuelType;
 import cl.fuelonline.station.domain.repository.StationRepository;
 import cl.fuelonline.station.domain.repository.PriceHistoryRepository;
-import cl.fuelonline.station.domain.repository.FuelTypeRepository;
+import cl.fuelonline.catalog.domain.repository.FuelTypeRepository;
 import cl.fuelonline.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,8 +17,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,15 @@ public class PriceService {
         return priceRepository.findCurrentPricesByFuel(stationId).stream()
                 .map(mapper::toCurrent)
                 .toList();
+    }
+
+    public Map<UUID, List<CurrentPriceResponse>> currentPricesOfBatch(Collection<UUID> stationIds) {
+        if (stationIds.isEmpty()) return Map.of();
+        return priceRepository.findCurrentPricesByFuelForStations(stationIds).stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getStation().getId(),
+                        Collectors.mapping(mapper::toCurrent, Collectors.toList())
+                ));
     }
 
     public CurrentPriceResponse currentPrice(UUID stationId, Integer fuelTypeId) {

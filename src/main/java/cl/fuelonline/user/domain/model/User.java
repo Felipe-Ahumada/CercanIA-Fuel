@@ -51,7 +51,15 @@ public class User extends BaseAuditEntity {
     @Column(name = "firebase_uid", length = 128)
     private String firebaseUid;
 
-    @Column(nullable = false, length = 12)
+    @Column(name = "auth_provider", nullable = false, length = 10)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column(name = "password_hash", length = 255)
+    private String passwordHash;
+
+    @Column(length = 12)
     private String rut;
 
     @Column(name = "first_name", nullable = false, length = 80)
@@ -63,10 +71,10 @@ public class User extends BaseAuditEntity {
     @Column(name = "last_name", nullable = false, length = 80)
     private String lastName;
 
-    @Column(name = "second_last_name", nullable = false, length = 80)
+    @Column(name = "second_last_name", length = 80)
     private String secondLastName;
 
-    @Column(name = "birth_date", nullable = false)
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Column(nullable = false)

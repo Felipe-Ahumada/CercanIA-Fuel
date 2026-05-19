@@ -1,30 +1,51 @@
 package cl.fuelonline.security.api;
 
+import cl.fuelonline.security.application.dto.AuthResponse;
+import cl.fuelonline.security.application.dto.LoginRequest;
 import cl.fuelonline.security.application.dto.MeResponse;
+import cl.fuelonline.security.application.dto.RegisterRequest;
+import cl.fuelonline.security.application.service.LocalAuthService;
 import cl.fuelonline.security.domain.AuthenticatedUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@Tag(name = "Authentication", description = "Current user identity")
+@RequiredArgsConstructor
+@Tag(name = "Authentication")
 public class AuthController {
 
+    private final LocalAuthService localAuthService;
+
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Registro con email y contraseña (auth local)")
+    public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
+        return localAuthService.register(req);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "Login con email y contraseña, devuelve JWT")
+    public AuthResponse login(@Valid @RequestBody LoginRequest req) {
+        return localAuthService.login(req);
+    }
+
     @GetMapping("/me")
-    @Operation(summary = "Returns the authenticated user profile",
+    @Operation(summary = "Perfil del usuario autenticado",
                security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<MeResponse> me(@AuthenticationPrincipal AuthenticatedUser user,
-                                         Authentication auth) {
+                                          Authentication auth) {
         if (user == null) return ResponseEntity.status(401).build();
         List<String> authorities = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)

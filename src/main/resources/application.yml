@@ -1,8 +1,12 @@
-spring:
+﻿spring:
   application:
     name: fuel-online-backend
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
 
 server:
   port: ${SERVER_PORT:8080}
@@ -32,6 +36,13 @@ app:
     # When enabled, accepts the X-Dev-User: <email> header to impersonate local users.
     dev-mode: ${APP_SECURITY_DEV_MODE:false}
     dev-user-header: X-Dev-User
+    jwt:
+      secret: ${JWT_SECRET:cercania-fuel-dev-secret-key-replace-in-production}
+      expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
+      issuer: cercania-fuel
+
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
 
   cne:
     enabled: ${CNE_ENABLED:false}

@@ -26,7 +26,10 @@ public class CardProductService {
     private final CardProductMapper mapper;
 
     public List<CardProductResponse> list() {
-        return cardProductRepository.findAll().stream().map(mapper::toResponse).toList();
+        return cardProductRepository.findAllWithActiveDiscounts()
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     public List<CardProductResponse> listByBank(Integer bankId) {

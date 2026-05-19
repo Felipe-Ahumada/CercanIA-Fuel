@@ -19,6 +19,9 @@ public record CalculateDiscountRequest(
         @Schema(description = "IDs de tarjetas-producto que tiene el user. Vacio = sin tarjetas")
         List<@Positive Integer> userCardIds,
 
+        @Schema(description = "Litros cargados. Requerido para calcular descuentos FIXED_PER_LITER.")
+        @DecimalMin(value = "0.0", inclusive = false) BigDecimal liters,
+
         @Schema(description = "Fecha de la compra. Si es null, se usa la date de hoy.")
         LocalDate date
 ) {}

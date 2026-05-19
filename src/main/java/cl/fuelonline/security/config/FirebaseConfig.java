@@ -1,5 +1,6 @@
 package cl.fuelonline.security.config;
 
+import cl.fuelonline.security.application.service.FirebaseTokenService;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -41,5 +42,10 @@ public class FirebaseConfig {
     @Bean
     public FirebaseAuth firebaseAuth(FirebaseApp app) {
         return FirebaseAuth.getInstance(app);
+    }
+
+    @Bean
+    public FirebaseTokenService firebaseTokenService(FirebaseAuth firebaseAuth) {
+        return new FirebaseTokenService(firebaseAuth);
     }
 }

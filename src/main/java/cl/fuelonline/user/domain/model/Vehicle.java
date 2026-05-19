@@ -1,6 +1,6 @@
 package cl.fuelonline.user.domain.model;
 
-import cl.fuelonline.station.domain.model.FuelType;
+import cl.fuelonline.catalog.domain.model.FuelType;
 import cl.fuelonline.shared.persistence.BaseAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,7 +13,6 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "vehicle",
-    uniqueConstraints = @UniqueConstraint(name = "uq_vehicle_license_plate", columnNames = "licensePlate"),
     indexes = {
         @Index(name = "idx_vehicle_user",     columnList = "user_id"),
         @Index(name = "idx_vehicle_model",      columnList = "vehicle_model_id"),

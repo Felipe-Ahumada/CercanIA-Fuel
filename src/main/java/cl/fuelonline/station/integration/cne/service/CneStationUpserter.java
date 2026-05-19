@@ -1,6 +1,12 @@
 package cl.fuelonline.station.integration.cne.service;
 
-import cl.fuelonline.station.domain.model.*;
+import cl.fuelonline.catalog.domain.model.Brand;
+import cl.fuelonline.catalog.domain.model.ChargeUnit;
+import cl.fuelonline.catalog.domain.model.FuelType;
+import cl.fuelonline.station.domain.model.Commune;
+import cl.fuelonline.station.domain.model.PriceHistory;
+import cl.fuelonline.station.domain.model.Region;
+import cl.fuelonline.station.domain.model.Station;
 import cl.fuelonline.station.domain.repository.StationRepository;
 import cl.fuelonline.station.domain.repository.PriceHistoryRepository;
 import cl.fuelonline.station.integration.cne.dto.CneStationDto;

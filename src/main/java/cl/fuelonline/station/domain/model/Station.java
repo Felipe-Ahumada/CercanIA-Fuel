@@ -1,5 +1,6 @@
 package cl.fuelonline.station.domain.model;
 
+import cl.fuelonline.catalog.domain.model.Brand;
 import cl.fuelonline.shared.persistence.BaseAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;

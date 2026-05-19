@@ -1,6 +1,6 @@
-package cl.fuelonline.station.domain.repository;
+package cl.fuelonline.catalog.domain.repository;
 
-import cl.fuelonline.station.domain.model.FuelType;
+import cl.fuelonline.catalog.domain.model.FuelType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

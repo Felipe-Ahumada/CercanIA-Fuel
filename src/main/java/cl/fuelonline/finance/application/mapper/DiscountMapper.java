@@ -16,15 +16,15 @@ public interface DiscountMapper {
     @Mapping(target = "cardProduct",  ignore = true)
     @Mapping(target = "fuelType",  ignore = true)
     @Mapping(target = "active",           constant = "true")
-    @Mapping(target = "createdAt",        ignore = true)
     Discount toEntity(DiscountCreateRequest req);
 
-    @Mapping(target = "brandId",                source = "brand.id")
-    @Mapping(target = "brandName",            source = "brand.name")
-    @Mapping(target = "cardProductId",      source = "cardProduct.id")
+    @Mapping(target = "brandId",          source = "brand.id")
+    @Mapping(target = "brandName",        source = "brand.name")
+    @Mapping(target = "cardProductId",    source = "cardProduct.id")
     @Mapping(target = "cardProductName",  source = "cardProduct.name")
-    @Mapping(target = "fuelTypeId",      source = "fuelType.id")
-    @Mapping(target = "fuelTypeName",  source = "fuelType.name")
+    @Mapping(target = "bankName",         source = "cardProduct.bank.name")
+    @Mapping(target = "fuelTypeId",       source = "fuelType.id")
+    @Mapping(target = "fuelTypeName",     source = "fuelType.name")
     DiscountResponse toResponse(Discount entity);
 
     @Mapping(target = "id",               ignore = true)

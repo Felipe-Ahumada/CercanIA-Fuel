@@ -11,7 +11,7 @@ public record UserCreateRequest(
         @Schema(example = "rolando.lopez@correo.cl")
         @NotBlank @Email @Size(max = 180) String email,
 
-        @Schema(example = "12.345.678-9", description = "Chilean RUT (with or without formatting)")
+        @Schema(example = "12.345.678-9", description = "Chilean RUT")
         @NotBlank @Size(max = 12) String rut,
 
         @NotBlank @Size(max = 80) String firstName,

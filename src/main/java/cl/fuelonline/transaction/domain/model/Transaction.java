@@ -1,7 +1,7 @@
 package cl.fuelonline.transaction.domain.model;
 
 import cl.fuelonline.station.domain.model.Station;
-import cl.fuelonline.station.domain.model.FuelType;
+import cl.fuelonline.catalog.domain.model.FuelType;
 import cl.fuelonline.finance.domain.model.Discount;
 import cl.fuelonline.finance.domain.model.CardProduct;
 import cl.fuelonline.shared.persistence.BaseAuditEntity;

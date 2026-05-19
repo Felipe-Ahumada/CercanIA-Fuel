@@ -1,10 +1,10 @@
 package cl.fuelonline.transaction.domain.model;
 
+import cl.fuelonline.shared.persistence.BaseCreatableEntity;
 import cl.fuelonline.station.domain.model.Station;
 import cl.fuelonline.user.domain.model.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @Table(
     name = "alert",
     indexes = {
-        @Index(name = "idx_alert_user",     columnList = "user_id"),
-        @Index(name = "idx_alert_station",   columnList = "station_id"),
-        @Index(name = "idx_alert_type",        columnList = "alert_type"),
+        @Index(name = "idx_alert_user",       columnList = "user_id"),
+        @Index(name = "idx_alert_station",    columnList = "station_id"),
+        @Index(name = "idx_alert_type",       columnList = "alert_type"),
         @Index(name = "idx_alert_read",       columnList = "is_read"),
-        @Index(name = "idx_alert_created_at",  columnList = "created_at")
+        @Index(name = "idx_alert_created_at", columnList = "created_at")
     }
 )
 @Getter
@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Alert {
+public class Alert extends BaseCreatableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +35,6 @@ public class Alert {
                 foreignKey = @ForeignKey(name = "fk_alert_user"))
     private User user;
 
-    /** Null = alert not associated with a station (e.g. SYSTEM). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id",
                 foreignKey = @ForeignKey(name = "fk_alert_station"))
@@ -57,10 +56,6 @@ public class Alert {
 
     @Column(name = "read_at")
     private LocalDateTime readAt;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     public void markAsRead() {
         this.read = Boolean.TRUE;

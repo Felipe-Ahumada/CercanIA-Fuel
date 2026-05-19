@@ -1,7 +1,7 @@
 package cl.fuelonline.station.application.dto;
 
 import cl.fuelonline.station.domain.model.PriceHistory.AttentionType;
-import cl.fuelonline.station.domain.model.ChargeUnit;
+import cl.fuelonline.catalog.domain.model.ChargeUnit;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;

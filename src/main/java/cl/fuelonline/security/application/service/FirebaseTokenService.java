@@ -4,15 +4,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.stereotype.Service;
 
 /**
  * Verifies an ID Token issued by Firebase Authentication.
- * Only instantiated when the FirebaseAuth bean exists (i.e. when credentials are configured).
+ * Instantiated only by FirebaseConfig when credentials are configured.
  */
-@Service
-@ConditionalOnBean(FirebaseAuth.class)
 @RequiredArgsConstructor
 public class FirebaseTokenService {
 

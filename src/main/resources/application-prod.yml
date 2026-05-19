@@ -13,6 +13,12 @@ spring:
         jdbc:
           time_zone: America/Santiago
 
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
 logging:
   level:
     cl.fuelonline: INFO

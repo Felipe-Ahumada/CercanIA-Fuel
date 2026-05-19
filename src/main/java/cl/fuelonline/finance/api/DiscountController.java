@@ -25,10 +25,23 @@ public class DiscountController {
 
     private final DiscountService discountService;
 
+    @GetMapping("/catalogo")
+    @Operation(summary = "Catálogo completo de descuentos activos para que el usuario elija los suyos")
+    public List<DiscountResponse> catalogo() {
+        return discountService.listAll();
+    }
+
     @GetMapping
     @Operation(summary = "Listar descuentos por brand")
     public List<DiscountResponse> listByBrand(@RequestParam @Positive Integer brandId) {
         return discountService.listByBrand(brandId);
+    }
+
+    @GetMapping("/por-tarjetas")
+    @Operation(summary = "Listar descuentos activos para una lista de card products del usuario")
+    public List<DiscountResponse> listByCardProducts(
+            @RequestParam List<Integer> cardProductIds) {
+        return discountService.listByCardProducts(cardProductIds);
     }
 
     @GetMapping("/{id}")

@@ -1,10 +1,10 @@
 package cl.fuelonline.station.application.mapper;
 
+import cl.fuelonline.station.application.dto.CurrentPriceResponse;
 import cl.fuelonline.station.application.dto.StationCreateRequest;
 import cl.fuelonline.station.application.dto.StationResponse;
 import cl.fuelonline.station.application.dto.StationSummaryResponse;
 import cl.fuelonline.station.application.dto.StationUpdateRequest;
-import cl.fuelonline.station.application.dto.CurrentPriceResponse;
 import cl.fuelonline.station.domain.model.Station;
 import org.mapstruct.*;
 
@@ -35,13 +35,15 @@ public interface StationMapper {
 
     @Mapping(target = "id",          source = "b.id")
     @Mapping(target = "name",      source = "b.name")
+    @Mapping(target = "brandId",     source = "b.brand.id")
     @Mapping(target = "brand",       source = "b.brand.name")
     @Mapping(target = "address",   source = "b.address")
     @Mapping(target = "latitude",     source = "b.latitude")
     @Mapping(target = "longitude",    source = "b.longitude")
     @Mapping(target = "inMaintenance", source = "b.inMaintenance")
     @Mapping(target = "distanciaKm", source = "distanciaKm")
-    StationSummaryResponse toSummary(Station b, Double distanciaKm);
+    @Mapping(target = "prices",      source = "prices")
+    StationSummaryResponse toSummary(Station b, Double distanciaKm, List<CurrentPriceResponse> prices);
 
     @Mapping(target = "id",        ignore = true)
     @Mapping(target = "brand",     ignore = true)

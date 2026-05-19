@@ -4,10 +4,10 @@ import cl.fuelonline.station.application.exception.StationAlreadyExistsException
 import cl.fuelonline.finance.application.exception.BankAlreadyExistsException;
 import cl.fuelonline.finance.application.exception.CardProductAlreadyExistsException;
 import cl.fuelonline.transaction.application.exception.RatingAlreadyExistsException;
-import cl.fuelonline.transaction.application.exception.FavoriteAlreadyExistsException;
 import cl.fuelonline.transaction.application.exception.InvalidTransactionException;
 import cl.fuelonline.user.application.exception.UserAlreadyExistsException;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -33,8 +33,7 @@ public class GlobalExceptionHandler {
             StationAlreadyExistsException.class,
             BankAlreadyExistsException.class,
             CardProductAlreadyExistsException.class,
-            RatingAlreadyExistsException.class,
-            FavoriteAlreadyExistsException.class
+            RatingAlreadyExistsException.class
     })
     public ResponseEntity<ApiError> conflict(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -65,5 +64,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> constraintViolation(ConstraintViolationException ex) {
         return ResponseEntity.badRequest()
                 .body(new ApiError(Instant.now(), 400, "Validation Failed", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> dataIntegrity(DataIntegrityViolationException ex) {
+        String cause = ex.getMostSpecificCause().getMessage();
+        String detail = cause != null && cause.contains("Column")
+                ? cause.split("\\[")[0].trim()
+                : "Database constraint violation";
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ApiError(Instant.now(), 422, "Data Integrity Violation", detail));
     }
 }

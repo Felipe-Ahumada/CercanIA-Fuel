@@ -1,8 +1,11 @@
 package cl.fuelonline.station.domain.model;
 
+import cl.fuelonline.catalog.domain.model.ChargeUnit;
+import cl.fuelonline.catalog.domain.model.FuelType;
+
+import cl.fuelonline.shared.persistence.BaseCreatableEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,9 +14,9 @@ import java.time.LocalDateTime;
 @Table(
     name = "price_history",
     indexes = {
-        @Index(name = "idx_ph_fuel",   columnList = "fuel_type_id"),
+        @Index(name = "idx_ph_fuel",          columnList = "fuel_type_id"),
         @Index(name = "idx_ph_api_timestamp", columnList = "api_timestamp"),
-        @Index(name = "idx_ph_recent",      columnList = "station_id, fuel_type_id, api_timestamp")
+        @Index(name = "idx_ph_recent",        columnList = "station_id, fuel_type_id, api_timestamp")
     }
 )
 @Getter
@@ -21,7 +24,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PriceHistory {
+public class PriceHistory extends BaseCreatableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,10 +55,6 @@ public class PriceHistory {
 
     @Column(name = "api_timestamp", nullable = false)
     private LocalDateTime apiTimestamp;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     public enum AttentionType { FULL, SELF }
 }

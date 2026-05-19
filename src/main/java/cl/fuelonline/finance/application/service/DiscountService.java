@@ -1,9 +1,8 @@
 package cl.fuelonline.finance.application.service;
 
-import cl.fuelonline.station.domain.model.Brand;
-import cl.fuelonline.station.domain.model.FuelType;
-import cl.fuelonline.station.domain.repository.BrandRepository;
-import cl.fuelonline.station.domain.repository.FuelTypeRepository;
+import cl.fuelonline.catalog.domain.model.Brand;
+import cl.fuelonline.catalog.domain.repository.BrandRepository;
+import cl.fuelonline.catalog.domain.repository.FuelTypeRepository;
 import cl.fuelonline.finance.application.dto.*;
 import cl.fuelonline.finance.application.mapper.DiscountMapper;
 import cl.fuelonline.finance.domain.model.Discount;
@@ -36,8 +35,23 @@ public class DiscountService {
     private final CardProductRepository cardProductRepository;
     private final DiscountMapper mapper;
 
+    public List<DiscountResponse> listAll() {
+        return discountRepository.findAllActiveWithDetails().stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
     public List<DiscountResponse> listByBrand(Integer brandId) {
-        return discountRepository.findAllByBrand_IdOrderByDiscountValueDesc(brandId).stream()
+        return discountRepository.findAllByBrandWithDetails(brandId).stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
+    public List<DiscountResponse> listByCardProducts(List<Integer> cardProductIds) {
+        if (cardProductIds == null || cardProductIds.isEmpty()) return List.of();
+        return discountRepository
+                .findAllByCardProduct_IdInAndActiveTrueOrderByDiscountValueDesc(cardProductIds)
+                .stream()
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -107,17 +121,20 @@ public class DiscountService {
         List<Discount> applicable = discountRepository.findAll(spec);
 
         return applicable.stream()
-                .map(d -> calculateOne(d, req.grossAmount()))
+                .map(d -> calculateOne(d, req.grossAmount(), req.liters()))
                 .max(Comparator.comparing(CalculatedDiscountResponse::discountAmount))
                 .orElseGet(() -> noDiscount(req.grossAmount()));
     }
 
-    private CalculatedDiscountResponse calculateOne(Discount d, BigDecimal grossAmount) {
+    private CalculatedDiscountResponse calculateOne(Discount d, BigDecimal grossAmount, BigDecimal liters) {
         BigDecimal savings = switch (d.getDiscountType()) {
             case PERCENTAGE -> grossAmount
                     .multiply(d.getDiscountValue())
                     .divide(CIEN, 2, RoundingMode.HALF_UP);
             case FIXED_AMOUNT -> d.getDiscountValue();
+            case FIXED_PER_LITER -> liters != null
+                    ? liters.multiply(d.getDiscountValue()).setScale(2, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
         };
 
         if (d.getMaxCap() != null && savings.compareTo(d.getMaxCap()) > 0) {

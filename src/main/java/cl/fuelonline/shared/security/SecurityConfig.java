@@ -1,7 +1,8 @@
 package cl.fuelonline.shared.security;
 
+import cl.fuelonline.security.config.JwtProperties;
 import cl.fuelonline.security.config.SecurityProperties;
-import cl.fuelonline.security.infrastructure.FirebaseAuthFilter;
+import cl.fuelonline.security.infrastructure.AuthFilter;
 import cl.fuelonline.security.infrastructure.RestAccessDeniedHandler;
 import cl.fuelonline.security.infrastructure.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -21,23 +24,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/**
- * Central Spring Security configuration.
- *
- * - Stateless sessions (the API is REST with tokens, no HTTP sessions).
- * - CSRF disabled: no server-side forms.
- * - CORS open (tune per environment once frontend domains are defined).
- * - FirebaseAuthFilter is inserted before UsernamePasswordAuthenticationFilter.
- */
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(SecurityProperties.class)
+@EnableConfigurationProperties({SecurityProperties.class, JwtProperties.class})
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final FirebaseAuthFilter firebaseAuthFilter;
+    private final AuthFilter authFilter;
     private final RestAuthenticationEntryPoint authEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -45,12 +45,11 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(c -> c.configurationSource(corsConfigurationSource()))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(eh -> eh
                     .authenticationEntryPoint(authEntryPoint)
                     .accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
-                // Public documentation and health
                 .requestMatchers(
                         "/swagger-ui/**", "/swagger-ui.html",
                         "/v3/api-docs/**",
@@ -58,13 +57,16 @@ public class SecurityConfig {
                         "/h2-console/**",
                         "/error").permitAll()
 
-                // Authentication: the filter decides whether the request carries a token; /me requires auth
                 .requestMatchers("/api/v1/auth/me").authenticated()
 
-                // Registro publico de user
-                .requestMatchers(HttpMethod.POST, "/api/v1/usuarios").permitAll()
+                .requestMatchers(HttpMethod.POST,
+                        "/api/v1/auth/register",
+                        "/api/v1/auth/login",
+                        "/api/v1/usuarios").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/usuarios/complete-profile").permitAll()
 
-                // Station catalogs (public read access)
+                .requestMatchers(HttpMethod.GET, "/api/v1/vehiculos/**").permitAll()
+
                 .requestMatchers(HttpMethod.GET,
                         "/api/v1/bencineras/**",
                         "/api/v1/regiones/**",
@@ -73,13 +75,12 @@ public class SecurityConfig {
                         "/api/v1/tipos-combustible/**",
                         "/api/v1/precios/**").permitAll()
 
-                // Discount reads are public; calculation and mutations require auth
+                .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/catalogo").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/**").permitAll()
 
-                // Admin-only endpoints
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/usuarios").hasRole("ADMIN")
 
-                // Catalog mutations: admin only
                 .requestMatchers(HttpMethod.POST,   "/api/v1/bancos/**",
                                                    "/api/v1/tarjetas-producto/**",
                                                    "/api/v1/descuentos/**").hasRole("ADMIN")
@@ -90,9 +91,8 @@ public class SecurityConfig {
                                                    "/api/v1/tarjetas-producto/**",
                                                    "/api/v1/descuentos/**").hasRole("ADMIN")
 
-                // Everything else requires authentication
                 .anyRequest().authenticated())
-            .headers(h -> h.frameOptions(f -> f.sameOrigin())) // allows H2 console in dev
+            .headers(h -> h.frameOptions(f -> f.sameOrigin()))
             .build();
     }
 

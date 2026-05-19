@@ -5,10 +5,10 @@ import cl.fuelonline.station.application.exception.StationAlreadyExistsException
 import cl.fuelonline.station.application.mapper.StationMapper;
 import cl.fuelonline.station.domain.model.Station;
 import cl.fuelonline.station.domain.model.Commune;
-import cl.fuelonline.station.domain.model.Brand;
+import cl.fuelonline.catalog.domain.model.Brand;
 import cl.fuelonline.station.domain.repository.StationRepository;
 import cl.fuelonline.station.domain.repository.CommuneRepository;
-import cl.fuelonline.station.domain.repository.BrandRepository;
+import cl.fuelonline.catalog.domain.repository.BrandRepository;
 import cl.fuelonline.shared.exception.ResourceNotFoundException;
 import cl.fuelonline.shared.util.GeoUtils;
 import cl.fuelonline.shared.util.GeoUtils.BoundingBox;
@@ -18,9 +18,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +38,11 @@ public class StationService {
     private final StationMapper mapper;
 
     public Page<StationSummaryResponse> list(Pageable pageable) {
-        return stationRepository.findAll(pageable)
-                .map(b -> mapper.toSummary(b, null));
+        Page<Station> page = stationRepository.findAllWithRelations(pageable);
+        Set<UUID> ids = page.stream().map(Station::getId).collect(Collectors.toSet());
+        Map<UUID, List<CurrentPriceResponse>> pricesMap = priceService.currentPricesOfBatch(ids);
+        return page.map(b -> mapper.toSummary(b, null,
+                pricesMap.getOrDefault(b.getId(), List.of())));
     }
 
     public StationResponse findById(UUID id) {
@@ -44,8 +51,12 @@ public class StationService {
     }
 
     public List<StationSummaryResponse> listarPorComuna(Integer communeId) {
-        return stationRepository.findAllByCommune_Id(communeId).stream()
-                .map(b -> mapper.toSummary(b, null))
+        List<Station> stations = stationRepository.findAllByCommune_Id(communeId);
+        Set<UUID> ids = stations.stream().map(Station::getId).collect(Collectors.toSet());
+        Map<UUID, List<CurrentPriceResponse>> pricesMap = priceService.currentPricesOfBatch(ids);
+        return stations.stream()
+                .map(b -> mapper.toSummary(b, null,
+                        pricesMap.getOrDefault(b.getId(), List.of())))
                 .toList();
     }
 
@@ -54,14 +65,21 @@ public class StationService {
      * lat/lon) y luego refina con Haversine para distancia exacta. Devuelve
      * resultados ordenados por distancia ascendente.
      */
+    private static final int PRICE_STALE_DAYS = 30;
+
     public List<StationSummaryResponse> findNearby(double lat, double lon, double radioKm) {
         BoundingBox box = GeoUtils.boundingBox(lat, lon, radioKm);
-        return stationRepository.findInBoundingBox(
-                        box.latMin(), box.latMax(), box.lonMin(), box.lonMax()).stream()
+        LocalDateTime threshold = LocalDateTime.now().minusDays(PRICE_STALE_DAYS);
+        List<Station> candidates = stationRepository.findInBoundingBox(
+                box.latMin(), box.latMax(), box.lonMin(), box.lonMax(), threshold);
+        Set<UUID> ids = candidates.stream().map(Station::getId).collect(Collectors.toSet());
+        Map<UUID, List<CurrentPriceResponse>> pricesMap = priceService.currentPricesOfBatch(ids);
+        return candidates.stream()
                 .map(b -> {
                     double d = GeoUtils.distanciaKm(lat, lon,
                             b.getLatitude().doubleValue(), b.getLongitude().doubleValue());
-                    return mapper.toSummary(b, d);
+                    return mapper.toSummary(b, d,
+                            pricesMap.getOrDefault(b.getId(), List.of()));
                 })
                 .filter(s -> s.distanciaKm() <= radioKm)
                 .sorted(Comparator.comparingDouble(StationSummaryResponse::distanciaKm))

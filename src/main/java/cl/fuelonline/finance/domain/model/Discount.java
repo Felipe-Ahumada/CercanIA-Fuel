@@ -1,24 +1,23 @@
 package cl.fuelonline.finance.domain.model;
 
-import cl.fuelonline.station.domain.model.Brand;
-import cl.fuelonline.station.domain.model.FuelType;
+import cl.fuelonline.shared.persistence.BaseCreatableEntity;
+import cl.fuelonline.catalog.domain.model.Brand;
+import cl.fuelonline.catalog.domain.model.FuelType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(
     name = "discount",
     indexes = {
-        @Index(name = "idx_discount_brand",             columnList = "brand_id"),
-        @Index(name = "idx_discount_card_product",  columnList = "card_product_id"),
-        @Index(name = "idx_discount_fuel",       columnList = "fuel_type_id"),
-        @Index(name = "idx_discount_day",               columnList = "day_of_week")
+        @Index(name = "idx_discount_brand",        columnList = "brand_id"),
+        @Index(name = "idx_discount_card_product", columnList = "card_product_id"),
+        @Index(name = "idx_discount_fuel",         columnList = "fuel_type_id"),
+        @Index(name = "idx_discount_day",          columnList = "day_of_week")
     }
 )
 @Getter
@@ -27,7 +26,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @SQLRestriction("active = true")
-public class Discount {
+public class Discount extends BaseCreatableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,19 +37,16 @@ public class Discount {
                 foreignKey = @ForeignKey(name = "fk_discount_brand"))
     private Brand brand;
 
-    /** Null = applies to any payment method. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_product_id",
                 foreignKey = @ForeignKey(name = "fk_discount_card_product"))
     private CardProduct cardProduct;
 
-    /** Null = applies to any fuel. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fuel_type_id",
                 foreignKey = @ForeignKey(name = "fk_discount_fuel"))
     private FuelType fuelType;
 
-    /** Null = applies every day. 1 = Monday, 7 = Sunday. */
     @Column(name = "day_of_week")
     private Integer dayOfWeek;
 
@@ -77,8 +73,4 @@ public class Discount {
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = Boolean.TRUE;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 }

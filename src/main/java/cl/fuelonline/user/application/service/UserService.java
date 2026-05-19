@@ -1,11 +1,13 @@
 package cl.fuelonline.user.application.service;
 
 import cl.fuelonline.shared.exception.ResourceNotFoundException;
+import cl.fuelonline.user.application.dto.CompleteProfileRequest;
 import cl.fuelonline.user.application.dto.UserCreateRequest;
 import cl.fuelonline.user.application.dto.UserResponse;
 import cl.fuelonline.user.application.dto.UserUpdateRequest;
 import cl.fuelonline.user.application.exception.UserAlreadyExistsException;
 import cl.fuelonline.user.application.mapper.UserMapper;
+import cl.fuelonline.user.domain.model.AuthProvider;
 import cl.fuelonline.user.domain.model.Role;
 import cl.fuelonline.user.domain.model.User;
 import cl.fuelonline.user.domain.repository.RoleRepository;
@@ -49,6 +51,7 @@ public class UserService {
 
         User nuevo = mapper.toEntity(req);
         nuevo.setRole(role);
+        nuevo.setAuthProvider(AuthProvider.GOOGLE);
 
         return mapper.toResponse(userRepository.save(nuevo));
     }
@@ -70,6 +73,18 @@ public class UserService {
             user.setRole(role);
         }
 
+        return mapper.toResponse(user);
+    }
+
+    @Transactional
+    public UserResponse completeProfile(CompleteProfileRequest req) {
+        User user = userRepository.findByEmailIgnoreCase(req.email())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.email()));
+        user.setFirstName(req.firstName());
+        user.setLastName(req.lastName());
+        user.setSecondLastName(req.secondLastName());
+        user.setRut(req.rut());
+        user.setBirthDate(req.birthDate());
         return mapper.toResponse(user);
     }
 

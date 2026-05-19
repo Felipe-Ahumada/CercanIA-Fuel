@@ -2,6 +2,7 @@ package cl.fuelonline.transaction.application.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public record ExpenseSummaryResponse(
         LocalDate desde,
@@ -9,5 +10,6 @@ public record ExpenseSummaryResponse(
         BigDecimal totalSpent,
         BigDecimal totalSaved,
         BigDecimal totalLiters,
-        long fillCount
+        long fillCount,
+        List<MonthlyStatResponse> byMonth
 ) {}

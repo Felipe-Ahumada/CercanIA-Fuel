@@ -14,7 +14,9 @@ public interface UserMapper {
     @Mapping(target = "id",         ignore = true)
     @Mapping(target = "role",        ignore = true)
     @Mapping(target = "vehicles",  ignore = true)
-    @Mapping(target = "active",     constant = "true")
+    @Mapping(target = "active",       constant = "true")
+    @Mapping(target = "authProvider", ignore = true)
+    @Mapping(target = "passwordHash", ignore = true)
     User toEntity(UserCreateRequest req);
 
     @Mapping(target = "roleId",     source = "role.id")
@@ -26,5 +28,7 @@ public interface UserMapper {
     @Mapping(target = "vehicles", ignore = true)
     @Mapping(target = "active",    ignore = true)
     @Mapping(target = "rut",       ignore = true)
+    @Mapping(target = "middleName",     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
+    @Mapping(target = "secondLastName", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
     void updateEntity(UserUpdateRequest req, @MappingTarget User entity);
 }

@@ -1,5 +1,7 @@
 package cl.fuelonline.user.api;
 
+import cl.fuelonline.security.domain.AuthenticatedUser;
+import cl.fuelonline.user.application.dto.CompleteProfileRequest;
 import cl.fuelonline.user.application.dto.UserCreateRequest;
 import cl.fuelonline.user.application.dto.UserResponse;
 import cl.fuelonline.user.application.dto.UserUpdateRequest;
@@ -16,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -55,17 +59,31 @@ public class UserController {
         return ResponseEntity.created(location).body(created);
     }
 
+    @PatchMapping("/complete-profile")
+    @Operation(summary = "Complete profile for a Google new user (public endpoint)")
+    public UserResponse completeProfile(@Valid @RequestBody CompleteProfileRequest req) {
+        return userService.completeProfile(req);
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar datos de un user")
     public UserResponse update(@PathVariable UUID id,
-                                      @Valid @RequestBody UserUpdateRequest req) {
+                               @Valid @RequestBody UserUpdateRequest req,
+                               @AuthenticationPrincipal AuthenticatedUser principal) {
+        if (!principal.userId().equals(id) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("No autorizado para modificar este usuario");
+        }
         return userService.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Soft delete: marks the user as inactive")
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable UUID id,
+                       @AuthenticationPrincipal AuthenticatedUser principal) {
+        if (!principal.userId().equals(id) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("No autorizado para eliminar este usuario");
+        }
         userService.delete(id);
     }
 }

@@ -1,16 +1,14 @@
-package cl.fuelonline.station.domain.model;
+package cl.fuelonline.catalog.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "fuel_type")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@BatchSize(size = 50)
 @SQLRestriction("active = true")
 public class FuelType {
 

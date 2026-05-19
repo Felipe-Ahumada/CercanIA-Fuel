@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: optional:file:secrets/application-local.yml
+
   datasource:
     # XAMPP MySQL/MariaDB running on localhost:3306. Create the "fuel_online_db" database in phpMyAdmin before starting.
     url: ${FUEL_DB_URL:jdbc:mysql://localhost:3306/fuel_online_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Santiago&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true}
@@ -26,9 +29,9 @@ app:
     # In dev no Firebase is required; use the X-Dev-User: email@local header
     dev-mode: true
   cne:
-    # In dev the scheduled sync is kept off so we don't hammer the CNE API
-    # during development. To test manually: POST /api/v1/admin/cne/sync
-    enabled: ${CNE_ENABLED:false}
+    # Token set via CNE_API_TOKEN env var — never commit the real value.
+    # To trigger manually: POST /api/v1/admin/cne/sync (requires ADMIN role)
+    enabled: ${CNE_ENABLED:true}
     scheduled-enabled: false
 
 logging:

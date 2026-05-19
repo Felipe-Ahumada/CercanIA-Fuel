@@ -1,5 +1,6 @@
 package cl.fuelonline.transaction.api;
 
+import cl.fuelonline.security.domain.AuthenticatedUser;
 import cl.fuelonline.transaction.application.dto.ExpenseSummaryResponse;
 import cl.fuelonline.transaction.application.dto.TransactionCreateRequest;
 import cl.fuelonline.transaction.application.dto.TransactionResponse;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -31,8 +34,13 @@ public class TransactionController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a transaction by ID")
-    public TransactionResponse find(@PathVariable UUID id) {
-        return transactionService.findById(id);
+    public TransactionResponse find(@PathVariable UUID id,
+                                    @AuthenticationPrincipal AuthenticatedUser principal) {
+        TransactionResponse tx = transactionService.findById(id);
+        if (!tx.userId().equals(principal.userId()) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("No autorizado para ver esta transacción");
+        }
+        return tx;
     }
 
     @GetMapping
@@ -43,7 +51,11 @@ public class TransactionController {
                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false)
                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
-            @ParameterObject Pageable pageable) {
+            @ParameterObject Pageable pageable,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        if (!principal.userId().equals(userId) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("No autorizado para ver estas transacciones");
+        }
         if (desde != null && hasta != null) {
             return transactionService.listByUserBetween(userId, desde, hasta, pageable);
         }
@@ -55,7 +67,11 @@ public class TransactionController {
     public ExpenseSummaryResponse summary(
             @RequestParam UUID userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @AuthenticationPrincipal AuthenticatedUser principal) {
+        if (!principal.userId().equals(userId) && !"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("No autorizado para ver este resumen");
+        }
         return transactionService.expenseSummary(userId, desde, hasta);
     }
 
