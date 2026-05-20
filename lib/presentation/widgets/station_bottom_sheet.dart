@@ -230,7 +230,7 @@ class _PriceCell extends StatelessWidget {
               ),
               Text(
                 _fmt(price),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
                   color: GlassTokens.text0,

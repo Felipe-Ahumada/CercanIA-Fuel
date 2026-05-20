@@ -58,16 +58,16 @@ class MarkerGenerator {
     // Drop shadow
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(1.5 * _dpr, 2 * _dpr, pw - 3 * _dpr, ph),
+        const Rect.fromLTWH(1.5 * _dpr, 2 * _dpr, pw - 3 * _dpr, ph),
         const Radius.circular(r),
       ),
       Paint()
         ..color = const Color(0x28000000)
-        ..maskFilter = ui.MaskFilter.blur(ui.BlurStyle.normal, 3 * _dpr),
+        ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 3 * _dpr),
     );
 
     // Pill background
-    final pillRect  = const Rect.fromLTWH(0, 0, pw, ph);
+    const pillRect  = Rect.fromLTWH(0, 0, pw, ph);
     final pillRRect = RRect.fromRectAndRadius(pillRect, const Radius.circular(r));
     canvas.drawRRect(pillRRect, Paint()..color = const Color(0xFFFAFAFA));
 
@@ -116,7 +116,7 @@ class MarkerGenerator {
     );
     canvas.drawParagraph(
       pricePara,
-      Offset(dotCx + dotR + 4 * _dpr, (ph - 11.5 * _dpr * 1.2) / 2),
+      const Offset(dotCx + dotR + 4 * _dpr, (ph - 11.5 * _dpr * 1.2) / 2),
     );
 
     final picture = recorder.endRecording();

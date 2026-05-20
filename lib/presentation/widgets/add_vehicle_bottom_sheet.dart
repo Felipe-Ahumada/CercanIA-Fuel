@@ -187,11 +187,11 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
 
                     // Modelo
                     if (modelsError != null && _brand != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
                         child: Text(
                           'No se pudieron cargar los modelos. Intenta de nuevo.',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12, color: GlassTokens.red),
                         ),
                       ),

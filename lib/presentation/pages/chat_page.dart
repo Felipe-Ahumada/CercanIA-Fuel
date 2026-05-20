@@ -447,7 +447,7 @@ class _Dot extends StatelessWidget {
       animation: ctrl,
       builder: (_, __) {
         final offset = index * 0.25;
-        final raw = ((ctrl.value - offset) % 1.0);
+        final raw = (ctrl.value - offset) % 1.0;
         final t = raw < 0.5 ? raw * 2 : (1.0 - raw) * 2;
         return Container(
           width: 7,

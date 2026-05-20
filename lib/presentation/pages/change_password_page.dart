@@ -169,13 +169,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 class _NotAvailableView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32),
+    return const Padding(
+      padding: EdgeInsets.all(32),
       child: Column(
         children: [
-          const Icon(Icons.lock_outline, size: 48, color: GlassTokens.text2),
-          const SizedBox(height: 16),
-          const Text(
+          Icon(Icons.lock_outline, size: 48, color: GlassTokens.text2),
+          SizedBox(height: 16),
+          Text(
             'No disponible',
             style: TextStyle(
                 fontSize: 18,
@@ -183,8 +183,8 @@ class _NotAvailableView extends StatelessWidget {
                 color: GlassTokens.text0),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'El cambio de contraseña solo está disponible para cuentas con correo y contraseña. Las cuentas de Google se gestionan desde tu cuenta de Google.',
             style: TextStyle(fontSize: 13, color: GlassTokens.text2),
             textAlign: TextAlign.center,

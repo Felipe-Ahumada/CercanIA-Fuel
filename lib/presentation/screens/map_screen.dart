@@ -23,6 +23,14 @@ import '../widgets/register_visit_bottom_sheet.dart';
 import '../../domain/entities/vehicle_entity.dart';
 import '../../domain/entities/station_entity.dart';
 
+String _markerPrice(double price) {
+  final p = price.round();
+  if (p >= 1000) {
+    return '\$${p ~/ 1000}.${(p % 1000).toString().padLeft(3, '0')}';
+  }
+  return '\$$p';
+}
+
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -116,7 +124,8 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onCameraIdle() {
-    _generateMarkers(_filterStations(_currentStations), _selectedFuel ?? _getPreferredFuel());
+    _generateMarkers(_filterStations(_currentStations),
+        _selectedFuel ?? _getPreferredFuel());
     _scheduleViewportLoad();
   }
 
@@ -135,15 +144,17 @@ class _MapScreenState extends State<MapScreen> {
       // Only reload if camera moved more than half the radius from last load.
       if (_lastLoadedCenter != null) {
         final moved = GeoUtils.distKm(
-          _cameraTarget.latitude, _cameraTarget.longitude,
-          _lastLoadedCenter!.latitude, _lastLoadedCenter!.longitude,
+          _cameraTarget.latitude,
+          _cameraTarget.longitude,
+          _lastLoadedCenter!.latitude,
+          _lastLoadedCenter!.longitude,
         );
         if (moved < radius * 0.5) return;
       }
       _lastLoadedCenter = _cameraTarget;
       context.read<MapBloc>().add(
-        FetchStations(_cameraTarget, radiusKm: radius),
-      );
+            FetchStations(_cameraTarget, radiusKm: radius),
+          );
     });
   }
 
@@ -156,10 +167,11 @@ class _MapScreenState extends State<MapScreen> {
             ? 20
             : 8;
     if (stations.length <= limit) return stations;
-    final sorted = [...stations]
-      ..sort((a, b) {
-        final da = GeoUtils.distKm(_cameraTarget.latitude, _cameraTarget.longitude, a.lat, a.lng);
-        final db = GeoUtils.distKm(_cameraTarget.latitude, _cameraTarget.longitude, b.lat, b.lng);
+    final sorted = [...stations]..sort((a, b) {
+        final da = GeoUtils.distKm(
+            _cameraTarget.latitude, _cameraTarget.longitude, a.lat, a.lng);
+        final db = GeoUtils.distKm(
+            _cameraTarget.latitude, _cameraTarget.longitude, b.lat, b.lng);
         return da.compareTo(db);
       });
     return sorted.take(limit).toList();
@@ -169,9 +181,7 @@ class _MapScreenState extends State<MapScreen> {
     final vs = context.read<VehicleBloc>().state;
     if (vs is! VehicleLoaded || vs.activeVehicleId == null) return null;
     try {
-      return vs.vehicles
-          .firstWhere((v) => v.id == vs.activeVehicleId)
-          .fuelType;
+      return vs.vehicles.firstWhere((v) => v.id == vs.activeVehicleId).fuelType;
     } catch (_) {
       return null;
     }
@@ -182,7 +192,8 @@ class _MapScreenState extends State<MapScreen> {
     Fuel? preferredFuel,
   ) async {
     final limited = _applyZoomLimit(stations);
-    if (limited == _lastGeneratedStations && preferredFuel == _lastGeneratedFuel) return;
+    if (limited == _lastGeneratedStations &&
+        preferredFuel == _lastGeneratedFuel) { return; }
     _lastGeneratedStations = limited;
     _lastGeneratedFuel = preferredFuel;
     final generation = ++_markerGeneration;
@@ -190,7 +201,7 @@ class _MapScreenState extends State<MapScreen> {
 
     for (final station in limited) {
       final price = PriceCalculator.resolve(station, preferredFuel);
-      
+
       // Llamada al nuevo creador de marcadores
       final icon = await _createCustomMarker(station.brand, price);
 
@@ -209,82 +220,114 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // --- NUEVA LÓGICA DE DIBUJO DE MARCADORES ---
-  Future<BitmapDescriptor> _createCustomMarker(String brand, double? price) async {
+  // --- LÓGICA DE DIBUJO DE MARCADORES ---
+
+  Future<BitmapDescriptor> _createCustomMarker(
+      String brand, double? price) async {
     final pictureRecorder = PictureRecorder();
     final canvas = Canvas(pictureRecorder);
 
-    // Factor de escala para que se vea nítido en pantallas de alta resolución
-    const double scale = 2.5;
-    const double height = 45 * scale;
-    const double width = 135 * scale;
-    const double imageSize = 35 * scale;
-    const double padding = 5 * scale;
-    const double radius = height / 2;
+    // Logical dimensions (dp) — scale factor only for HiDPI sharpness.
+    // BitmapDescriptor.bytes(width:, height:) maps the bitmap back to dp.
+    const double scale   = 3.0;
+    const double lw      = 96.0;   // logical width  (dp)
+    const double lh      = 36.0;   // logical height (dp)
+    const double tailH   = 5.0;    // tail pointer   (dp)
+    const double imgSize = 24.0;   // logo circle    (dp)
+    const double pad     = 6.0;    // inner padding  (dp)
 
-    // 1. Dibujar sombra del contenedor
-    final shadowPaint = Paint()
-      ..color = const Color(0x33000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4 * scale);
-    final rrect = RRect.fromLTRBR(0, 0, width, height, Radius.circular(radius));
-    canvas.drawRRect(rrect.shift(Offset(0, 4 * scale)), shadowPaint);
+    const double pw    = lw    * scale;
+    const double ph    = lh    * scale;
+    const double tailP = tailH * scale;
+    const double imgP  = imgSize * scale;
+    const double padP  = pad   * scale;
+    const double rP    = ph / 2;   // fully rounded ends
 
-    // 2. Dibujar fondo (píldora blanca)
-    final bgPaint = Paint()..color = const Color(0xFFFFFFFF);
-    canvas.drawRRect(rrect, bgPaint);
+    final rrect = RRect.fromLTRBR(0, 0, pw, ph, const Radius.circular(rP));
 
-    // 3. Dibujar la imagen de la marca en un círculo a la izquierda
-    // Formatear la marca para buscar el asset (ej: "Aramco" -> "aramco")
+    // Shadow
+    canvas.drawRRect(
+      rrect.shift(const Offset(0, 2 * scale)),
+      Paint()
+        ..color = const Color(0x30000000)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3 * scale),
+    );
+
+    // Pill background
+    canvas.drawRRect(rrect, Paint()..color = const Color(0xFFFFFFFF));
+
+    // Pill border
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = const Color(0x18000000)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8 * scale,
+    );
+
+    // Brand logo — vertically centred circle on the left
+    const double imgY = (ph - imgP) / 2;
     final String safeBrand = brand.toLowerCase().replaceAll(' ', '');
-    final String assetPath = 'assets/brands/$safeBrand.png';
-
     try {
-      final ByteData data = await rootBundle.load(assetPath);
+      final ByteData data = await rootBundle.load('assets/brands/$safeBrand.png');
       final Codec codec = await instantiateImageCodec(
         data.buffer.asUint8List(),
-        targetWidth: imageSize.toInt(),
-        targetHeight: imageSize.toInt(),
+        targetWidth: imgP.toInt(),
+        targetHeight: imgP.toInt(),
       );
       final FrameInfo frameInfo = await codec.getNextFrame();
-
       canvas.save();
-      // Recorte circular para la imagen
-      final clipPath = Path()..addOval(Rect.fromLTWH(padding, padding, imageSize, imageSize));
-      canvas.clipPath(clipPath);
-      canvas.drawImage(frameInfo.image, Offset(padding, padding), Paint());
+      canvas.clipPath(Path()..addOval(const Rect.fromLTWH(padP, imgY, imgP, imgP)));
+      canvas.drawImage(frameInfo.image, const Offset(padP, imgY), Paint());
       canvas.restore();
-    } catch (e) {
-      // Fallback si no encuentra la imagen
-      final fallbackPaint = Paint()..color = const Color(0xFFE0E0E0);
-      canvas.drawCircle(Offset(padding + imageSize / 2, padding + imageSize / 2), imageSize / 2, fallbackPaint);
+    } catch (_) {
+      canvas.drawCircle(
+        const Offset(padP + imgP / 2, ph / 2),
+        imgP / 2,
+        Paint()..color = const Color(0xFFDDE3EE),
+      );
     }
 
-    // 4. Dibujar el precio a la derecha
+    // Price text — right of logo, dark slate
     if (price != null) {
-      final textPainter = TextPainter(textDirection: TextDirection.ltr);
-      textPainter.text = TextSpan(
-        text: '\$${price.toStringAsFixed(0)}',
-        style: TextStyle(
-          fontSize: 18 * scale,
-          fontWeight: FontWeight.w800,
-          color: const Color(0xFF1F2937), // Texto oscuro
-        ),
-      );
-      textPainter.layout();
+      final textPainter = TextPainter(textDirection: TextDirection.ltr)
+        ..text = TextSpan(
+          text: _markerPrice(price),
+          style: const TextStyle(
+            fontSize: 12.5 * scale,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0F172A),
+          ),
+        )
+        ..layout();
 
-      // Centrar el texto en el espacio sobrante a la derecha
-      final double textY = (height - textPainter.height) / 2;
-      final double textX = padding + imageSize + ((width - (padding + imageSize) - textPainter.width) / 2);
-      
+      const double textAreaLeft = padP + imgP + padP;
+      const double textAreaWidth = pw - textAreaLeft - padP;
+      final double textX = textAreaLeft + ((textAreaWidth - textPainter.width) / 2).clamp(0, textAreaWidth);
+      final double textY = (ph - textPainter.height) / 2;
       textPainter.paint(canvas, Offset(textX, textY));
     }
 
-    // Convertir el canvas a imagen y luego a BitmapDescriptor
-    final img = await pictureRecorder.endRecording().toImage(width.toInt(), (height + 5 * scale).toInt());
+    // Tail pointer
+    const double cx = pw / 2;
+    final tail = Path()
+      ..moveTo(cx - 5 * scale, ph)
+      ..lineTo(cx + 5 * scale, ph)
+      ..lineTo(cx, ph + tailP)
+      ..close();
+    canvas.drawPath(tail, Paint()..color = const Color(0xFFFFFFFF));
+
+    final img = await pictureRecorder
+        .endRecording()
+        .toImage(pw.toInt(), (ph + tailP).toInt());
     final byteData = await img.toByteData(format: ImageByteFormat.png);
-    return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+    return BitmapDescriptor.bytes(
+      byteData!.buffer.asUint8List(),
+      width: lw,
+      height: lh + tailH,
+    );
   }
-  // ---------------------------------------------
+  // ----------------------------------------
 
   void _showStationBottomSheet(StationEntity station) {
     // Use the same fuel resolution logic as the marker so both show the same price.
@@ -306,15 +349,17 @@ class _MapScreenState extends State<MapScreen> {
     return stations.where((s) => s.prices.containsKey(_selectedFuel)).toList();
   }
 
-  List<StationEntity> _sortByDistance(List<StationEntity> stations, LatLng? origin) {
+  List<StationEntity> _sortByDistance(
+      List<StationEntity> stations, LatLng? origin) {
     if (origin == null) return stations;
     return [...stations]..sort((a, b) {
-        final da = GeoUtils.distKm(origin.latitude, origin.longitude, a.lat, a.lng);
-        final db = GeoUtils.distKm(origin.latitude, origin.longitude, b.lat, b.lng);
+        final da =
+            GeoUtils.distKm(origin.latitude, origin.longitude, a.lat, a.lng);
+        final db =
+            GeoUtils.distKm(origin.latitude, origin.longitude, b.lat, b.lng);
         return da.compareTo(db);
       });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -379,7 +424,8 @@ class _MapScreenState extends State<MapScreen> {
                         const Text(
                           'Se necesita acceso a tu ubicación para mostrar bencineras cercanas.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 13, color: GlassTokens.text2),
+                          style:
+                              TextStyle(fontSize: 13, color: GlassTokens.text2),
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
@@ -412,8 +458,8 @@ class _MapScreenState extends State<MapScreen> {
                   onCameraMove: _onCameraMove,
                   onCameraIdle: _onCameraIdle,
                   initialCameraPosition: CameraPosition(
-                    target: state.userLocation ??
-                        const LatLng(-33.4489, -70.6693),
+                    target:
+                        state.userLocation ?? const LatLng(-33.4489, -70.6693),
                     zoom: 10,
                   ),
                   markers: _customMarkers,
@@ -422,17 +468,17 @@ class _MapScreenState extends State<MapScreen> {
                   compassEnabled: false,
                 ),
                 // Glass header with search + fuel filters
+// En tu pantalla principal: Filtros libres, sin GlassCard padre
                 Positioned(
-                  top: 0,
-                  left: 16,
-                  right: 16,
+                  top: 10,
+                  left: 0,
+                  right: 0,
                   child: SafeArea(
                     bottom: false,
-                    child: GlassCard(
-                      radius: 14,
-                      level: 1,
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: FuelFilterChips(
+                        // <-- Llamamos a los chips directamente
                         selectedFuel: _selectedFuel,
                         onSelected: (fuel) {
                           setState(() => _selectedFuel = fuel);
@@ -497,8 +543,7 @@ class _MapScreenState extends State<MapScreen> {
                     onTap: () {
                       if (state.userLocation != null) {
                         _mapController?.animateCamera(
-                          CameraUpdate.newLatLngZoom(
-                              state.userLocation!, 14.0),
+                          CameraUpdate.newLatLngZoom(state.userLocation!, 14.0),
                         );
                       }
                     },
@@ -576,10 +621,10 @@ class _StationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final price = selectedFuel != null
         ? station.prices[selectedFuel]?.displayPrice
-        : (station.prices.isEmpty ? null : station.prices.values.first.displayPrice);
-    final distStr = distKm != null
-        ? '${distKm!.toStringAsFixed(1)} km'
-        : '';
+        : (station.prices.isEmpty
+            ? null
+            : station.prices.values.first.displayPrice);
+    final distStr = distKm != null ? '${distKm!.toStringAsFixed(1)} km' : '';
 
     return GestureDetector(
       onTap: onTap,
@@ -608,7 +653,7 @@ class _StationCard extends StatelessWidget {
               const SizedBox(height: 4),
               if (price != null)
                 Text(
-                  '\$${price.toStringAsFixed(0)}',
+                  _markerPrice(price),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -651,7 +696,8 @@ class _GlassFab extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: GlassTokens.shadowFloat,
             ),
-            child: const Icon(Icons.my_location, color: GlassTokens.green, size: 22),
+            child: const Icon(Icons.my_location,
+                color: GlassTokens.green, size: 22),
           ),
         ),
       ),

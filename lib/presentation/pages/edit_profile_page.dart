@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/glass_tokens.dart';
-import '../../core/widgets/glass_button.dart';
-import '../../core/widgets/glass_button.dart' show GlassButtonSecondary;
+import '../../core/widgets/glass_button.dart' show GlassButton, GlassButtonSecondary;
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/glass_input.dart';
 import '../../core/widgets/glass_loading_indicator.dart';
@@ -41,6 +40,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _secondLastNameCtrl = TextEditingController();
   bool _initialized = false;
   bool _saving = false;
+  String? _firstNameError;
+  String? _lastNameError;
+
+  @override
+  void initState() {
+    super.initState();
+    _firstNameCtrl.addListener(() {
+      if (_firstNameError != null && _firstNameCtrl.text.trim().isNotEmpty) {
+        setState(() => _firstNameError = null);
+      }
+    });
+    _lastNameCtrl.addListener(() {
+      if (_lastNameError != null && _lastNameCtrl.text.trim().isNotEmpty) {
+        setState(() => _lastNameError = null);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -66,7 +82,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final middleName     = _middleNameCtrl.text.trim();
     final lastName       = _lastNameCtrl.text.trim();
     final secondLastName = _secondLastNameCtrl.text.trim();
+
+    setState(() {
+      _firstNameError = firstName.isEmpty ? 'El primer nombre es obligatorio' : null;
+      _lastNameError  = lastName.isEmpty  ? 'El primer apellido es obligatorio' : null;
+    });
     if (firstName.isEmpty || lastName.isEmpty) return;
+
     _saving = true;
     context.read<ProfileCubit>().updateProfile(
       firstName: firstName,
@@ -176,6 +198,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         controller: _firstNameCtrl,
                         hintText: 'Ingresa tu primer nombre',
                         keyboardType: TextInputType.name,
+                        errorText: _firstNameError,
                       ),
                       const SizedBox(height: 20),
 
@@ -196,6 +219,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         controller: _lastNameCtrl,
                         hintText: 'Ingresa tu primer apellido',
                         keyboardType: TextInputType.name,
+                        errorText: _lastNameError,
                       ),
                       const SizedBox(height: 20),
 
