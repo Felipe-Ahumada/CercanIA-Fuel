@@ -3,7 +3,6 @@ package cl.fuelonline.shared.exception;
 import cl.fuelonline.station.application.exception.StationAlreadyExistsException;
 import cl.fuelonline.finance.application.exception.BankAlreadyExistsException;
 import cl.fuelonline.finance.application.exception.CardProductAlreadyExistsException;
-import cl.fuelonline.transaction.application.exception.RatingAlreadyExistsException;
 import cl.fuelonline.transaction.application.exception.InvalidTransactionException;
 import cl.fuelonline.user.application.exception.UserAlreadyExistsException;
 import jakarta.validation.ConstraintViolationException;
@@ -32,8 +31,7 @@ public class GlobalExceptionHandler {
             UserAlreadyExistsException.class,
             StationAlreadyExistsException.class,
             BankAlreadyExistsException.class,
-            CardProductAlreadyExistsException.class,
-            RatingAlreadyExistsException.class
+            CardProductAlreadyExistsException.class
     })
     public ResponseEntity<ApiError> conflict(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

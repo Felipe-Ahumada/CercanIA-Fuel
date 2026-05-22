@@ -10,6 +10,7 @@ public record TransactionResponse(
         UUID vehicleId,
         UUID stationId,
         String stationName,
+        String stationBrand,
         Integer fuelTypeId,
         String fuelTypeName,
         Integer cardProductId,

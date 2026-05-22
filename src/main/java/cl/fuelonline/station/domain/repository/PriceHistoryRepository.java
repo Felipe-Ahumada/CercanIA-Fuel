@@ -19,11 +19,7 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long
     Page<PriceHistory> findAllByStation_IdAndFuelType_IdOrderByApiTimestampDesc(
             UUID stationId, Integer fuelTypeId, Pageable pageable);
 
-    /**
-     * Latest price recorded for each fuel type at a station.
-     * Correlated subquery — fine for the current volume.
-     * In pure PostgreSQL it would be preferable to use DISTINCT ON or window functions.
-     */
+
     @Query("""
            SELECT p FROM PriceHistory p
            JOIN FETCH p.fuelType

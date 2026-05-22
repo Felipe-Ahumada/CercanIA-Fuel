@@ -15,5 +15,6 @@ public record DiscountUpdateRequest(
         @DecimalMin(value = "0.0", inclusive = false) BigDecimal maxCap,
         @Size(max = 255) String description,
         LocalDate startDate,
-        LocalDate endDate
+        LocalDate endDate,
+        Boolean active
 ) {}

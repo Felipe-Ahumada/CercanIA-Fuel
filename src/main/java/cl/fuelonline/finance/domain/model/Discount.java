@@ -5,8 +5,6 @@ import cl.fuelonline.catalog.domain.model.Brand;
 import cl.fuelonline.catalog.domain.model.FuelType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLRestriction;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -25,7 +23,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("active = true")
 public class Discount extends BaseCreatableEntity {
 
     @Id

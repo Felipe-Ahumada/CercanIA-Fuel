@@ -62,12 +62,6 @@ public class Station extends BaseAuditEntity {
     @Column(nullable = false, precision = 10, scale = 7)
     private BigDecimal longitude;
 
-    @Column(length = 20)
-    private String phone;
-
-    @Column(length = 254)
-    private String email;
-
     @Column(name = "in_maintenance", nullable = false)
     @Builder.Default
     private Boolean inMaintenance = Boolean.FALSE;

@@ -59,6 +59,14 @@ public class CneStationUpserter {
         Commune commune = catalogs.resolveCommune(dto.location(), region);
 
         Optional<Station> existing = stationRepository.findByApiCode(dto.code());
+
+        // Skip new stations that have no prices for any active fuel type (e.g. GLP distributors).
+        // Existing stations are kept so their data can update; they age out via syncAt naturally.
+        if (existing.isEmpty() && !hasAnyActiveFuel(dto)) {
+            log.debug("CNE: skipping new station {} — no active fuel types", dto.code());
+            return new StationResult(false, 0, 0);
+        }
+
         Station b;
         boolean created;
 
@@ -150,6 +158,7 @@ public class CneStationUpserter {
 
         ChargeUnit unit = catalogs.parseChargeUnit(price.chargeUnit());
         FuelType type = catalogs.resolveFuel(cneKey, unit);
+        if (type == null) return false; // not a relevant fuel type (GLP, KE, GNC, GNV…)
 
         LocalDateTime apiTs = parseDateTime(price.updateDate(), price.updateTime());
         if (apiTs == null) {
@@ -187,6 +196,19 @@ public class CneStationUpserter {
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    /** Returns true if at least one price entry resolves to an active fuel type (93/95/97/diesel). */
+    private boolean hasAnyActiveFuel(CneStationDto dto) {
+        if (dto.prices() == null || dto.prices().isEmpty()) return false;
+        for (Map.Entry<String, CnePriceDto> entry : dto.prices().entrySet()) {
+            CnePriceDto p = entry.getValue();
+            if (p == null || p.price() == null) continue;
+            ChargeUnit unit = catalogs.parseChargeUnit(p.chargeUnit());
+            FuelType type = catalogs.resolveFuel(entry.getKey(), unit);
+            if (type != null) return true;
+        }
+        return false;
     }
 
     private static LocalDateTime parseDateTime(String date, String time) {

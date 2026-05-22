@@ -33,9 +33,6 @@ public class FuelType {
     @Builder.Default
     private ChargeUnit chargeUnit = ChargeUnit.LT;
 
-    @Column(length = 255)
-    private String description;
-
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = Boolean.TRUE;

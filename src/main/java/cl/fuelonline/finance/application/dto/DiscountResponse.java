@@ -12,6 +12,7 @@ public record DiscountResponse(
         String brandName,
         Integer cardProductId,
         String cardProductName,
+        String cardType,
         String bankName,
         Integer fuelTypeId,
         String fuelTypeName,

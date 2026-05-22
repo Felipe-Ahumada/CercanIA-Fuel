@@ -2,6 +2,7 @@ package cl.fuelonline.user.api;
 
 import cl.fuelonline.security.domain.AuthenticatedUser;
 import cl.fuelonline.user.application.dto.CompleteProfileRequest;
+import cl.fuelonline.user.application.dto.AdminUserResponse;
 import cl.fuelonline.user.application.dto.UserCreateRequest;
 import cl.fuelonline.user.application.dto.UserResponse;
 import cl.fuelonline.user.application.dto.UserUpdateRequest;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,9 +36,9 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    @Operation(summary = "List users (paged)")
-    public Page<UserResponse> list(@ParameterObject Pageable pageable) {
-        return userService.list(pageable);
+    @Operation(summary = "List users with stats (paged) — solo ADMIN")
+    public Page<AdminUserResponse> list(@ParameterObject Pageable pageable) {
+        return userService.listAdmin(pageable);
     }
 
     @GetMapping("/{id}")
@@ -73,6 +75,18 @@ public class UserController {
             throw new AccessDeniedException("No autorizado para modificar este usuario");
         }
         return userService.update(id, req);
+    }
+
+    @PatchMapping("/{id}/active")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Activar o desactivar un usuario — solo ADMIN")
+    public void setActive(@PathVariable UUID id,
+                          @RequestParam boolean active,
+                          @AuthenticationPrincipal AuthenticatedUser principal) {
+        if (!"ADMIN".equalsIgnoreCase(principal.roleName())) {
+            throw new AccessDeniedException("Solo ADMIN puede cambiar el estado de un usuario");
+        }
+        userService.setActive(id, active);
     }
 
 }

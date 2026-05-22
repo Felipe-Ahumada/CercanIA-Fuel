@@ -16,6 +16,7 @@ public interface TransactionMapper {
     @Mapping(target = "vehicleId",       source = "vehicle.id")
     @Mapping(target = "stationId",       source = "station.id")
     @Mapping(target = "stationName",     source = "station.name")
+    @Mapping(target = "stationBrand",    source = "station.brand.name")
     @Mapping(target = "fuelTypeId",      source = "fuelType.id")
     @Mapping(target = "fuelTypeName",    source = "fuelType.name")
     @Mapping(target = "cardProductId",   source = "cardProduct.id")

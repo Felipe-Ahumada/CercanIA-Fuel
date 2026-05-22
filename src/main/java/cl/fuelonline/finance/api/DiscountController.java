@@ -1,6 +1,8 @@
 package cl.fuelonline.finance.api;
 
-import cl.fuelonline.finance.application.dto.*;
+import cl.fuelonline.finance.application.dto.DiscountCreateRequest;
+import cl.fuelonline.finance.application.dto.DiscountResponse;
+import cl.fuelonline.finance.application.dto.DiscountUpdateRequest;
 import cl.fuelonline.finance.application.service.DiscountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,17 +33,16 @@ public class DiscountController {
         return discountService.listAll();
     }
 
+    @GetMapping("/all")
+    @Operation(summary = "Todos los descuentos incluyendo inactivos — solo ADMIN")
+    public List<DiscountResponse> listAllAdmin() {
+        return discountService.listAllAdmin();
+    }
+
     @GetMapping
     @Operation(summary = "Listar descuentos por brand")
     public List<DiscountResponse> listByBrand(@RequestParam @Positive Integer brandId) {
         return discountService.listByBrand(brandId);
-    }
-
-    @GetMapping("/por-tarjetas")
-    @Operation(summary = "Listar descuentos activos para una lista de card products del usuario")
-    public List<DiscountResponse> listByCardProducts(
-            @RequestParam List<Integer> cardProductIds) {
-        return discountService.listByCardProducts(cardProductIds);
     }
 
     @GetMapping("/{id}")
@@ -73,11 +74,4 @@ public class DiscountController {
         discountService.delete(id);
     }
 
-    @PostMapping("/calculate")
-    @Operation(summary = "Calcular el mejor discount aplicable a una compra",
-               description = "Takes brand, fuel, gross amount and user cards. " +
-                             "Devuelve el discount que entrega el mayor savings.")
-    public CalculatedDiscountResponse calculate(@Valid @RequestBody CalculateDiscountRequest req) {
-        return discountService.calculateBestDiscount(req);
-    }
 }

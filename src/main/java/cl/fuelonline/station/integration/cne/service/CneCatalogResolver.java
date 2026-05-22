@@ -38,22 +38,17 @@ public class CneCatalogResolver {
     private final CommuneRepository communeRepository;
     private final FuelTypeRepository fuelTypeRepository;
 
-    /** Mapeo de la llave del JSON CNE a (shortName, nombreLargo canónico). */
-    private static final Map<String, String[]> COMBUSTIBLE_NOMBRES = Map.ofEntries(
-            Map.entry("93",  new String[]{"93", "Gasolina 93"}),
-            Map.entry("95",  new String[]{"95", "Gasolina 95"}),
-            Map.entry("97",  new String[]{"97", "Gasolina 97"}),
-            Map.entry("DI",  new String[]{"DI", "Diésel"}),
-            Map.entry("GLP", new String[]{"GLP", "Gas Licuado de Petróleo"}),
-            Map.entry("KE",  new String[]{"KE",  "Kerosene"}),
-            Map.entry("GNC", new String[]{"GNC", "Gas Natural Comprimido"}),
-            Map.entry("GNV", new String[]{"GNV", "Gas Natural Vehicular"}),
-            // CNE alias codes — map to the same canonical short_name as the base type
-            Map.entry("A93", new String[]{"93", "Gasolina 93"}),
-            Map.entry("A95", new String[]{"95", "Gasolina 95"}),
-            Map.entry("A97", new String[]{"97", "Gasolina 97"}),
-            Map.entry("ADI", new String[]{"DI", "Diésel"}),
-            Map.entry("AKE", new String[]{"KE", "Kerosene"})
+    /** CNE key → (shortName, canonical long name) — only the 4 relevant fuel types. */
+    private static final Map<String, String[]> COMBUSTIBLE_NOMBRES = Map.of(
+            "93",  new String[]{"93", "Gasolina 93"},
+            "95",  new String[]{"95", "Gasolina 95"},
+            "97",  new String[]{"97", "Gasolina 97"},
+            "DI",  new String[]{"DI", "Diésel"},
+            // CNE alias codes for the same 4 types
+            "A93", new String[]{"93", "Gasolina 93"},
+            "A95", new String[]{"95", "Gasolina 95"},
+            "A97", new String[]{"97", "Gasolina 97"},
+            "ADI", new String[]{"DI", "Diésel"}
     );
 
     /** Resolves brand by api code. Auto-creates if missing. Each call is its own transaction. */
@@ -116,15 +111,19 @@ public class CneCatalogResolver {
         });
     }
 
-    /** Resolves fuel type by CNE key. Auto-creates if missing. Each call is its own transaction. */
+    /**
+     * Resolves a fuel type by CNE key. Returns null for any key that is not
+     * one of the 4 relevant types (93, 95, 97, diesel) — those are simply ignored.
+     * Auto-creates a relevant type if it is missing from the DB.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public FuelType resolveFuel(String cneKey, ChargeUnit chargeUnit) {
-        if (cneKey == null || cneKey.isBlank()) {
-            throw new IllegalArgumentException("Empty CNE key for fuel");
-        }
+        if (cneKey == null || cneKey.isBlank()) return null;
         String key = cneKey.trim().toUpperCase();
-        String[] nombres = COMBUSTIBLE_NOMBRES.getOrDefault(key, new String[]{key, key});
-        String shortName = nombres[0];
+        String[] nombres = COMBUSTIBLE_NOMBRES.get(key);
+        if (nombres == null) return null; // GLP, KE, GNC, GNV, etc. — not relevant
+
+        String shortName   = nombres[0];
         String nombreLargo = nombres[1];
 
         return fuelTypeRepository.findFirstByShortNameIgnoreCase(shortName).orElseGet(() -> {

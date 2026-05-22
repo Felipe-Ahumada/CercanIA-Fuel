@@ -77,6 +77,7 @@ public class SecurityConfig {
                         "/api/v1/tipos-combustible/**",
                         "/api/v1/precios/**").permitAll()
 
+                .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/all").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/catalogo").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/descuentos/**").permitAll()
 

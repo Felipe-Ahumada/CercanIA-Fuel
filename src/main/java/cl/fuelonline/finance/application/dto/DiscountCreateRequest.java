@@ -31,5 +31,6 @@ public record DiscountCreateRequest(
         @Size(max = 255) String description,
 
         @NotNull LocalDate startDate,
-        LocalDate endDate
+
+        @NotNull LocalDate endDate
 ) {}

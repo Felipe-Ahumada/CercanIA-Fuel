@@ -22,6 +22,7 @@ public interface DiscountMapper {
     @Mapping(target = "brandName",        source = "brand.name")
     @Mapping(target = "cardProductId",    source = "cardProduct.id")
     @Mapping(target = "cardProductName",  source = "cardProduct.name")
+    @Mapping(target = "cardType",         source = "cardProduct.cardType")
     @Mapping(target = "bankName",         source = "cardProduct.bank.name")
     @Mapping(target = "fuelTypeId",       source = "fuelType.id")
     @Mapping(target = "fuelTypeName",     source = "fuelType.name")
@@ -29,9 +30,8 @@ public interface DiscountMapper {
 
     @Mapping(target = "id",               ignore = true)
     @Mapping(target = "brand",            ignore = true)
-    @Mapping(target = "cardProduct",  ignore = true)
-    @Mapping(target = "fuelType",  ignore = true)
-    @Mapping(target = "active",           ignore = true)
+    @Mapping(target = "cardProduct",      ignore = true)
+    @Mapping(target = "fuelType",         ignore = true)
     @Mapping(target = "createdAt",        ignore = true)
     void updateEntity(DiscountUpdateRequest req, @MappingTarget Discount entity);
 }

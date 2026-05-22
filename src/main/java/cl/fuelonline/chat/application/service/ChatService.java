@@ -42,6 +42,9 @@ public class ChatService {
                 calcular ahorros con sus tarjetas bancarias y gestionar sus vehículos.
                 Responde siempre en español, de forma concisa y útil.
                 No inventes precios ni datos que no tengas. Si no tienes información, dilo claramente.
+                IMPORTANTE: Cuando menciones estaciones de servicio, usa SIEMPRE su marca comercial
+                (ej. COPEC, Shell, Aramco, Petrobras, Terpel, Abastible) y NO la razón social legal
+                de la empresa. Por ejemplo, di "COPEC" en lugar de "Empresas Copec S.A.".
                 """);
 
         // User vehicles context
@@ -85,9 +88,10 @@ public class ChatService {
                         sb.append("\n== Últimas cargas ==\n");
                     }
                     BigDecimal saved = tx.discountAmount() != null ? tx.discountAmount() : BigDecimal.ZERO;
-                    sb.append(String.format("- %s: $%.0f (ahorro $%.0f)%n",
+                    String brand = tx.stationBrand() != null ? tx.stationBrand() : tx.stationName();
+                    sb.append(String.format("- %s en %s: $%.0f (ahorro $%.0f)%n",
                             tx.fuelTypeName() != null ? tx.fuelTypeName() : "combustible",
-                            tx.grossAmount(), saved));
+                            brand, tx.grossAmount(), saved));
                 });
 
         return sb.toString();

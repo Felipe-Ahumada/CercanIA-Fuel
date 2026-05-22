@@ -11,5 +11,6 @@ public record UserUpdateRequest(
         @Size(max = 80)         String lastName,
         @Size(max = 80)         String secondLastName,
         @Past                   LocalDate birthDate,
-        @Positive               Integer roleId
+        @Positive               Integer roleId,
+        Boolean active
 ) {}
