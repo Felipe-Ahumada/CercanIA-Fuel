@@ -5,6 +5,9 @@ export const discountsApi = {
   listAll: () =>
     apiClient.get<DiscountResponse[]>('/api/v1/descuentos/catalogo').then((r) => r.data),
 
+  listAllAdmin: () =>
+    apiClient.get<DiscountResponse[]>('/api/v1/descuentos/all').then((r) => r.data),
+
   findById: (id: number) =>
     apiClient.get<DiscountResponse>(`/api/v1/descuentos/${id}`).then((r) => r.data),
 
@@ -13,6 +16,9 @@ export const discountsApi = {
 
   update: (id: number, req: DiscountUpdateRequest) =>
     apiClient.put<DiscountResponse>(`/api/v1/descuentos/${id}`, req).then((r) => r.data),
+
+  reactivate: (id: number) =>
+    apiClient.put<DiscountResponse>(`/api/v1/descuentos/${id}`, { active: true }).then((r) => r.data),
 
   delete: (id: number) =>
     apiClient.delete(`/api/v1/descuentos/${id}`),

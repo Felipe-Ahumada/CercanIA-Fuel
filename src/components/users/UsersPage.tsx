@@ -1,30 +1,42 @@
-import { useEffect, useState } from 'react';
-import { Plus, UserCircle, RefreshCw } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  UserCircle, RefreshCw, Power, PowerOff, Car, Fuel,
+  PiggyBank, Eye, Users, UserCheck, TrendingUp, Calendar,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { usersApi } from '../../api/users';
 import type { UserResponse } from '../../types';
-import { CreateUserModal } from './CreateUserModal';
+import { UserDetailDrawer } from './UserDetailDrawer';
 import { SkeletonRow } from '../common/SkeletonRow';
+import { fmtClp, fmtRut, fmtDate, fullName, DATE_PRESETS, presetToDates, type DatePreset } from '../../lib/formatters';
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-CL', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
+// ── component ─────────────────────────────────────────────────────────────────
 
 export function UsersPage() {
-  const [users, setUsers] = useState<UserResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
+  const [users, setUsers]         = useState<UserResponse[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [detailUser, setDetailUser] = useState<UserResponse | null>(null);
+  const [toggling, setToggling]   = useState<string | null>(null);
+
+  // Filters
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo]     = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
+
+
+  const myEmail = (() => {
+    try { return JSON.parse(localStorage.getItem('user') ?? '{}').email ?? ''; }
+    catch { return ''; }
+  })();
 
   const load = async () => {
     setLoading(true);
     try {
-      const page = await usersApi.list(0, 100);
+      const page = await usersApi.list(0, 200);
       setUsers(page.content);
     } catch {
-      // silent
+      toast.error('Error al cargar los usuarios');
     } finally {
       setLoading(false);
     }
@@ -32,33 +44,217 @@ export function UsersPage() {
 
   useEffect(() => { load(); }, []);
 
+  const handleToggleActive = async (u: UserResponse) => {
+    setToggling(u.id);
+    try {
+      if (u.active) {
+        await usersApi.deactivate(u.id);
+        toast.success(`${u.firstName} desactivado`);
+      } else {
+        await usersApi.activate(u.id);
+        toast.success(`${u.firstName} activado`);
+      }
+      setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, active: !u.active } : x));
+    } catch {
+      toast.error('Error al cambiar el estado del usuario');
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  // ── filtered set ────────────────────────────────────────────────────────────
+
+  const filteredUsers = useMemo(() => {
+    const [from, to] = presetToDates(datePreset, customFrom, customTo);
+    return users.filter((u) => {
+      if (statusFilter === 'active'   && !u.active) return false;
+      if (statusFilter === 'inactive' &&  u.active) return false;
+      if (!u.createdAt) return true;
+      const d = new Date(u.createdAt);
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+      return true;
+    });
+  }, [users, datePreset, customFrom, customTo, statusFilter]);
+
+  // ── KPIs (from filtered set) ────────────────────────────────────────────────
+
+  const activeCount       = filteredUsers.filter((u) => u.active).length;
+  const inactiveCount     = filteredUsers.length - activeCount;
+  const totalTransactions = filteredUsers.reduce((s, u) => s + (u.totalTransactions ?? 0), 0);
+  const totalSavings      = filteredUsers.reduce((s, u) => s + (u.totalSavings ?? 0), 0);
+  const avgTransactions   = filteredUsers.length ? totalTransactions / filteredUsers.length : 0;
+  const avgSavings        = activeCount ? totalSavings / activeCount : 0;
+
+  const isFiltered = datePreset !== 'all' || statusFilter !== 'all';
+
   return (
     <div className="p-6 space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Usuarios</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {loading ? '...' : `${users.length} usuarios registrados`}
+            {loading
+              ? '...'
+              : `${activeCount} activos · ${inactiveCount} inactivos${
+                  isFiltered ? ` (${filteredUsers.length} de ${users.length} usuarios)` : ''
+                }`}
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={load}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Refrescar"
-          >
-            <RefreshCw size={16} />
-          </button>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus size={16} />
-            Crear Usuario
-          </button>
-        </div>
+        <button
+          onClick={load}
+          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Refrescar"
+        >
+          <RefreshCw size={16} />
+        </button>
       </div>
 
+      {/* ── Filters ── */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Date preset buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="flex items-center gap-1 text-xs font-medium text-gray-500 shrink-0">
+              <Calendar size={13} className="text-gray-400" />
+              Período:
+            </span>
+            {DATE_PRESETS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setDatePreset(key)}
+                className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                  datePreset === key
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Status filter */}
+          <div className="flex items-center gap-1 ml-auto border border-gray-200 rounded-lg p-0.5 bg-gray-50">
+            {([
+              { key: 'all',      label: 'Todos' },
+              { key: 'active',   label: 'Activos' },
+              { key: 'inactive', label: 'Inactivos' },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setStatusFilter(key)}
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
+                  statusFilter === key
+                    ? key === 'inactive'
+                      ? 'bg-white text-gray-700 shadow-sm font-medium'
+                      : 'bg-white text-gray-700 shadow-sm font-medium'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {label}
+                {!loading && key !== 'all' && (
+                  <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                    key === 'active'
+                      ? statusFilter === 'active'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-gray-100 text-gray-500'
+                      : statusFilter === 'inactive'
+                        ? 'bg-red-100 text-red-600'
+                        : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {key === 'active'
+                      ? users.filter(u => u.active).length
+                      : users.filter(u => !u.active).length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom date range */}
+        {datePreset === 'custom' && (
+          <div className="flex items-center gap-3 pt-3 border-t border-gray-100 flex-wrap">
+            <span className="text-xs text-gray-500">Desde:</span>
+            <input
+              type="date"
+              value={customFrom}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-xs text-gray-500">Hasta:</span>
+            <input
+              type="date"
+              value={customTo}
+              min={customFrom || undefined}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {(customFrom || customTo) && (
+              <button
+                onClick={() => { setCustomFrom(''); setCustomTo(''); }}
+                className="text-xs text-gray-400 hover:text-gray-600 underline"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
+        {[
+          {
+            label: 'Total Usuarios',
+            value: loading ? '—' : filteredUsers.length.toLocaleString('es-CL'),
+            Icon: Users,
+            color: 'bg-blue-600',
+          },
+          {
+            label: 'Usuarios Activos',
+            value: loading ? '—' : activeCount.toLocaleString('es-CL'),
+            Icon: UserCheck,
+            color: 'bg-emerald-600',
+          },
+          {
+            label: 'Promedio Cargas por Usuario',
+            value: loading ? '—' : avgTransactions.toLocaleString('es-CL', { maximumFractionDigits: 1 }),
+            Icon: Fuel,
+            color: 'bg-amber-500',
+          },
+          {
+            label: 'Ahorro Promedio por Usuario',
+            value: loading ? '—' : fmtClp(avgSavings),
+            Icon: PiggyBank,
+            color: 'bg-purple-600',
+          },
+          {
+            label: 'Total Ahorrado (descuentos bancarios)',
+            value: loading ? '—' : fmtClp(totalSavings),
+            Icon: TrendingUp,
+            color: 'bg-rose-600',
+          },
+        ].map(({ label, value, Icon, color }) => (
+          <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-gray-500 leading-tight">{label}</p>
+              <div className={`p-2 rounded-lg ${color} shrink-0`}>
+                <Icon size={16} className="text-white" />
+              </div>
+            </div>
+            {loading
+              ? <div className="h-7 w-20 bg-gray-200 rounded animate-pulse" />
+              : <p className="text-2xl font-bold text-gray-900">{value}</p>}
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -68,62 +264,113 @@ export function UsersPage() {
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">RUT</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Rol</th>
+                <th className="text-center px-4 py-3 font-medium text-gray-600">
+                  <span className="flex items-center justify-center gap-1"><Car size={13} />Vehículos</span>
+                </th>
+                <th className="text-center px-4 py-3 font-medium text-gray-600">
+                  <span className="flex items-center justify-center gap-1"><Fuel size={13} />Cargas</span>
+                </th>
+                <th className="text-right px-4 py-3 font-medium text-gray-600">
+                  <span className="flex items-center justify-end gap-1"><PiggyBank size={13} />Ahorro</span>
+                </th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Registro</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <SkeletonRow cols={6} rows={8} />
-              ) : users.length === 0 ? (
+                <SkeletonRow cols={10} rows={6} />
+              ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-16 text-gray-400">
+                  <td colSpan={10} className="text-center py-16 text-gray-400">
                     <UserCircle size={40} className="mx-auto mb-3 text-gray-300" />
-                    <p>No hay usuarios registrados</p>
+                    <p>
+                      {statusFilter === 'inactive'
+                        ? 'No hay usuarios inactivos'
+                        : statusFilter === 'active'
+                        ? 'No hay usuarios activos'
+                        : isFiltered
+                        ? 'Sin usuarios en el período seleccionado'
+                        : 'No hay usuarios registrados'}
+                    </p>
                   </td>
                 </tr>
               ) : (
-                users.map((u) => (
+                filteredUsers.map((u) => (
                   <tr
                     key={u.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    className={`border-b border-gray-100 transition-colors ${
+                      u.active ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-60'
+                    }`}
                   >
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      {[u.firstName, u.middleName, u.lastName, u.secondLastName]
-                        .filter(Boolean)
-                        .join(' ')}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{u.email}</td>
-                    <td className="px-4 py-3 text-gray-600 font-mono text-xs">{u.rut}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{fullName(u)}</td>
+                    <td className="px-4 py-3 text-gray-600 max-w-[180px] truncate">{u.email}</td>
+                    <td className="px-4 py-3 text-gray-600 font-mono text-xs whitespace-nowrap">{fmtRut(u.rut)}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          u.roleName === 'ADMIN'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        u.roleName === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
                         {u.roleName}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-center tabular-nums text-gray-700">
+                      {u.vehicleCount > 0
+                        ? <span className="font-medium">{u.vehicleCount}</span>
+                        : <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center tabular-nums text-gray-700">
+                      {u.totalTransactions > 0
+                        ? <span className="font-medium">{u.totalTransactions.toLocaleString('es-CL')}</span>
+                        : <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {u.totalSavings > 0
+                        ? <span className="text-emerald-600 font-medium">{fmtClp(u.totalSavings)}</span>
+                        : <span className="text-gray-300">—</span>}
+                    </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
-                          u.active
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            u.active ? 'bg-emerald-500' : 'bg-gray-400'
-                          }`}
-                        />
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                        u.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${u.active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
                         {u.active ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">
-                      {formatDate(u.createdAt)}
+                    <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                      {fmtDate(u.createdAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setDetailUser(u)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Ver detalles"
+                        >
+                          <Eye size={14} />
+                        </button>
+                        {u.email !== myEmail && (
+                          u.active ? (
+                            <button
+                              onClick={() => handleToggleActive(u)}
+                              disabled={toggling === u.id}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                              title="Desactivar"
+                            >
+                              <PowerOff size={14} />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleActive(u)}
+                              disabled={toggling === u.id}
+                              className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                              title="Activar"
+                            >
+                              <Power size={14} />
+                            </button>
+                          )
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -133,8 +380,8 @@ export function UsersPage() {
         </div>
       </div>
 
-      {showCreate && (
-        <CreateUserModal onClose={() => setShowCreate(false)} onCreated={load} />
+      {detailUser && (
+        <UserDetailDrawer user={detailUser} onClose={() => setDetailUser(null)} />
       )}
     </div>
   );

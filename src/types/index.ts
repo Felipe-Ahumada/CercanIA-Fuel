@@ -22,16 +22,6 @@ export interface MeResponse {
 
 // ── Users ────────────────────────────────────────────────────────────────────
 
-export interface UserCreateRequest {
-  email: string;
-  rut: string;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  secondLastName: string;
-  birthDate: string; // ISO date string YYYY-MM-DD
-  roleId: number;
-}
 
 export interface UserResponse {
   id: string;
@@ -47,6 +37,42 @@ export interface UserResponse {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  vehicleCount:       number;
+  totalTransactions:  number;
+  totalSavings:       number;
+}
+
+export interface VehicleResponse {
+  id: string;
+  vehicleModelId: number;
+  brandName: string;
+  modelName: string;
+  fuelTypeId: number;
+  fuelTypeName: string;
+  licensePlate: string;
+  year: number;
+}
+
+export interface TransactionResponse {
+  id: string;
+  userId: string;
+  vehicleId: string | null;
+  stationId: string;
+  stationName: string;
+  stationBrand: string | null;
+  fuelTypeId: number;
+  fuelTypeName: string;
+  cardProductId: number | null;
+  cardProductName: string | null;
+  discountId: number | null;
+  unitPrice: number;
+  liters: number;
+  grossAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  transactionDate: string;
+  notes: string | null;
+  createdAt: string;
 }
 
 export interface Page<T> {
@@ -89,6 +115,7 @@ export interface DiscountResponse {
   brandName: string;
   cardProductId: number | null;
   cardProductName: string | null;
+  cardType: 'CREDIT' | 'DEBIT' | 'PREPAID' | null;
   bankName: string | null;
   fuelTypeId: number | null;
   fuelTypeName: string | null;
@@ -113,7 +140,7 @@ export interface DiscountCreateRequest {
   maxCap?: number;
   description?: string;
   startDate: string;
-  endDate?: string;
+  endDate: string;
 }
 
 export interface DiscountUpdateRequest {
@@ -126,37 +153,43 @@ export interface DiscountUpdateRequest {
   description?: string;
   startDate?: string;
   endDate?: string;
-}
-
-// ── Stations ──────────────────────────────────────────────────────────────────
-
-export interface StationSummaryResponse {
-  id: string;
-  name: string;
-  brandId: number;
-  brand: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  inMaintenance: boolean;
-  distanciaKm: number | null;
-  prices: CurrentPriceResponse[];
-}
-
-export interface CurrentPriceResponse {
-  fuelType: string;
-  price: number;
-  updatedAt: string;
+  active?: boolean;
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 
 export type ActiveSection = 'analytics' | 'users' | 'discounts';
 
-// ── Chile Data ───────────────────────────────────────────────────────────────
+// ── Analytics ─────────────────────────────────────────────────────────────────
 
-export interface ChileRegion {
-  id: number;
-  name: string;
-  communes: string[];
+export interface MonthlyCount { month: string; count: number; }
+export interface NamedCount   { name: string;  count: number; }
+export interface DiscountUsage {
+  brand: string; bank: string; cardProduct: string;
+  value: number; type: string; userCount: number;
 }
+export interface HourlyCount  { hour: number;  count: number; }
+
+export interface BrandDetail {
+  brand:       string;
+  recargas:    number;
+  uniqueUsers: number;
+  ahorroTotal: number;
+  litrosTotal: number;
+  tendencia:   number;
+}
+
+export interface AnalyticsResponse {
+  usersByMonth:        MonthlyCount[];
+  stationsByBrand:     NamedCount[];
+  fuelDistribution:    NamedCount[];
+  topDiscountsByUsage: DiscountUsage[];
+  transactionsByHour:  HourlyCount[];
+  brandDetails:        BrandDetail[];
+  totalUsers:          number;
+  activeUsers:         number;
+  totalStations:       number;
+  activeDiscounts:     number;
+  totalDiscountUses:   number;
+}
+
