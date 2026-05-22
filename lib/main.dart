@@ -13,6 +13,7 @@ import 'presentation/blocs/map/map_bloc.dart';
 import 'presentation/blocs/stats/stats_cubit.dart';
 import 'core/router/app_router.dart';
 import 'presentation/theme/app_theme.dart';
+import 'presentation/widgets/add_vehicle_bottom_sheet.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +53,11 @@ class CercaniaFuelApp extends StatelessWidget {
             const authScreens = {'/login', '/register', '/complete_profile'};
             if (authScreens.contains(current)) {
               router.go('/home/map');
+              if (state.fromOnboarding) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) AddVehicleBottomSheet.show(context);
+                });
+              }
             }
           } else if (state is AuthUnauthenticated) {
             router.go('/login');

@@ -391,9 +391,10 @@ class _TransaccionesTab extends StatelessWidget {
       itemCount: transactions.length,
       itemBuilder: (_, i) {
         final tx = transactions[i];
-        final initials = tx.stationName.length >= 2
-            ? tx.stationName.substring(0, 2).toUpperCase()
-            : tx.stationName.toUpperCase();
+        final displayName = tx.stationBrand ?? tx.stationName;
+        final initials = displayName.length >= 2
+            ? displayName.substring(0, 2).toUpperCase()
+            : displayName.toUpperCase();
         final precioUnit = tx.unitPrice > 0
             ? tx.unitPrice.toStringAsFixed(0)
             : (tx.liters > 0 ? (tx.finalAmount / tx.liters).toStringAsFixed(0) : null);
@@ -418,7 +419,7 @@ class _TransaccionesTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        tx.stationName,
+                        displayName,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,

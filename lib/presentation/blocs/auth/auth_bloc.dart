@@ -90,9 +90,10 @@ class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
   final UserEntity user;
-  const AuthAuthenticated(this.user);
+  final bool fromOnboarding;
+  const AuthAuthenticated(this.user, {this.fromOnboarding = false});
   @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [user, fromOnboarding];
 }
 
 class AuthNeedsProfileCompletion extends AuthState {
@@ -262,7 +263,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (failure) async => emit(profileState.copyWithError(failure.message)),
       (user) async {
         await _markProfileComplete(user.uid);
-        emit(AuthAuthenticated(user));
+        emit(AuthAuthenticated(user, fromOnboarding: true));
       },
     );
   }

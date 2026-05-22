@@ -5,6 +5,7 @@ class TransactionModel extends TransactionEntity {
     required super.id,
     required super.stationId,
     required super.stationName,
+    super.stationBrand,
     required super.transactionDate,
     required super.liters,
     required super.unitPrice,
@@ -24,6 +25,7 @@ class TransactionModel extends TransactionEntity {
         id: (json['id'] ?? '').toString(),
         stationId: (json['stationId'] ?? json['bencineraId'] ?? '').toString(),
         stationName: (json['stationName'] ?? json['bencineraNombre'] ?? '') as String,
+        stationBrand: json['stationBrand'] as String?,
         transactionDate: DateTime.parse(
             (json['transactionDate'] ?? json['fechaCarga'] ?? '') as String),
         liters:        ((json['liters']         ?? json['litros']         ?? 0) as num).toDouble(),

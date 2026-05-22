@@ -45,7 +45,7 @@ class _MapScreenState extends State<MapScreen> {
   Set<Marker> _customMarkers = {};
   List<StationEntity> _currentStations = [];
   int _markerGeneration = 0;
-  double _currentZoom = 10.0;
+  double _currentZoom = 14.0;
   LatLng _cameraTarget = const LatLng(-33.4489, -70.6693);
   List<StationEntity> _lastGeneratedStations = [];
   Fuel? _lastGeneratedFuel;
@@ -460,7 +460,7 @@ class _MapScreenState extends State<MapScreen> {
                   initialCameraPosition: CameraPosition(
                     target:
                         state.userLocation ?? const LatLng(-33.4489, -70.6693),
-                    zoom: 10,
+                    zoom: 14,
                   ),
                   markers: _customMarkers,
                   myLocationEnabled: true,

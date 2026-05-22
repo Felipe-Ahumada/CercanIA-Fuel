@@ -85,9 +85,12 @@ class _VehiclesPageState extends State<VehiclesPage> {
                           final confirmed = await showDialog<bool>(
                             context: context,
                             builder: (dialogContext) => AlertDialog(
-                              title: const Text('Eliminar vehículo'),
-                              content: Text(
-                                  '¿Eliminar ${vehicle.brand} ${vehicle.model}? Esta acción no se puede deshacer.'),
+                              title: Text(
+                                  '¿Quitar ${vehicle.brand} ${vehicle.model}?'),
+                              content: const Text(
+                                'El vehículo dejará de aparecer en nuevas cargas. '
+                                'Tu historial de recargas no se verá afectado.',
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
@@ -97,7 +100,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.of(dialogContext).pop(true),
-                                  child: const Text('Eliminar',
+                                  child: const Text('Quitar',
                                       style:
                                           TextStyle(color: GlassTokens.red)),
                                 ),
