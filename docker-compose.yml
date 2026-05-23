@@ -33,6 +33,7 @@ services:
       CNE_SCHEDULED_ENABLED: "false"
       APP_SECURITY_DEV_MODE: "true"
       JWT_SECRET: cercania-fuel-local-docker-secret-key-change-me
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
     ports:
       - "8080:8080"
     restart: unless-stopped
