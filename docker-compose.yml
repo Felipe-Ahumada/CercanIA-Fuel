@@ -1,0 +1,51 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: cercania-db
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: fuel_online_db
+      TZ: America/Santiago
+    ports:
+      - "3306:3306"
+    volumes:
+      - cercania_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: cercania-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      FUEL_DB_URL: jdbc:mysql://db:3306/fuel_online_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Santiago&allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
+      FUEL_DB_USER: root
+      FUEL_DB_PASSWORD: ""
+      CNE_ENABLED: "false"
+      CNE_SCHEDULED_ENABLED: "false"
+      APP_SECURITY_DEV_MODE: "true"
+      JWT_SECRET: cercania-fuel-local-docker-secret-key-change-me
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+    container_name: cercania-web
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+volumes:
+  cercania_mysql_data:

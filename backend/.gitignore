@@ -47,11 +47,3 @@ application-local.properties
 ### Secrets ###
 secrets/*
 !secrets/.gitkeep
-
-### Deployment artifacts (kept out of the repo by request) ###
-Dockerfile
-docker-compose.yml
-.dockerignore
-.env.example
-DEPLOY.md
-src/main/resources/application-staging.yml

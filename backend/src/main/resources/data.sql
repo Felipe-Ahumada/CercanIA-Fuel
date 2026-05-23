@@ -91,12 +91,20 @@ INSERT IGNORE INTO vehicle_model (vehicle_brand_id, name, vehicle_type) VALUES
 
 -- Dev-only admin user. Authenticate via header: X-Dev-User: admin@fuelonline.cl
 -- firebase_uid is NULL intentionally: this user is only used in dev mode.
-INSERT IGNORE INTO user (
+INSERT INTO `user` (
     id, role_id, email, firebase_uid,
+    auth_provider, status, password_hash,
     rut, first_name, middle_name, last_name, second_last_name,
     birth_date, active, created_at, updated_at
 ) VALUES (
     '00000000-0000-0000-0000-000000000001', 1, 'admin@fuelonline.cl', NULL,
+    'LOCAL', 'ACTIVE', '$2a$10$YU1rQW9apSmXYCfu14fQxuvzWqesg.5W3rQ9/5kDz4V/eiam.yMby',
     '11111111-1', 'Admin', NULL, 'Dev', 'Local',
     '1990-01-01', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-);
+) ON DUPLICATE KEY UPDATE
+    role_id = VALUES(role_id),
+    auth_provider = VALUES(auth_provider),
+    status = VALUES(status),
+    password_hash = VALUES(password_hash),
+    active = TRUE,
+    updated_at = CURRENT_TIMESTAMP;
