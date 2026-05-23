@@ -234,8 +234,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'birthDate': _dateFmt.format(birthDate),
       'roleId': 2,
     };
+    Map<String, dynamic>? userData;
     try {
-      await dioClient.post('/usuarios', data: payload);
+      final response = await dioClient.post(
+        '/usuarios',
+        data: payload,
+        options: Options(extra: {'skipAuth': true}),
+      );
+      userData = response.data as Map<String, dynamic>;
     } catch (e) {
       if (e is DioException && e.response?.statusCode == 409) {
         // Distinguish conflict type from the backend detail field.
@@ -250,7 +256,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // Email conflict: the user previously registered a LOCAL account with
         // this email. PATCH to merge the Google profile data into that account.
         try {
-          await dioClient.patch('/usuarios/complete-profile', data: payload);
+          final response = await dioClient.patch(
+            '/usuarios/complete-profile',
+            data: payload,
+            options: Options(extra: {'skipAuth': true}),
+          );
+          userData = response.data as Map<String, dynamic>;
         } catch (patchErr) {
           throw _toServerException(patchErr);
         }
@@ -260,6 +271,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
     final user = firebaseAuth.currentUser;
     if (user == null) throw ServerException(message: 'No hay usuario autenticado');
+    if (userData != null) {
+      return UserModel.fromUserResponse(
+        userData,
+        uid: user.uid,
+        authProvider: 'FIREBASE',
+        photoUrl: user.photoURL,
+      );
+    }
     final me = await _fetchBackendMe();
     return UserModel.fromFirebaseUser(user, backendId: me.userId, role: me.role);
   }

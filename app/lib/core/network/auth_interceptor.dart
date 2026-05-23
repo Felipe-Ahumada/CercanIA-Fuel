@@ -26,6 +26,10 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    if (options.extra['skipAuth'] == true) {
+      return super.onRequest(options, handler);
+    }
+
     if (_handlingLogout) {
       handler.reject(DioException(
         requestOptions: options,
@@ -59,6 +63,14 @@ class AuthInterceptor extends Interceptor {
       // 'FIREBASE', 'GOOGLE' (legacy), or null
       final user = firebaseAuth.currentUser;
       if (user != null) {
+        if (_isLocalBackend(options) && user.email != null) {
+          options.headers['X-Dev-User'] = user.email;
+          if (provider == null || provider == 'GOOGLE') {
+            await prefs.setString(_kAuthProvider, 'FIREBASE');
+          }
+          return super.onRequest(options, handler);
+        }
+
         try {
           final token = await user.getIdToken();
           if (token != null) {
@@ -110,6 +122,14 @@ class AuthInterceptor extends Interceptor {
     try { await firebaseAuth.signOut(); } catch (_) {}
     // Notifica al router para usuarios LOCAL (sin Firebase auth state changes).
     AuthTokenEvents.notifyExpired();
+  }
+
+  static bool _isLocalBackend(RequestOptions options) {
+    var host = options.uri.host;
+    if (host.isEmpty && options.baseUrl.isNotEmpty) {
+      host = Uri.tryParse(options.baseUrl)?.host ?? '';
+    }
+    return host == 'localhost' || host == '127.0.0.1' || host == '10.0.2.2';
   }
 
   /// Decodifica el payload del JWT y verifica si el claim `exp` ya venció.

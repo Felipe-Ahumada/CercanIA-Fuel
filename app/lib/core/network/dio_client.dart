@@ -41,16 +41,16 @@ class DioClient {
     return await dio.get(uri, queryParameters: queryParameters);
   }
 
-  Future<Response> post(String uri, {dynamic data}) async {
-    return await dio.post(uri, data: data);
+  Future<Response> post(String uri, {dynamic data, Options? options}) async {
+    return await dio.post(uri, data: data, options: options);
   }
 
   Future<Response> put(String uri, {dynamic data, Options? options}) async {
     return await dio.put(uri, data: data, options: options);
   }
 
-  Future<Response> patch(String uri, {dynamic data}) async {
-    return await dio.patch(uri, data: data);
+  Future<Response> patch(String uri, {dynamic data, Options? options}) async {
+    return await dio.patch(uri, data: data, options: options);
   }
 
   Future<Response> delete(String uri, {dynamic data}) async {
