@@ -1,0 +1,27 @@
+package cl.fuelonline.catalog.domain.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
+
+@Entity
+@Table(name = "brand",
+       uniqueConstraints = @UniqueConstraint(name = "uq_brand_api_code", columnNames = "api_code"))
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@SQLRestriction("active = true")
+public class Brand {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "api_code", nullable = false, length = 30)
+    private String apiCode;
+
+    @Column(nullable = false, length = 80)
+    private String name;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean active = Boolean.TRUE;
+}

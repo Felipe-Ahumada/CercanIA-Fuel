@@ -1,0 +1,76 @@
+﻿spring:
+  application:
+    name: fuel-online-backend
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+app:
+  security:
+    # Path to the Firebase service account credentials JSON. Empty = Firebase disabled.
+    firebase:
+      credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+    # When enabled, accepts the X-Dev-User: <email> header to impersonate local users.
+    dev-mode: ${APP_SECURITY_DEV_MODE:false}
+    dev-user-header: X-Dev-User
+    jwt:
+      secret: ${JWT_SECRET:cercania-fuel-dev-secret-key-replace-in-production}
+      expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
+      issuer: cercania-fuel
+
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    connect-timeout-ms: ${GEMINI_CONNECT_TIMEOUT_MS:10000}
+    read-timeout-ms: ${GEMINI_READ_TIMEOUT_MS:30000}
+
+  cne:
+    enabled: ${CNE_ENABLED:false}
+    api-url: ${CNE_API_URL:https://api.cne.cl/api/v4}
+    stations-path: /estaciones
+    # Full URL of the CNE login endpoint (POST email+password form-encoded).
+    auth-url: ${CNE_AUTH_URL:https://api.cne.cl/api/login}
+    # Credentials — preferred over static token. Set via env vars, never commit values.
+    email: ${CNE_EMAIL:}
+    password: ${CNE_PASSWORD:}
+    # Static token fallback (used only if email/password are absent).
+    token: ${CNE_API_TOKEN:}
+    timeout: 60s
+    scheduled-enabled: ${CNE_SCHEDULED_ENABLED:false}
+    # Spring cron (6 fields: sec min hour day month dayOfWeek).
+    # Default: 04:00 AM every day. Override via CNE_SCHEDULED_CRON env var.
+    scheduled-cron: ${CNE_SCHEDULED_CRON:0 0 4 * * *}
