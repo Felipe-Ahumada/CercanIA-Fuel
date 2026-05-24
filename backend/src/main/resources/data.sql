@@ -13,7 +13,6 @@ INSERT IGNORE INTO fuel_type (name, short_name, charge_unit, active) VALUES
 ('Gasolina 95',           '95',  'LT', TRUE),
 ('Gasolina 97',           '97',  'LT', TRUE),
 ('Diésel',                'DI',  'LT', TRUE),
-('Gas Natural Vehicular', 'GNV', 'M3', TRUE);
 
 -- Vehicle brands
 INSERT IGNORE INTO vehicle_brand (name) VALUES
