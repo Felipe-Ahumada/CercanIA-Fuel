@@ -46,6 +46,7 @@ class CercaniaFuelApp extends StatelessWidget {
             router.go('/complete_profile');
           } else if (state is AuthAuthenticated) {
             context.read<VehicleBloc>().add(LoadVehiclesEvent());
+            context.read<BankProfileCubit>().load();
             final current = router.routerDelegate.currentConfiguration
                 .matches.last.matchedLocation;
             // Navigate to home after login, register, or profile completion.

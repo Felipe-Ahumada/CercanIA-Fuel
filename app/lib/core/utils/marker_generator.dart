@@ -1,29 +1,40 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../theme/glass_tokens.dart';
 import 'brand_colors.dart';
 
 /// Renders compact, minimalist map markers via [dart:ui] Canvas and caches
-/// the resulting [BitmapDescriptor] keyed by brand+price.
+/// the resulting [BitmapDescriptor] keyed by brand+price+discount.
 ///
-/// Design: white pill — small brand-color dot on the left — price in dark text.
+/// Design: white pill — brand logo circle on the left — price in dark text.
+/// When a discount is active the pill turns green-tinted and price text is green.
 /// Call [clearCache] in the owning widget's [dispose] to free memory.
 class MarkerGenerator {
   MarkerGenerator._();
 
   static final Map<String, BitmapDescriptor> _cache = {};
 
-  static void clearCache() => _cache.clear();
+  /// Pre-decoded brand logo images keyed by lowercase-no-spaces brand name.
+  static final Map<String, ui.Image> _logoCache = {};
+
+  static void clearCache() {
+    _cache.clear();
+    for (final img in _logoCache.values) {
+      img.dispose();
+    }
+    _logoCache.clear();
+  }
 
   static Future<BitmapDescriptor> createCustomMarker({
     required String brand,
     required double? price,
+    bool hasDiscount = false,
   }) async {
-    final key = '${brand.toLowerCase().trim()}|${price?.toStringAsFixed(0) ?? '--'}';
-    return _cache[key] ??= await _draw(brand, price);
+    final key = '${brand.toLowerCase().trim()}|${price?.toStringAsFixed(0) ?? '--'}|${hasDiscount ? 'd' : 'n'}';
+    return _cache[key] ??= await _draw(brand, price, hasDiscount);
   }
 
   static String _formatPrice(double price) {
@@ -36,119 +47,139 @@ class MarkerGenerator {
     return '\$$p';
   }
 
-  // Logical dimensions (dp): pill 76×32 + 6 tail = 76×38 total
-  static const double _dpr  = 2.5;
-  static const double _lw   = 76;   // logical width
-  static const double _lh   = 32;   // logical pill height
-  static const double _tailH = 6;   // logical tail height
-  static const double _r    = 8;    // corner radius
+  // ── Layout constants (logical dp, scaled by _dpr for HiDPI) ──────────────
+  static const double _dpr   = 3.0;
+  static const double _lw    = 96;    // logical width
+  static const double _lh    = 36;    // logical pill height
+  static const double _tailH = 5;     // logical tail height
+  static const double _imgSz = 24;    // logo circle diameter
+  static const double _pad   = 6;     // inner padding
 
-  static Future<BitmapDescriptor> _draw(String brand, double? price) async {
+  /// Try to load and cache the brand logo from assets.
+  static Future<ui.Image?> _loadLogo(String brand) async {
+    final safeBrand = brand.toLowerCase().replaceAll(' ', '');
+    if (_logoCache.containsKey(safeBrand)) return _logoCache[safeBrand];
+    try {
+      final data = await rootBundle.load('assets/brands/$safeBrand.png');
+      final targetPx = (_imgSz * _dpr).toInt();
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+        targetWidth: targetPx,
+        targetHeight: targetPx,
+      );
+      final frame = await codec.getNextFrame();
+      _logoCache[safeBrand] = frame.image;
+      return frame.image;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<BitmapDescriptor> _draw(
+    String brand,
+    double? price,
+    bool hasDiscount,
+  ) async {
     final brandColor = BrandColors.of(brand);
     final priceStr = price != null ? _formatPrice(price) : '--';
 
-    const pw    = _lw * _dpr;
-    const ph    = _lh * _dpr;
-    const tailH = _tailH * _dpr;
-    const r     = _r * _dpr;
+    // Discount visual: green-tinted pill
+    final pillColor   = hasDiscount ? const Color(0xFFECFDF5) : const Color(0xFFFFFFFF);
+    final borderColor = hasDiscount ? const Color(0x3010B981) : const Color(0x18000000);
+    final tailColor   = pillColor;
+
+    const double pw    = _lw    * _dpr;
+    const double ph    = _lh    * _dpr;
+    const double tailP = _tailH * _dpr;
+    const double imgP  = _imgSz * _dpr;
+    const double padP  = _pad   * _dpr;
+    const double rP    = ph / 2; // fully rounded ends
+
+    final rrect = RRect.fromLTRBR(0, 0, pw, ph, const Radius.circular(rP));
 
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, pw, ph + tailH));
+    final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, pw, ph + tailP));
 
     // Drop shadow
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(1.5 * _dpr, 2 * _dpr, pw - 3 * _dpr, ph),
-        const Radius.circular(r),
-      ),
+      rrect.shift(const Offset(0, 2 * _dpr)),
       Paint()
-        ..color = const Color(0x28000000)
+        ..color = const Color(0x30000000)
         ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 3 * _dpr),
     );
 
     // Pill background
-    const pillRect  = Rect.fromLTWH(0, 0, pw, ph);
-    final pillRRect = RRect.fromRectAndRadius(pillRect, const Radius.circular(r));
-    canvas.drawRRect(pillRRect, Paint()..color = const Color(0xFFFAFAFA));
+    canvas.drawRRect(rrect, Paint()..color = pillColor);
 
     // Pill border
     canvas.drawRRect(
-      pillRRect,
+      rrect,
       Paint()
-        ..color = const Color(0x1A000000)
-        ..style  = PaintingStyle.stroke
-        ..strokeWidth = 0.6 * _dpr,
+        ..color = borderColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (hasDiscount ? 1.0 : 0.8) * _dpr,
     );
 
-    // Brand-color dot (left side, vertically centered)
-    const dotR  = 3.5 * _dpr;
-    const dotCx = 10 * _dpr;
-    const dotCy = ph / 2;
-    canvas.drawCircle(
-      const Offset(dotCx, dotCy),
-      dotR,
-      Paint()..color = brandColor,
-    );
+    // ── Brand logo — vertically centred circle on the left ────────────────
+    const double imgY = (ph - imgP) / 2;
+    final logo = await _loadLogo(brand);
+    if (logo != null) {
+      // Clip to circle and draw the image
+      canvas.save();
+      canvas.clipPath(
+        Path()..addOval(const Rect.fromLTWH(padP, imgY, imgP, imgP)),
+      );
+      canvas.drawImage(logo, const Offset(padP, imgY), Paint());
+      canvas.restore();
+    } else {
+      // Fallback: colored circle
+      canvas.drawCircle(
+        const Offset(padP + imgP / 2, ph / 2),
+        imgP / 2,
+        Paint()..color = brandColor,
+      );
+    }
 
-    // Tail / pointer
-    const cx = pw / 2;
+    // ── Price text — right of logo ────────────────────────────────────────
+    final priceColor = hasDiscount ? const Color(0xFF059669) : const Color(0xFF0F172A);
+    final textPainter = TextPainter(textDirection: TextDirection.ltr)
+      ..text = TextSpan(
+        text: priceStr,
+        style: TextStyle(
+          fontSize: 12.5 * _dpr,
+          fontWeight: FontWeight.w700,
+          color: priceColor,
+        ),
+      )
+      ..layout();
+
+    const double textAreaLeft = padP + imgP + padP;
+    const double textAreaWidth = pw - textAreaLeft - padP;
+    final double textX =
+        textAreaLeft + ((textAreaWidth - textPainter.width) / 2).clamp(0, textAreaWidth);
+    final double textY = (ph - textPainter.height) / 2;
+    textPainter.paint(canvas, Offset(textX, textY));
+
+    // ── Tail pointer ──────────────────────────────────────────────────────
+    const double cx = pw / 2;
     final tail = Path()
       ..moveTo(cx - 5 * _dpr, ph)
       ..lineTo(cx + 5 * _dpr, ph)
-      ..lineTo(cx, ph + tailH)
+      ..lineTo(cx, ph + tailP)
       ..close();
-    canvas.drawPath(tail, Paint()..color = const Color(0xFFFAFAFA));
-    canvas.drawPath(
-      tail,
-      Paint()
-        ..color = const Color(0x1A000000)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.6 * _dpr,
-    );
+    canvas.drawPath(tail, Paint()..color = tailColor);
 
-    // Price text — dark slate, not green
-    final pricePara = _buildParagraph(
-      text: priceStr,
-      color: GlassTokens.text0,
-      fontSize: 11.5 * _dpr,
-      fontWeight: ui.FontWeight.w700,
-      maxWidth: pw - dotCx - dotR - 6 * _dpr,
-    );
-    canvas.drawParagraph(
-      pricePara,
-      const Offset(dotCx + dotR + 4 * _dpr, (ph - 11.5 * _dpr * 1.2) / 2),
-    );
-
-    final picture = recorder.endRecording();
-    final image   = await picture.toImage(pw.toInt(), (ph + tailH).toInt());
-    final bytes   = await image.toByteData(format: ui.ImageByteFormat.png);
-    image.dispose();
+    // Convert to bitmap
+    final img = await recorder
+        .endRecording()
+        .toImage(pw.toInt(), (ph + tailP).toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    img.dispose();
 
     return BitmapDescriptor.bytes(
-      bytes!.buffer.asUint8List(),
-      width:  _lw,
+      byteData!.buffer.asUint8List(),
+      width: _lw,
       height: _lh + _tailH,
     );
-  }
-
-  static ui.Paragraph _buildParagraph({
-    required String text,
-    required Color color,
-    required double fontSize,
-    required ui.FontWeight fontWeight,
-    required double maxWidth,
-  }) {
-    return (ui.ParagraphBuilder(
-      ui.ParagraphStyle(
-        fontSize:   fontSize,
-        fontWeight: fontWeight,
-        maxLines:   1,
-        ellipsis:   '..',
-      ),
-    )
-      ..pushStyle(ui.TextStyle(color: color, fontSize: fontSize, fontWeight: fontWeight))
-      ..addText(text))
-        .build()
-      ..layout(ui.ParagraphConstraints(width: maxWidth));
   }
 }

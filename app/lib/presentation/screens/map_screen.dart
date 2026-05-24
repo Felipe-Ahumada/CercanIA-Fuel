@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/services.dart'; // Importante para cargar los assets (rootBundle)
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +9,8 @@ import '../blocs/map/map_event.dart';
 import '../blocs/map/map_state.dart';
 import '../blocs/vehicle/vehicle_bloc.dart';
 import '../blocs/vehicle/vehicle_state.dart';
+import '../blocs/bank_profile/bank_profile_cubit.dart';
+import '../blocs/bank_profile/bank_profile_state.dart';
 import '../widgets/fuel_filter_chips.dart';
 import '../widgets/station_bottom_sheet.dart';
 import '../../core/theme/glass_tokens.dart';
@@ -22,6 +23,7 @@ import '../../core/widgets/glass_loading_indicator.dart';
 import '../widgets/register_visit_bottom_sheet.dart';
 import '../../domain/entities/vehicle_entity.dart';
 import '../../domain/entities/station_entity.dart';
+import '../../domain/entities/bank_profile_entity.dart';
 
 String _markerPrice(double price) {
   final p = price.round();
@@ -199,11 +201,31 @@ class _MapScreenState extends State<MapScreen> {
     final generation = ++_markerGeneration;
     final newMarkers = <Marker>{};
 
-    for (final station in limited) {
-      final price = PriceCalculator.resolve(station, preferredFuel);
+    // Read user's active discounts
+    final bankState = context.read<BankProfileCubit>().state;
+    final dayOfWeek = DateTime.now().weekday;
 
-      // Llamada al nuevo creador de marcadores
-      final icon = await _createCustomMarker(station.brand, price);
+    for (final station in limited) {
+      // Get applicable discounts for this station
+      List<DiscountEntity> stationDiscounts = [];
+      if (bankState is BankProfileLoaded && station.brandId != null) {
+        stationDiscounts = bankState.discountsForStation(
+          station.brandId!,
+          dayOfWeek,
+        );
+      }
+
+      final resolved = PriceCalculator.resolveWithDiscount(
+        station,
+        preferredFuel,
+        stationDiscounts,
+      );
+
+      final icon = await MarkerGenerator.createCustomMarker(
+        brand: station.brand,
+        price: resolved.displayPrice,
+        hasDiscount: resolved.hasDiscount,
+      );
 
       if (generation != _markerGeneration) return;
 
@@ -219,115 +241,6 @@ class _MapScreenState extends State<MapScreen> {
       setState(() => _customMarkers = newMarkers);
     }
   }
-
-  // --- LÓGICA DE DIBUJO DE MARCADORES ---
-
-  Future<BitmapDescriptor> _createCustomMarker(
-      String brand, double? price) async {
-    final pictureRecorder = PictureRecorder();
-    final canvas = Canvas(pictureRecorder);
-
-    // Logical dimensions (dp) — scale factor only for HiDPI sharpness.
-    // BitmapDescriptor.bytes(width:, height:) maps the bitmap back to dp.
-    const double scale   = 3.0;
-    const double lw      = 96.0;   // logical width  (dp)
-    const double lh      = 36.0;   // logical height (dp)
-    const double tailH   = 5.0;    // tail pointer   (dp)
-    const double imgSize = 24.0;   // logo circle    (dp)
-    const double pad     = 6.0;    // inner padding  (dp)
-
-    const double pw    = lw    * scale;
-    const double ph    = lh    * scale;
-    const double tailP = tailH * scale;
-    const double imgP  = imgSize * scale;
-    const double padP  = pad   * scale;
-    const double rP    = ph / 2;   // fully rounded ends
-
-    final rrect = RRect.fromLTRBR(0, 0, pw, ph, const Radius.circular(rP));
-
-    // Shadow
-    canvas.drawRRect(
-      rrect.shift(const Offset(0, 2 * scale)),
-      Paint()
-        ..color = const Color(0x30000000)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3 * scale),
-    );
-
-    // Pill background
-    canvas.drawRRect(rrect, Paint()..color = const Color(0xFFFFFFFF));
-
-    // Pill border
-    canvas.drawRRect(
-      rrect,
-      Paint()
-        ..color = const Color(0x18000000)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8 * scale,
-    );
-
-    // Brand logo — vertically centred circle on the left
-    const double imgY = (ph - imgP) / 2;
-    final String safeBrand = brand.toLowerCase().replaceAll(' ', '');
-    try {
-      final ByteData data = await rootBundle.load('assets/brands/$safeBrand.png');
-      final Codec codec = await instantiateImageCodec(
-        data.buffer.asUint8List(),
-        targetWidth: imgP.toInt(),
-        targetHeight: imgP.toInt(),
-      );
-      final FrameInfo frameInfo = await codec.getNextFrame();
-      canvas.save();
-      canvas.clipPath(Path()..addOval(const Rect.fromLTWH(padP, imgY, imgP, imgP)));
-      canvas.drawImage(frameInfo.image, const Offset(padP, imgY), Paint());
-      canvas.restore();
-    } catch (_) {
-      canvas.drawCircle(
-        const Offset(padP + imgP / 2, ph / 2),
-        imgP / 2,
-        Paint()..color = const Color(0xFFDDE3EE),
-      );
-    }
-
-    // Price text — right of logo, dark slate
-    if (price != null) {
-      final textPainter = TextPainter(textDirection: TextDirection.ltr)
-        ..text = TextSpan(
-          text: _markerPrice(price),
-          style: const TextStyle(
-            fontSize: 12.5 * scale,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF0F172A),
-          ),
-        )
-        ..layout();
-
-      const double textAreaLeft = padP + imgP + padP;
-      const double textAreaWidth = pw - textAreaLeft - padP;
-      final double textX = textAreaLeft + ((textAreaWidth - textPainter.width) / 2).clamp(0, textAreaWidth);
-      final double textY = (ph - textPainter.height) / 2;
-      textPainter.paint(canvas, Offset(textX, textY));
-    }
-
-    // Tail pointer
-    const double cx = pw / 2;
-    final tail = Path()
-      ..moveTo(cx - 5 * scale, ph)
-      ..lineTo(cx + 5 * scale, ph)
-      ..lineTo(cx, ph + tailP)
-      ..close();
-    canvas.drawPath(tail, Paint()..color = const Color(0xFFFFFFFF));
-
-    final img = await pictureRecorder
-        .endRecording()
-        .toImage(pw.toInt(), (ph + tailP).toInt());
-    final byteData = await img.toByteData(format: ImageByteFormat.png);
-    return BitmapDescriptor.bytes(
-      byteData!.buffer.asUint8List(),
-      width: lw,
-      height: lh + tailH,
-    );
-  }
-  // ----------------------------------------
 
   void _showStationBottomSheet(StationEntity station) {
     // Use the same fuel resolution logic as the marker so both show the same price.
@@ -366,7 +279,20 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      body: BlocConsumer<MapBloc, MapState>(
+      body: BlocListener<BankProfileCubit, BankProfileState>(
+        listener: (context, bankState) {
+          if (bankState is BankProfileLoaded && _currentStations.isNotEmpty) {
+            // Discounts changed — force marker regeneration
+            _lastGeneratedStations = [];
+            _lastGeneratedFuel = null;
+            MarkerGenerator.clearCache();
+            _generateMarkers(
+              _filterStations(_currentStations),
+              _selectedFuel ?? _getPreferredFuel(),
+            );
+          }
+        },
+        child: BlocConsumer<MapBloc, MapState>(
         listener: (context, state) {
           if (state is MapLoaded) {
             if (state.userLocation != null && _isFirstLocationUpdate) {
@@ -600,6 +526,7 @@ class _MapScreenState extends State<MapScreen> {
           return const GlassLoadingIndicator();
         },
       ),
+      ),
     );
   }
 }
@@ -619,11 +546,21 @@ class _StationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final price = selectedFuel != null
-        ? station.prices[selectedFuel]?.displayPrice
-        : (station.prices.isEmpty
-            ? null
-            : station.prices.values.first.displayPrice);
+    // Resolve price with discounts
+    final bankState = context.read<BankProfileCubit>().state;
+    final dayOfWeek = DateTime.now().weekday;
+    List<DiscountEntity> stationDiscounts = [];
+    if (bankState is BankProfileLoaded && station.brandId != null) {
+      stationDiscounts = bankState.discountsForStation(
+        station.brandId!,
+        dayOfWeek,
+      );
+    }
+    final resolved = PriceCalculator.resolveWithDiscount(
+      station,
+      selectedFuel,
+      stationDiscounts,
+    );
     final distStr = distKm != null ? '${distKm!.toStringAsFixed(1)} km' : '';
 
     return GestureDetector(
@@ -651,15 +588,38 @@ class _StationCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              if (price != null)
-                Text(
-                  _markerPrice(price),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: GlassTokens.green,
+              if (resolved.basePrice > 0) ...[
+                if (resolved.hasDiscount) ...[
+                  // Original price struck through
+                  Text(
+                    _markerPrice(resolved.basePrice),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: GlassTokens.text2,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: GlassTokens.text2,
+                    ),
                   ),
-                ),
+                  // Discounted price in green
+                  Text(
+                    _markerPrice(resolved.displayPrice),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF059669),
+                    ),
+                  ),
+                ] else
+                  Text(
+                    _markerPrice(resolved.displayPrice),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: GlassTokens.green,
+                    ),
+                  ),
+              ],
               if (distStr.isNotEmpty)
                 Text(
                   distStr,
