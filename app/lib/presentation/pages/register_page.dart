@@ -34,8 +34,10 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _submitted              = false;
   String? _rutServerError;
   String? _emailServerError;
+  String? _birthDateError;
 
   static final _emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+  static const int _minAgeChile = 18;
 
   @override
   void dispose() {
@@ -70,20 +72,44 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
+  static bool _isAdultChile(DateTime birthDate) {
+    final now = DateTime.now();
+    final adultDate = DateTime(now.year - _minAgeChile, now.month, now.day);
+    return !birthDate.isAfter(adultDate);
+  }
+
+  String? _validateBirthDate(DateTime? birthDate) {
+    if (birthDate == null) return null;
+    if (!_isAdultChile(birthDate)) return 'Debes tener al menos 18 años.';
+    return null;
+  }
+
   Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final maxDate = DateTime(now.year - _minAgeChile, now.month, now.day);
+    final defaultDate = DateTime(2000);
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2000),
+      initialDate: defaultDate.isAfter(maxDate) ? maxDate : defaultDate,
       firstDate: DateTime(1920),
-      lastDate: DateTime.now().subtract(const Duration(days: 365 * 13)),
+      lastDate: maxDate,
       helpText: 'Selecciona tu fecha de nacimiento',
     );
-    if (picked != null) setState(() => _birthDate = picked);
+    if (picked != null) {
+      setState(() {
+        _birthDate = picked;
+        _birthDateError = _validateBirthDate(picked);
+      });
+    }
   }
 
   void _onSignUp() {
-    setState(() => _submitted = true);
+    setState(() {
+      _submitted = true;
+      _birthDateError = _validateBirthDate(_birthDate);
+    });
     if (!_formKey.currentState!.validate()) return;
+    if (_birthDateError != null) return;
     if (_birthDate == null) return;
 
     final mid = _middleNameCtrl.text.trim();
@@ -231,7 +257,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       borderRadius: BorderRadius.circular(
                                           GlassTokens.radiusMd),
                                       border: Border.all(
-                                        color: (_submitted && _birthDate == null)
+                                        color: ((_submitted && _birthDate == null) || _birthDateError != null)
                                             ? GlassTokens.red
                                             : GlassTokens.border2,
                                         width: 1.5,
@@ -241,7 +267,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       children: [
                                         Icon(Icons.calendar_today,
                                             size: 18,
-                                            color: (_submitted && _birthDate == null)
+                                            color: ((_submitted && _birthDate == null) || _birthDateError != null)
                                                 ? GlassTokens.red
                                                 : GlassTokens.text2),
                                         const SizedBox(width: 10),
@@ -254,7 +280,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                             fontSize: 14,
                                             color: _birthDate != null
                                                 ? GlassTokens.text0
-                                                : (_submitted
+                                                : ((_submitted || _birthDateError != null)
                                                     ? GlassTokens.red
                                                     : GlassTokens.text2),
                                           ),
@@ -262,7 +288,17 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ],
                                     ),
                                   ),
-                                  if (_submitted && _birthDate == null)
+                                  if (_birthDateError != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 12, top: 4),
+                                      child: Text(
+                                        _birthDateError!,
+                                        style: const TextStyle(
+                                            color: GlassTokens.red,
+                                            fontSize: 12),
+                                      ),
+                                    )
+                                  else if (_submitted && _birthDate == null)
                                     const Padding(
                                       padding: EdgeInsets.only(left: 12, top: 4),
                                       child: Text(

@@ -118,6 +118,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final data = response.data as Map<String, dynamic>;
       await _persistLocalSession(data);
       return UserModel.fromLocalAuth(data);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        throw _toServerException(e);
+      }
+      final status = e.response?.statusCode;
+      if (status == 400 || status == 401 || status == 403) {
+        throw ServerException(message: 'Correo o contraseña incorrectos.');
+      }
+      throw _toServerException(e);
     } catch (e) {
       throw _toServerException(e);
     }

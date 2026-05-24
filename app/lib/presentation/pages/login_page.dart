@@ -157,20 +157,6 @@ class _LoginPageState extends State<LoginPage> {
                             },
                           ),
                           const SizedBox(height: 6),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: GestureDetector(
-                              onTap: () => context.push('/forgot_password'),
-                              child: const Text(
-                                '¿Olvidaste tu contraseña?',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: GlassTokens.green,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
                           const SizedBox(height: 20),
                           GlassButton(
                             label: 'Ingresar',

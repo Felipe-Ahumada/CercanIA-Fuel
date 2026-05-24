@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/glass_tokens.dart';
 import '../../core/widgets/glass_button.dart';
@@ -177,6 +178,16 @@ class _RegisterVisitContentState extends State<_RegisterVisitContent> {
                               fontSize: 13, color: GlassTokens.text2),
                           textAlign: TextAlign.center),
                       const SizedBox(height: 20),
+                      GlassButton(
+                        label: 'Ir a Mis Vehículos',
+                        width: double.infinity,
+                        onPressed: () {
+                          final router = GoRouter.of(context);
+                          Navigator.of(context, rootNavigator: true).pop();
+                          router.push('/vehicles');
+                        },
+                      ),
+                      const SizedBox(height: 8),
                       TextButton(
                         onPressed: () =>
                             Navigator.of(context, rootNavigator: true).pop(),
