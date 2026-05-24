@@ -8,6 +8,12 @@ Requisitos:
 
 - Docker Desktop corriendo.
 
+ejecutar
+
+```powershell
+docker compose up --build -d
+```
+
 ## Cargar datos reales de la CNE
 
 La integracion CNE se activa por variables de entorno. Crea un archivo `.env` al mismo nivel que el docker-compose `.env.example` como base:
@@ -33,6 +39,10 @@ Ejecuta la sincronizacion manual:
 
 ```powershell
 Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/v1/admin/cne/sync -Headers @{ "X-Dev-User" = "admin@fuelonline.cl" }
+```
+ejecutar
+```powershell
+docker compose up --build -d
 ```
 La app movil mostrara estaciones cuando existan datos sincronizados cerca de la ubicacion del emulador.
 
