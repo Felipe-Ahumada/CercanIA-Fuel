@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/glass_tokens.dart';
 
 class GlassInput extends StatelessWidget {
@@ -14,6 +15,7 @@ class GlassInput extends StatelessWidget {
   final int? maxLines;
   final bool obscureText;
   final String? errorText;
+  final List<TextInputFormatter>? inputFormatters;
 
   const GlassInput({
     super.key,
@@ -28,6 +30,7 @@ class GlassInput extends StatelessWidget {
     this.maxLines = 1,
     this.obscureText = false,
     this.errorText,
+    this.inputFormatters,
   });
 
   @override
@@ -49,6 +52,7 @@ class GlassInput extends StatelessWidget {
               onChanged: onChanged,
               maxLines: maxLines,
               obscureText: obscureText,
+              inputFormatters: inputFormatters,
               style: const TextStyle(color: GlassTokens.text0),
               decoration: InputDecoration(
                 hintText: hintText,

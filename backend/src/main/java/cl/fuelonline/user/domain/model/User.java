@@ -65,7 +65,7 @@ public class User extends BaseAuditEntity {
     private String passwordHash;
 
     /** Normalized RUT without dots/dash (e.g. "123456789K"). Max 9 chars. */
-    @Column(length = 10)
+    @Column(nullable = false, length = 10)
     private String rut;
 
     @Column(name = "first_name", nullable = false, length = 60)
@@ -77,10 +77,10 @@ public class User extends BaseAuditEntity {
     @Column(name = "last_name", nullable = false, length = 60)
     private String lastName;
 
-    @Column(name = "second_last_name", length = 60)
+    @Column(name = "second_last_name", nullable = false, length = 60)
     private String secondLastName;
 
-    @Column(name = "birth_date")
+    @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
     @Column(nullable = false)

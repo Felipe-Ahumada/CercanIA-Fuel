@@ -2,11 +2,9 @@ package cl.fuelonline.security.api;
 
 import cl.fuelonline.security.application.dto.AuthResponse;
 import cl.fuelonline.security.application.dto.ChangePasswordRequest;
-import cl.fuelonline.security.application.dto.ForgotPasswordRequest;
 import cl.fuelonline.security.application.dto.LoginRequest;
 import cl.fuelonline.security.application.dto.MeResponse;
 import cl.fuelonline.security.application.dto.RegisterRequest;
-import cl.fuelonline.security.application.dto.ResetPasswordRequest;
 import cl.fuelonline.security.application.service.LocalAuthService;
 import cl.fuelonline.security.domain.AuthenticatedUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,20 +48,6 @@ public class AuthController {
     public void changePassword(@Valid @RequestBody ChangePasswordRequest req,
                                @AuthenticationPrincipal AuthenticatedUser principal) {
         localAuthService.changePassword(principal.email(), req);
-    }
-
-    @PostMapping("/forgot-password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Solicita un OTP de 6 dígitos por email para restablecer contraseña (solo usuarios LOCAL)")
-    public void forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
-        localAuthService.requestPasswordReset(req);
-    }
-
-    @PostMapping("/reset-password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Restablece la contraseña usando el OTP recibido por email")
-    public void resetPassword(@Valid @RequestBody ResetPasswordRequest req) {
-        localAuthService.resetPassword(req);
     }
 
     @GetMapping("/me")

@@ -9,7 +9,7 @@ interface Props {
 }
 
 const NAV_ITEMS: { id: ActiveSection; label: string; Icon: typeof BarChart3 }[] = [
-  { id: 'analytics', label: 'Analytics', Icon: BarChart3 },
+  { id: 'analytics', label: 'Estadísticas', Icon: BarChart3 },
   { id: 'users', label: 'Usuarios', Icon: Users },
   { id: 'discounts', label: 'Descuentos', Icon: Tag },
 ];

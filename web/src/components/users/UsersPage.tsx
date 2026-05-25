@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   UserCircle, RefreshCw, Power, PowerOff, Car, Fuel,
-  PiggyBank, Eye, Users, UserCheck, TrendingUp, Calendar,
+  PiggyBank, Eye, Users, UserCheck, TrendingUp, Calendar, ArrowUpDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { usersApi } from '../../api/users';
@@ -23,6 +23,12 @@ export function UsersPage() {
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo]     = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
+  const [roleFilter,   setRoleFilter]   = useState<'all' | 'ADMIN' | 'USER'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'date-desc' | 'date-asc'>('name');
+
+  // Pagination
+  const PAGE_SIZE = 50;
+  const [currentPage, setCurrentPage] = useState(0);
 
 
   const myEmail = (() => {
@@ -33,7 +39,7 @@ export function UsersPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const page = await usersApi.list(0, 200);
+      const page = await usersApi.list(0, 1000);
       setUsers(page.content);
     } catch {
       toast.error('Error al cargar los usuarios');
@@ -43,6 +49,7 @@ export function UsersPage() {
   };
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { setCurrentPage(0); }, [statusFilter, roleFilter, sortBy, datePreset, customFrom, customTo]);
 
   const handleToggleActive = async (u: UserResponse) => {
     setToggling(u.id);
@@ -66,16 +73,32 @@ export function UsersPage() {
 
   const filteredUsers = useMemo(() => {
     const [from, to] = presetToDates(datePreset, customFrom, customTo);
-    return users.filter((u) => {
+    const filtered = users.filter((u) => {
       if (statusFilter === 'active'   && !u.active) return false;
       if (statusFilter === 'inactive' &&  u.active) return false;
+      if (roleFilter !== 'all' && u.roleName !== roleFilter) return false;
       if (!u.createdAt) return true;
       const d = new Date(u.createdAt);
       if (from && d < from) return false;
       if (to   && d > to)   return false;
       return true;
     });
-  }, [users, datePreset, customFrom, customTo, statusFilter]);
+    return filtered.sort((a, b) => {
+      if (sortBy === 'name') {
+        const na = `${a.lastName ?? ''} ${a.firstName ?? ''}`.trim().toLowerCase();
+        const nb = `${b.lastName ?? ''} ${b.firstName ?? ''}`.trim().toLowerCase();
+        return na.localeCompare(nb, 'es');
+      }
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return sortBy === 'date-desc' ? tb - ta : ta - tb;
+    });
+  }, [users, datePreset, customFrom, customTo, statusFilter, roleFilter, sortBy]);
+
+  // ── Pagination ──────────────────────────────────────────────────────────────
+
+  const totalPages    = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const paginatedUsers = filteredUsers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
   // ── KPIs (from filtered set) ────────────────────────────────────────────────
 
@@ -86,7 +109,7 @@ export function UsersPage() {
   const avgTransactions   = filteredUsers.length ? totalTransactions / filteredUsers.length : 0;
   const avgSavings        = activeCount ? totalSavings / activeCount : 0;
 
-  const isFiltered = datePreset !== 'all' || statusFilter !== 'all';
+  const isFiltered = datePreset !== 'all' || statusFilter !== 'all' || roleFilter !== 'all';
 
   return (
     <div className="p-6 space-y-5">
@@ -128,6 +151,27 @@ export function UsersPage() {
                   datePreset === key
                     ? 'bg-blue-600 text-white border-blue-600'
                     : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Role filter */}
+          <div className="flex items-center gap-1 border border-gray-200 rounded-lg p-0.5 bg-gray-50">
+            {([
+              { key: 'all',   label: 'Todos los roles' },
+              { key: 'USER',  label: 'Usuario' },
+              { key: 'ADMIN', label: 'Admin' },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setRoleFilter(key)}
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
+                  roleFilter === key
+                    ? 'bg-white text-gray-700 shadow-sm font-medium'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {label}
@@ -211,7 +255,7 @@ export function UsersPage() {
         {[
           {
             label: 'Total Usuarios',
-            value: loading ? '—' : filteredUsers.length.toLocaleString('es-CL'),
+            value: loading ? '—' : users.length.toLocaleString('es-CL'),
             Icon: Users,
             color: 'bg-blue-600',
           },
@@ -260,7 +304,18 @@ export function UsersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Nombre</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">
+                  <button
+                    onClick={() => setSortBy('name')}
+                    className="flex items-center gap-1 hover:text-blue-600 transition-colors group"
+                    title="Ordenar alfabéticamente"
+                  >
+                    Nombre
+                    <ArrowUpDown size={12} className={`transition-colors ${
+                      sortBy === 'name' ? 'text-blue-500' : 'text-gray-300 group-hover:text-blue-400'
+                    }`} />
+                  </button>
+                </th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">RUT</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Rol</th>
@@ -274,7 +329,20 @@ export function UsersPage() {
                   <span className="flex items-center justify-end gap-1"><PiggyBank size={13} />Ahorro</span>
                 </th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Registro</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">
+                  <button
+                    onClick={() => setSortBy((s) => s === 'date-desc' ? 'date-asc' : 'date-desc')}
+                    className="flex items-center gap-1 hover:text-blue-600 transition-colors group"
+                    title={sortBy === 'date-desc' ? 'Más reciente primero' : sortBy === 'date-asc' ? 'Más antiguo primero' : 'Ordenar por fecha'}
+                  >
+                    Registro
+                    <ArrowUpDown size={12} className={`transition-colors ${
+                      sortBy === 'date-desc' ? 'text-blue-500' :
+                      sortBy === 'date-asc'  ? 'text-amber-500' :
+                      'text-gray-300 group-hover:text-blue-400'
+                    }`} />
+                  </button>
+                </th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Acciones</th>
               </tr>
             </thead>
@@ -297,7 +365,7 @@ export function UsersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => (
+                paginatedUsers.map((u) => (
                   <tr
                     key={u.id}
                     className={`border-b border-gray-100 transition-colors ${
@@ -378,6 +446,51 @@ export function UsersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {!loading && filteredUsers.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500">
+              {filteredUsers.length === users.length
+                ? `${filteredUsers.length} usuarios`
+                : `${filteredUsers.length} de ${users.length} usuarios`}
+              {' · '}página {currentPage + 1} de {totalPages}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Anterior
+              </button>
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                const offset = Math.max(0, Math.min(currentPage - 3, totalPages - 7));
+                const page = i + offset;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 text-xs rounded-lg border transition-colors ${
+                      page === currentPage
+                        ? 'bg-blue-600 text-white border-blue-600 font-medium'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page + 1}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={currentPage >= totalPages - 1}
+                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {detailUser && (

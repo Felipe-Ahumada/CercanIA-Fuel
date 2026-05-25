@@ -31,6 +31,7 @@ class _StatsView extends StatefulWidget {
 
 class _StatsViewState extends State<_StatsView> {
   int _tabIndex = 0;
+  String? _selectedMonth; // formato 'yyyy-MM', null = todos
 
   @override
   Widget build(BuildContext context) {
@@ -48,18 +49,6 @@ class _StatsViewState extends State<_StatsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          state is StatsLoaded
-                              ? _dateRangeLabel(state.summary.from, state.summary.to)
-                              : '',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: GlassTokens.text2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
                         const Text(
                           'Recargas',
                           style: TextStyle(
@@ -134,7 +123,26 @@ class _StatsViewState extends State<_StatsView> {
                   sliver: SliverToBoxAdapter(
                     child: _tabIndex == 0
                         ? _ResumenTab(summary: state.summary)
-                        : _TransaccionesTab(transactions: state.transactions),
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _MonthFilter(
+                                transactions: state.transactions,
+                                selected: _selectedMonth,
+                                onSelected: (m) => setState(() => _selectedMonth = m),
+                              ),
+                              const SizedBox(height: 12),
+                              _TransaccionesTab(
+                                transactions: _selectedMonth == null
+                                    ? state.transactions
+                                    : state.transactions.where((tx) {
+                                        final key =
+                                            '${tx.transactionDate.year}-${tx.transactionDate.month.toString().padLeft(2, '0')}';
+                                        return key == _selectedMonth;
+                                      }).toList(),
+                              ),
+                            ],
+                          ),
                   ),
                 )
               else
@@ -147,11 +155,6 @@ class _StatsViewState extends State<_StatsView> {
   }
 }
 
-String _dateRangeLabel(DateTime? from, DateTime? to) {
-  if (from == null || to == null) return '';
-  final fmt = DateFormat('MMM yyyy', 'es_CL');
-  return '${fmt.format(from).toUpperCase()} – ${fmt.format(to).toUpperCase()}';
-}
 
 class _TabBtn extends StatelessWidget {
   final String label;
@@ -355,6 +358,92 @@ class _BarChart extends StatelessWidget {
               ),
             );
           }),
+        ),
+      ),
+    );
+  }
+}
+
+class _MonthFilter extends StatelessWidget {
+  final List<TransactionEntity> transactions;
+  final String? selected;
+  final ValueChanged<String?> onSelected;
+
+  const _MonthFilter({
+    required this.transactions,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = DateFormat('MMM yyyy', 'es_CL');
+
+    final months = transactions
+        .map((tx) =>
+            '${tx.transactionDate.year}-${tx.transactionDate.month.toString().padLeft(2, '0')}')
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    if (months.length <= 1) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 34,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _Chip(
+            label: 'Todos',
+            active: selected == null,
+            onTap: () => onSelected(null),
+          ),
+          ...months.map((key) {
+            final parts = key.split('-');
+            final dt = DateTime(int.parse(parts[0]), int.parse(parts[1]));
+            return _Chip(
+              label: fmt.format(dt),
+              active: selected == key,
+              onTap: () => onSelected(key),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _Chip({required this.label, required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: active ? GlassTokens.accentGradient : null,
+          color: active ? null : GlassTokens.glass2,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: active ? Colors.transparent : GlassTokens.border2,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: active ? GlassTokens.text0 : GlassTokens.text2,
+          ),
         ),
       ),
     );
