@@ -14,6 +14,7 @@ import { fmtClp, fmtRut, fmtDate, fullName, DATE_PRESETS, presetToDates, type Da
 
 export function UsersPage() {
   const [users, setUsers]         = useState<UserResponse[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading]     = useState(true);
   const [detailUser, setDetailUser] = useState<UserResponse | null>(null);
   const [toggling, setToggling]   = useState<string | null>(null);
@@ -41,6 +42,7 @@ export function UsersPage() {
     try {
       const page = await usersApi.list(0, 1000);
       setUsers(page.content);
+      setTotalUsers(page.totalElements);
     } catch {
       toast.error('Error al cargar los usuarios');
     } finally {
@@ -255,7 +257,7 @@ export function UsersPage() {
         {[
           {
             label: 'Total Usuarios',
-            value: loading ? '—' : users.length.toLocaleString('es-CL'),
+            value: loading ? '—' : totalUsers.toLocaleString('es-CL'),
             Icon: Users,
             color: 'bg-blue-600',
           },
