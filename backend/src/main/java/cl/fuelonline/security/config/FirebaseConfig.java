@@ -10,16 +10,22 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Initializes the Firebase Admin SDK when credentials are configured.
- * If credentials are missing, beans are not created and the filter falls back to dev mode.
+ * Supports two modes:
+ *   1. FIREBASE_CREDENTIALS_JSON env var with the JSON content (ideal for Railway/cloud).
+ *   2. File path via app.security.firebase.credentials-path (local dev).
+ * If neither is set, beans are not created and the filter falls back to dev mode.
  */
 @Slf4j
 @Configuration
-@ConditionalOnExpression("'${app.security.firebase.credentials-path:}' != ''")
+@ConditionalOnExpression(
+    "'${FIREBASE_CREDENTIALS_JSON:}' != '' || '${app.security.firebase.credentials-path:}' != ''")
 public class FirebaseConfig {
 
     @Bean
@@ -28,10 +34,19 @@ public class FirebaseConfig {
             return FirebaseApp.getInstance();
         }
 
-        String path = props.firebase().credentialsPath();
-        log.info("Initializing Firebase Admin SDK with credentials: {}", path);
+        String json = System.getenv("FIREBASE_CREDENTIALS_JSON");
+        InputStream is;
 
-        try (InputStream is = new FileInputStream(path)) {
+        if (json != null && !json.isBlank()) {
+            log.info("Initializing Firebase Admin SDK from FIREBASE_CREDENTIALS_JSON env var");
+            is = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+        } else {
+            String path = props.firebase().credentialsPath();
+            log.info("Initializing Firebase Admin SDK with credentials file: {}", path);
+            is = new FileInputStream(path);
+        }
+
+        try (is) {
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(is))
                     .build();
