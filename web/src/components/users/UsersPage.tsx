@@ -123,7 +123,7 @@ export function UsersPage() {
             {loading
               ? '...'
               : `${activeCount} activos · ${inactiveCount} inactivos${
-                  isFiltered ? ` (${filteredUsers.length} de ${users.length} usuarios)` : ''
+                  isFiltered ? ` (${filteredUsers.length} de ${totalUsers} usuarios)` : ''
                 }`}
           </p>
         </div>
@@ -453,9 +453,9 @@ export function UsersPage() {
         {!loading && filteredUsers.length > 0 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
             <p className="text-xs text-gray-500">
-              {filteredUsers.length === users.length
-                ? `${filteredUsers.length} usuarios`
-                : `${filteredUsers.length} de ${users.length} usuarios`}
+              {filteredUsers.length === totalUsers
+                ? `${totalUsers} usuarios`
+                : `${filteredUsers.length} de ${totalUsers} usuarios`}
               {' · '}página {currentPage + 1} de {totalPages}
             </p>
             <div className="flex items-center gap-1">
