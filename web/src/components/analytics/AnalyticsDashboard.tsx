@@ -192,7 +192,7 @@ export function AnalyticsDashboard() {
   if (error) {
     return (
       <div className="p-6 flex items-center justify-center h-64 text-gray-500">
-        Error al cargar los datos de analytics.
+        Error al cargar las estadísticas.
       </div>
     );
   }
@@ -207,7 +207,7 @@ export function AnalyticsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Estadísticas</h1>
           <p className="text-sm text-gray-500 mt-0.5">Métricas reales de la plataforma</p>
         </div>
       </div>

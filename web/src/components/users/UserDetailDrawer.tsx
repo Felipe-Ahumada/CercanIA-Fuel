@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { X, Car, Fuel, User, Loader2, ShoppingBag } from 'lucide-react';
+import { X, Car, Fuel, User, Loader2, ShoppingBag, Tag } from 'lucide-react';
 import { usersApi } from '../../api/users';
-import type { UserResponse, VehicleResponse, TransactionResponse } from '../../types';
+import type { UserResponse, VehicleResponse, TransactionResponse, DiscountResponse } from '../../types';
 import { fmtClp, fmtRut, fmtDate, fmtDateTime, fullName } from '../../lib/formatters';
 
-type Tab = 'datos' | 'vehiculos' | 'cargas';
+type Tab = 'datos' | 'vehiculos' | 'cargas' | 'descuentos';
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -159,6 +159,70 @@ function CargasTab({ userId }: { userId: string }) {
   );
 }
 
+function DescuentosTab({ userId }: { userId: string }) {
+  const [discounts, setDiscounts] = useState<DiscountResponse[]>([]);
+  const [loading, setLoading]     = useState(true);
+
+  useEffect(() => {
+    usersApi.discounts(userId)
+      .then(setDiscounts)
+      .catch(() => setDiscounts([]))
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-16 text-gray-400">
+      <Loader2 size={20} className="animate-spin mr-2" /> Cargando descuentos...
+    </div>
+  );
+
+  if (discounts.length === 0) return (
+    <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+      <Tag size={36} className="mb-3 text-gray-300" />
+      <p className="text-sm">Sin descuentos seleccionados</p>
+    </div>
+  );
+
+  const DAY_LABELS: Record<number, string> = {
+    1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb', 7: 'Dom',
+  };
+
+  return (
+    <div className="space-y-3">
+      {discounts.map((d) => (
+        <div key={d.id} className="border border-gray-200 rounded-lg px-4 py-3 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Tag size={15} className="text-emerald-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900">{d.brandName}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {d.bankName && <span>{d.bankName} · </span>}
+              {d.cardProductName && <span>{d.cardProductName}</span>}
+              {d.fuelTypeName && <span> · {d.fuelTypeName}</span>}
+            </p>
+            {d.description && (
+              <p className="text-xs text-gray-400 mt-0.5 truncate">{d.description}</p>
+            )}
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="text-sm font-semibold text-emerald-600">
+              {d.discountType === 'PERCENTAGE'
+                ? `${d.discountValue}%`
+                : d.discountType === 'FIXED_PER_LITER'
+                ? `$${d.discountValue}/L`
+                : fmtClp(d.discountValue)}
+            </p>
+            {d.dayOfWeek && (
+              <p className="text-xs text-gray-400">{DAY_LABELS[d.dayOfWeek] ?? `Día ${d.dayOfWeek}`}</p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main drawer ───────────────────────────────────────────────────────────────
 
 interface Props {
@@ -171,9 +235,10 @@ export function UserDetailDrawer({ user, onClose }: Props) {
   const name = fullName(user);
 
   const tabs: { id: Tab; label: string; Icon: typeof User }[] = [
-    { id: 'datos',     label: 'Datos',     Icon: User  },
-    { id: 'vehiculos', label: 'Vehículos', Icon: Car   },
-    { id: 'cargas',    label: 'Cargas',    Icon: Fuel  },
+    { id: 'datos',      label: 'Datos',      Icon: User },
+    { id: 'vehiculos',  label: 'Vehículos',  Icon: Car  },
+    { id: 'cargas',     label: 'Cargas',     Icon: Fuel },
+    { id: 'descuentos', label: 'Descuentos', Icon: Tag  },
   ];
 
   return (
@@ -220,9 +285,10 @@ export function UserDetailDrawer({ user, onClose }: Props) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {tab === 'datos'     && <DatosTab     user={user} />}
-          {tab === 'vehiculos' && <VehiculosTab userId={user.id} />}
-          {tab === 'cargas'    && <CargasTab    userId={user.id} />}
+          {tab === 'datos'      && <DatosTab      user={user} />}
+          {tab === 'vehiculos'  && <VehiculosTab  userId={user.id} />}
+          {tab === 'cargas'     && <CargasTab     userId={user.id} />}
+          {tab === 'descuentos' && <DescuentosTab userId={user.id} />}
         </div>
       </div>
     </>

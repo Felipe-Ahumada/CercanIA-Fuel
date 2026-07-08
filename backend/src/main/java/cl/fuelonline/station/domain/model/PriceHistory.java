@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
     indexes = {
         @Index(name = "idx_ph_fuel",          columnList = "fuel_type_id"),
         @Index(name = "idx_ph_api_timestamp", columnList = "api_timestamp"),
-        @Index(name = "idx_ph_recent",        columnList = "station_id, fuel_type_id, api_timestamp")
+        @Index(name = "idx_ph_current",       columnList = "station_id, fuel_type_id, attention_type, api_timestamp")
     }
 )
 @Getter

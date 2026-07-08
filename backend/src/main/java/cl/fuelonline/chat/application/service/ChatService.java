@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -80,19 +82,41 @@ public class ChatService {
             }
         }
 
-        // Recent transactions context
-        transactionService.listByUser(userId, PageRequest.of(0, 5))
-                .getContent()
-                .forEach(tx -> {
-                    if (sb.indexOf("== Últimas cargas ==") < 0) {
-                        sb.append("\n== Últimas cargas ==\n");
-                    }
-                    BigDecimal saved = tx.discountAmount() != null ? tx.discountAmount() : BigDecimal.ZERO;
-                    String brand = tx.stationBrand() != null ? tx.stationBrand() : tx.stationName();
-                    sb.append(String.format("- %s en %s: $%.0f (ahorro $%.0f)%n",
-                            tx.fuelTypeName() != null ? tx.fuelTypeName() : "combustible",
-                            brand, tx.grossAmount(), saved));
-                });
+        // Monthly summary context
+        LocalDate today      = LocalDate.now();
+        LocalDate monthStart = today.withDayOfMonth(1);
+        var summary = transactionService.expenseSummary(userId, monthStart, today);
+        if (summary.fillCount() > 0) {
+            sb.append(String.format("""
+                    \n== Resumen del mes actual (%s) ==
+                    - Cargas realizadas: %d
+                    - Total gastado: $%.0f
+                    - Total ahorrado con descuentos: $%.0f
+                    - Litros cargados: %.1f L
+                    """,
+                    today.format(DateTimeFormatter.ofPattern("MMMM yyyy", new java.util.Locale("es", "CL"))),
+                    summary.fillCount(),
+                    summary.totalSpent(),
+                    summary.totalSaved(),
+                    summary.totalLiters()));
+        }
+
+        // Recent transactions context (with dates)
+        var recentTxs = transactionService.listByUser(userId, PageRequest.of(0, 10)).getContent();
+        if (!recentTxs.isEmpty()) {
+            sb.append("\n== Últimas cargas ==\n");
+            recentTxs.forEach(tx -> {
+                BigDecimal saved = tx.discountAmount() != null ? tx.discountAmount() : BigDecimal.ZERO;
+                String brand = tx.stationBrand() != null ? tx.stationBrand() : tx.stationName();
+                String date  = tx.transactionDate() != null
+                        ? tx.transactionDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        : "fecha desconocida";
+                sb.append(String.format("- [%s] %s en %s: $%.0f (ahorro $%.0f)%n",
+                        date,
+                        tx.fuelTypeName() != null ? tx.fuelTypeName() : "combustible",
+                        brand, tx.grossAmount(), saved));
+            });
+        }
 
         return sb.toString();
     }

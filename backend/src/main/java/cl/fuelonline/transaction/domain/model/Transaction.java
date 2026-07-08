@@ -48,8 +48,8 @@ public class Transaction extends BaseAuditEntity {
                 foreignKey = @ForeignKey(name = "fk_tx_user"))
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vehicle_id",
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vehicle_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_tx_vehicle"))
     private Vehicle vehicle;
 

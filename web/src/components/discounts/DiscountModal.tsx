@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Modal } from '../common/Modal';
 import { discountsApi } from '../../api/discounts';
@@ -71,6 +71,21 @@ export function DiscountModal({ discount, onClose, onSaved, brands }: Props) {
   const [errors, setErrors]             = useState<Errors>({});
   const [saving, setSaving]             = useState(false);
 
+  // Inline bank creation
+  const [newBankMode, setNewBankMode]   = useState(false);
+  const [newBankName, setNewBankName]   = useState('');
+  const [newBankCode, setNewBankCode]   = useState('');
+  const [creatingBank, setCreatingBank] = useState(false);
+
+  // Brands section
+  const [showMoreBrands, setShowMoreBrands] = useState(false);
+
+  // Inline card product creation
+  const [newCardMode, setNewCardMode]   = useState(false);
+  const [newCardName, setNewCardName]   = useState('');
+  const [newCardType, setNewCardType]   = useState('CREDIT');
+  const [creatingCard, setCreatingCard] = useState(false);
+
   useEffect(() => {
     banksApi.list().then((p) => setBanks(p.content)).catch(() => {});
   }, []);
@@ -94,6 +109,41 @@ export function DiscountModal({ discount, onClose, onSaved, brands }: Props) {
       if (found) setForm((f) => ({ ...f, bankId: String(found.id) }));
     }
   }, [banks, discount]);
+
+  const handleCreateBank = async () => {
+    if (!newBankName.trim() || !newBankCode.trim()) return;
+    setCreatingBank(true);
+    try {
+      const created = await banksApi.create({ name: newBankName.trim(), code: newBankCode.trim().toUpperCase() });
+      setBanks((prev) => [...prev, created]);
+      setForm((f) => ({ ...f, bankId: String(created.id) }));
+      setNewBankMode(false);
+      setNewBankName('');
+      setNewBankCode('');
+      toast.success(`Banco "${created.name}" creado`);
+    } catch {
+      toast.error('Error al crear el banco');
+    } finally {
+      setCreatingBank(false);
+    }
+  };
+
+  const handleCreateCard = async () => {
+    if (!newCardName.trim() || !form.bankId) return;
+    setCreatingCard(true);
+    try {
+      const created = await cardProductsApi.create({ bankId: Number(form.bankId), name: newCardName.trim(), cardType: newCardType });
+      setCardProducts((prev) => [...prev, created]);
+      setForm((f) => ({ ...f, cardProductId: String(created.id) }));
+      setNewCardMode(false);
+      setNewCardName('');
+      toast.success(`Tarjeta "${created.name}" creada`);
+    } catch {
+      toast.error('Error al crear la tarjeta');
+    } finally {
+      setCreatingCard(false);
+    }
+  };
 
   const set =
     (field: keyof FormState) =>
@@ -207,75 +257,231 @@ export function DiscountModal({ discount, onClose, onSaved, brands }: Props) {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* ── Bank + Card ── */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+        {/* ── Bank ── */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-gray-700">
               Banco {!isEdit && <span className="text-red-500">*</span>}
             </label>
-            <select
-              value={form.bankId}
-              onChange={set('bankId')}
-              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.bankId ? 'border-red-400' : 'border-gray-300'}`}
-            >
-              <option value="">Seleccionar banco</option>
-              {banks.map((b) => (
-                <option key={b.id} value={String(b.id)}>{b.name}</option>
-              ))}
-            </select>
-            {errors.bankId && <p className="text-red-500 text-xs mt-1">{errors.bankId}</p>}
+            {!isEdit && !newBankMode && (
+              <button
+                type="button"
+                onClick={() => setNewBankMode(true)}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+              >
+                <Plus size={11} /> Nuevo banco
+              </button>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tarjeta</label>
+          {newBankMode ? (
+            <div className="border border-blue-200 rounded-lg p-3 bg-blue-50 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Nombre del banco"
+                  value={newBankName}
+                  onChange={(e) => setNewBankName(e.target.value)}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Código (ej. BCI)"
+                  value={newBankCode}
+                  onChange={(e) => setNewBankCode(e.target.value)}
+                  maxLength={20}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleCreateBank}
+                  disabled={creatingBank || !newBankName.trim() || !newBankCode.trim()}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+                >
+                  {creatingBank ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+                  Crear banco
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setNewBankMode(false); setNewBankName(''); setNewBankCode(''); }}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <X size={11} /> Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <select
+                value={form.bankId}
+                onChange={set('bankId')}
+                disabled={isEdit}
+                className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500 ${errors.bankId ? 'border-red-400' : 'border-gray-300'}`}
+              >
+                <option value="">Seleccionar banco</option>
+                {banks.map((b) => (
+                  <option key={b.id} value={String(b.id)}>{b.name}</option>
+                ))}
+              </select>
+              {errors.bankId && <p className="text-red-500 text-xs mt-1">{errors.bankId}</p>}
+            </>
+          )}
+        </div>
+
+        {/* ── Card product ── */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-gray-700">Tarjeta</label>
+            {!newCardMode && form.bankId && (
+              <button
+                type="button"
+                onClick={() => setNewCardMode(true)}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+              >
+                <Plus size={11} /> Nueva tarjeta
+              </button>
+            )}
+          </div>
+
+          {newCardMode ? (
+            <div className="border border-blue-200 rounded-lg p-3 bg-blue-50 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Nombre de la tarjeta"
+                  value={newCardName}
+                  onChange={(e) => setNewCardName(e.target.value)}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={newCardType}
+                  onChange={(e) => setNewCardType(e.target.value)}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="CREDIT">Crédito</option>
+                  <option value="DEBIT">Débito</option>
+                  <option value="PREPAID">Prepago</option>
+                  <option value="APP">App</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleCreateCard}
+                  disabled={creatingCard || !newCardName.trim()}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+                >
+                  {creatingCard ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+                  Crear tarjeta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setNewCardMode(false); setNewCardName(''); }}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <X size={11} /> Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
             <select
               value={form.cardProductId}
               onChange={set('cardProductId')}
               disabled={!form.bankId}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
             >
-              <option value="">{form.bankId ? 'Todas las tarjetas' : 'Selecciona banco'}</option>
+              <option value="">{form.bankId ? 'Todas las tarjetas' : 'Selecciona banco primero'}</option>
               {cardProducts.map((c) => (
                 <option key={c.id} value={String(c.id)}>{c.name}</option>
               ))}
             </select>
-          </div>
+          )}
         </div>
 
         {/* ── Bencineras (create: multi-select, edit: read-only) ── */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Bencineras <span className="text-red-500">*</span>
-            {!isEdit && (
-              <span className="ml-1.5 text-xs font-normal text-gray-400">
-                — selecciona una o más
-              </span>
-            )}
-          </label>
+        {(() => {
+          const RECOMMENDED = ['copec', 'aramco', 'shell'];
+          const recommended = brands.filter((b) => RECOMMENDED.includes(b.name.toLowerCase()));
+          const others      = brands.filter((b) => !RECOMMENDED.includes(b.name.toLowerCase()));
+          return (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Bencineras <span className="text-red-500">*</span>
+                {!isEdit && (
+                  <span className="ml-1.5 text-xs font-normal text-gray-400">— selecciona una o más</span>
+                )}
+              </label>
 
-          {isEdit ? (
-            <div className="px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-              {brands.find((b) => b.id === discount!.brandId)?.name ?? '—'}
-            </div>
-          ) : (
-            <>
-              <div className={`border rounded-lg p-3 grid grid-cols-2 gap-2 ${errors.brandIds ? 'border-red-400' : 'border-gray-300'}`}>
-                {brands.map((b) => (
-                  <label key={b.id} className="flex items-center gap-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={form.brandIds.includes(b.id)}
-                      onChange={() => toggleBrand(b.id)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700 group-hover:text-gray-900">{b.name}</span>
-                  </label>
-                ))}
-              </div>
+              {isEdit ? (
+                <div className="px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
+                  {brands.find((b) => b.id === discount!.brandId)?.name ?? '—'}
+                </div>
+              ) : (
+                <div className={`border rounded-lg p-3 space-y-3 ${errors.brandIds ? 'border-red-400' : 'border-gray-200'}`}>
+
+                  {/* Recomendadas siempre visibles */}
+                  <div className="flex flex-wrap gap-2">
+                    {recommended.map((b) => {
+                      const active = form.brandIds.includes(b.id);
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => toggleBrand(b.id)}
+                          className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                            active
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-600'
+                          }`}
+                        >
+                          {b.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Otras bencineras (colapsable) */}
+                  {others.length > 0 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setShowMoreBrands((v) => !v)}
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                      >
+                        <Plus size={11} className={`transition-transform ${showMoreBrands ? 'rotate-45' : ''}`} />
+                        {showMoreBrands ? 'Ocultar otras bencineras' : 'Agregar otra bencinera'}
+                        {others.some((b) => form.brandIds.includes(b.id)) && (
+                          <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded-full font-medium">
+                            {others.filter((b) => form.brandIds.includes(b.id)).length} sel.
+                          </span>
+                        )}
+                      </button>
+
+                      {showMoreBrands && (
+                        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-100">
+                          {others.map((b) => (
+                            <label key={b.id} className="flex items-center gap-2 cursor-pointer group">
+                              <input
+                                type="checkbox"
+                                checked={form.brandIds.includes(b.id)}
+                                onChange={() => toggleBrand(b.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700 group-hover:text-gray-900">{b.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               {errors.brandIds && <p className="text-red-500 text-xs mt-1">{errors.brandIds}</p>}
-            </>
-          )}
-        </div>
+            </div>
+          );
+        })()}
 
         {/* ── Discount type + value ── */}
         <div className="grid grid-cols-2 gap-3">

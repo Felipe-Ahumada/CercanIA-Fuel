@@ -17,16 +17,26 @@ function App() {
       return '';
     }
   });
-  const [section, setSection] = useState<ActiveSection>('analytics');
+  const VALID_SECTIONS: ActiveSection[] = ['analytics', 'users', 'discounts'];
+  const [section, setSection] = useState<ActiveSection>(() => {
+    const saved = localStorage.getItem('section') as ActiveSection;
+    return VALID_SECTIONS.includes(saved) ? saved : 'analytics';
+  });
 
   const handleLogin = (t: string, email: string) => {
     setToken(t);
     setUserEmail(email);
   };
 
+  const handleSectionChange = (s: ActiveSection) => {
+    localStorage.setItem('section', s);
+    setSection(s);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('section');
     setToken(null);
     setUserEmail('');
   };
@@ -45,7 +55,7 @@ function App() {
       <Toaster position="top-right" richColors duration={3000} />
       <Layout
         active={section}
-        onChange={setSection}
+        onChange={handleSectionChange}
         onLogout={handleLogout}
         userEmail={userEmail}
       >

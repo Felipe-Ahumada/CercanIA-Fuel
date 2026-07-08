@@ -3,7 +3,10 @@ package cl.fuelonline.user.application.service;
 import cl.fuelonline.finance.application.dto.DiscountResponse;
 import cl.fuelonline.finance.domain.model.Discount;
 import cl.fuelonline.finance.domain.repository.DiscountRepository;
+import cl.fuelonline.shared.exception.ResourceNotFoundException;
+import cl.fuelonline.user.domain.model.User;
 import cl.fuelonline.user.domain.model.UserSelectedDiscount;
+import cl.fuelonline.user.domain.repository.UserRepository;
 import cl.fuelonline.user.domain.repository.UserSelectedDiscountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ public class UserDiscountProfileService {
 
     private final UserSelectedDiscountRepository repository;
     private final DiscountRepository discountRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<DiscountResponse> getSelected(UUID userId) {
@@ -34,9 +38,12 @@ public class UserDiscountProfileService {
 
         if (discountIds == null || discountIds.isEmpty()) return List.of();
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
         List<Discount> discounts = discountRepository.findAllById(discountIds);
         List<UserSelectedDiscount> entities = discounts.stream()
-                .map(d -> UserSelectedDiscount.of(userId, d))
+                .map(d -> UserSelectedDiscount.of(userId, d, user))
                 .toList();
         repository.saveAll(entities);
 

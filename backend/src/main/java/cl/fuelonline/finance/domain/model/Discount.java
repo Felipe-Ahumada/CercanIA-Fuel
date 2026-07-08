@@ -5,6 +5,7 @@ import cl.fuelonline.catalog.domain.model.Brand;
 import cl.fuelonline.catalog.domain.model.FuelType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Check;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Check(constraints = "day_of_week IS NULL OR (day_of_week BETWEEN 1 AND 7)")
 public class Discount extends BaseCreatableEntity {
 
     @Id

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/glass_tokens.dart';
@@ -239,9 +240,19 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
                           textCapitalization: TextCapitalization.characters,
                           style: const TextStyle(color: GlassTokens.text0),
                           decoration: _fieldDecoration('Patente', hint: 'ej: ABCD12'),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                            LengthLimitingTextInputFormatter(6),
+                            _UpperCaseTextFormatter(),
+                          ],
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return 'Ingresa la patente';
-                            if (v.trim().length > 10) return 'Patente demasiado larga';
+                            final plate = v.trim().toUpperCase();
+                            final isValid =
+                                RegExp(r'^[A-Z]{4}[0-9]{2}$').hasMatch(plate) || // nuevo: ABCD12
+                                RegExp(r'^[A-Z]{2}[0-9]{4}$').hasMatch(plate) || // antiguo: AB1234
+                                RegExp(r'^[A-Z]{2}[0-9]{2}[A-Z]$').hasMatch(plate); // moto: AB12C
+                            if (!isValid) return 'Formato inválido (ej: ABCD12, AB1234)';
                             return null;
                           },
                         ),
@@ -276,5 +287,12 @@ class _AddVehicleBottomSheetState extends State<AddVehicleBottomSheet> {
         );
       },
     );
+  }
+}
+
+class _UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return newValue.copyWith(text: newValue.text.toUpperCase());
   }
 }

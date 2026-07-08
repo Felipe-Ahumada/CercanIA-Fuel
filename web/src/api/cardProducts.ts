@@ -8,4 +8,7 @@ export const cardProductsApi = {
         params: bankId ? { bankId } : {},
       })
       .then((r) => r.data),
+
+  create: (data: { bankId: number; name: string; cardType: string }) =>
+    apiClient.post<CardProductResponse>('/api/v1/tarjetas-producto', data).then((r) => r.data),
 };

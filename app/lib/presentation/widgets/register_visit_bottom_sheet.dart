@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
@@ -265,6 +266,10 @@ class _RegisterVisitContentState extends State<_RegisterVisitContent> {
                               hintText: 'ej: 40.5',
                               keyboardType: const TextInputType.numberWithOptions(
                                   decimal: true),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                              ],
+                              errorText: state.litersError,
                               onChanged: (v) {
                                 final l = double.tryParse(v) ?? 0;
                                 context
@@ -282,10 +287,12 @@ class _RegisterVisitContentState extends State<_RegisterVisitContent> {
                               controller: _totalPaidCtrl,
                               hintText: 'ej: 36.000',
                               keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              errorText: state.amountError,
                               onChanged: (v) {
-                                final p = double.tryParse(
-                                        v.replaceAll('.', '').replaceAll(',', '.')) ??
-                                    0;
+                                final p = double.tryParse(v) ?? 0;
                                 context
                                     .read<RegisterVisitCubit>()
                                     .updateTotalPaid(p);

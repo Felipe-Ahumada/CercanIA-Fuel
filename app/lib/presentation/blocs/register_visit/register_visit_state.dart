@@ -115,7 +115,30 @@ class RegisterVisitReady extends RegisterVisitState {
       totalPaid > 0 &&
       priceDelta > _discrepancyThreshold;
 
-  bool get canSubmit => liters > 0 && totalPaid > 0;
+  static const double minLiters   = 0.5;
+  static const double maxLiters   = 200.0;
+  static const double minAmount   = 500.0;
+  static const double maxAmount   = 300000.0;
+
+  String? get litersError {
+    if (liters <= 0) return null;
+    if (liters < minLiters) return 'Mínimo $minLiters L';
+    if (liters > maxLiters) return 'Máximo ${maxLiters.toInt()} L';
+    return null;
+  }
+
+  String? get amountError {
+    if (totalPaid <= 0) return null;
+    if (totalPaid < minAmount) return 'Mínimo \$${minAmount.toInt()}';
+    if (totalPaid > maxAmount) return 'Máximo \$${maxAmount.toInt()}';
+    return null;
+  }
+
+  bool get canSubmit =>
+      liters >= minLiters &&
+      liters <= maxLiters &&
+      totalPaid >= minAmount &&
+      totalPaid <= maxAmount;
 
   List<Fuel> get availableFuels =>
       station.prices.keys.toList()..sort((a, b) => a.index.compareTo(b.index));

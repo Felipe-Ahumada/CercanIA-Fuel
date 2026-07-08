@@ -37,19 +37,23 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     final prefs = await SharedPreferences.getInstance();
     final savedActiveId = prefs.getString(_kActiveVehicle);
 
-    final vehiclesResult = await getVehiclesUseCase();
-    final brandsResult   = await getBrandsUseCase();
-    final fuelResult     = await getFuelTypesUseCase();
+    final vehiclesFuture = getVehiclesUseCase();
+    final brandsFuture   = getBrandsUseCase();
+    final fuelFuture     = getFuelTypesUseCase();
+
+    final vehiclesResult = await vehiclesFuture;
+    final brandsResult   = await brandsFuture;
+    final fuelResult     = await fuelFuture;
+
+    final brands = brandsResult.getOrElse(() => <VehicleBrandEntity>[]);
+    final fuels  = fuelResult.getOrElse(() => <FuelTypeEntity>[]);
 
     if (vehiclesResult.isLeft()) {
-      emit(VehicleError(vehiclesResult.fold((l) => l.message, (_) => '')));
+      emit(VehicleLoaded(vehicles: const [], brands: brands, fuelTypes: fuels));
       return;
     }
 
     final vehicles = vehiclesResult.getOrElse(() => <VehicleEntity>[]);
-    final brands   = brandsResult.getOrElse(() => <VehicleBrandEntity>[]);
-    final fuels    = fuelResult.getOrElse(() => <FuelTypeEntity>[]);
-
     final activeId = savedActiveId != null && vehicles.any((v) => v.id == savedActiveId)
         ? savedActiveId
         : vehicles.isNotEmpty

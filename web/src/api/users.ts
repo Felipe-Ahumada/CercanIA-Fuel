@@ -1,8 +1,8 @@
 import apiClient from './client';
-import type { Page, UserResponse, VehicleResponse, TransactionResponse } from '../types';
+import type { Page, UserResponse, VehicleResponse, TransactionResponse, DiscountResponse } from '../types';
 
 export const usersApi = {
-  list: (page = 0, size = 200) =>
+  list: (page = 0, size = 1000) =>
     apiClient
       .get<Page<UserResponse>>('/api/v1/usuarios', { params: { page, size } })
       .then((r) => r.data),
@@ -23,4 +23,7 @@ export const usersApi = {
     apiClient.get<Page<TransactionResponse>>('/api/v1/transacciones', {
       params: { userId: id, page, size },
     }).then((r) => r.data),
+
+  discounts: (id: string) =>
+    apiClient.get<DiscountResponse[]>(`/api/v1/usuarios/${id}/descuentos`).then((r) => r.data),
 };

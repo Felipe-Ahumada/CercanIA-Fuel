@@ -48,7 +48,7 @@ public class Vehicle extends BaseAuditEntity {
                 foreignKey = @ForeignKey(name = "fk_vehicle_fuel"))
     private FuelType fuelType;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 10, unique = true)
     private String licensePlate;
 
     @Column(nullable = false)
